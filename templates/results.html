@@ -1,24 +1,79 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistical Model Suggestion Results</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='results.css') }}">
-</head>
-<body>
-    <div class="container">
-        <h1>Suggested Statistical Model</h1>
+{% extends "base.html" %}
 
-        <div class="result">
-            <h2>Recommended Model: {{ recommended_model }}</h2>
-            <p>{{ explanation }}</p>
-            <br>
-            <h2>Competing Models:</h2>
-<p>{{ ", ".join(competing_models) }}</p>
+{% block title %}Model Recommendation Results{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Model Recommendation</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Research Question -->
+                    <div class="mb-4">
+                        <h5>Research Question</h5>
+                        <p>{{ research_question }}</p>
+                    </div>
+
+                    <!-- Recommended Model -->
+                    <div class="mb-4">
+                        <h5>Recommended Model: {{ recommended_model }}</h5>
+                        <div class="alert alert-info">
+                            {{ explanation | safe }}
+                        </div>
+                        <a href="{{ url_for('model_details', model_name=recommended_model) }}" class="btn btn-primary">
+                            View Model Details
+                        </a>
+                    </div>
+
+                    <!-- Alternative Models -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Alternative Models</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% set count = namespace(value=0) %}
+                                {% for model_name, model_info in MODEL_DATABASE.items() %}
+                                    {% if model_name != recommended_model and 
+                                       (analysis_goal in model_info.analysis_goals) and
+                                       (dependent_variable_type in model_info.dependent_variable) %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card h-100">
+                                                <div class="card-body">
+                                                    <h6>{{ model_name }}</h6>
+                                                    <p class="small">{{ model_info.description }}</p>
+                                                    <a href="{{ url_for('model_details', model_name=model_name) }}" class="btn btn-sm btn-outline-secondary">
+                                                        View Details
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% set count.value = count.value + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if count.value == 0 %}
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            No alternative models found for your specific analysis requirements. The recommended model is the best fit.
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="/" class="btn btn-primary">Start New Analysis</a>
+                        <a href="/history" class="btn btn-secondary">View History</a>
+                        <a href="/models" class="btn btn-info">Browse All Models</a>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <a href="/" class="btn">Go Back</a>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

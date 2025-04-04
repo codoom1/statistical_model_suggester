@@ -1,56 +1,149 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistical Model Suggester</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <div class="container">
-        <h1>Statistical Model Suggester</h1>
-        <form action="/submit" method="post">
-            <label for="dataset_type">Dataset Type:</label>
-            <select name="dataset_type" required>
-                <option value="numerical">Numerical</option>
-                <option value="categorical">Categorical</option>
-                <option value="mixed">Mixed (Numerical + Categorical)</option>
-            </select>
+{% extends "base.html" %}
 
-            <label for="size">Sample Size:</label>
-            <input type="number" name="size" required>
+{% block title %}Model Selection Form{% endblock %}
 
-            <label for="missing_data">Missing Data Handling:</label>
-            <select name="missing_data">
-                <option value="none">None</option>
-                <option value="some">Some</option>
-                <option value="many">Many</option>
-            </select>
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0"><i class="bi bi-graph-up"></i> Model Selection Form</h2>
+                    <p class="mb-0">Fill in your data characteristics to get a model recommendation</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('results') }}" class="needs-validation" novalidate>
+                        <div class="mb-4">
+                            <label for="research_question" class="form-label">Research Question</label>
+                            <input type="text" class="form-control" id="research_question" name="research_question" 
+                                   placeholder="e.g., How does age affect blood pressure?" required>
+                            <div class="form-text">Describe your research question in plain language</div>
+                        </div>
 
-            <label for="research_question">Research Question:</label>
-            <textarea name="research_question" required></textarea>
+                        <div class="mb-4">
+                            <label for="analysis_goal" class="form-label">Analysis Goal</label>
+                            <select class="form-select" id="analysis_goal" name="analysis_goal" required>
+                                <option value="">Select an analysis goal</option>
+                                <option value="predict">Prediction</option>
+                                <option value="classify">Classification</option>
+                                <option value="explore">Exploration</option>
+                                <option value="hypothesis_test">Hypothesis Testing</option>
+                                <option value="non_parametric">Non-parametric Analysis</option>
+                                <option value="predict_count">Count Data Prediction</option>
+                                <option value="time_series">Time Series Analysis</option>
+                            </select>
+                            <div class="form-text">What is the main goal of your analysis?</div>
+                        </div>
 
-            <label for="analysis_goal">Analysis Goal:</label>
-            <select name="analysis_goal" required>
-                <option value="predict">Predict</option>
-                <option value="classify">Classify</option>
-                <option value="explore">Explore</option>
-            </select>
+                        <div class="mb-4">
+                            <label for="dependent_variable" class="form-label">Dependent Variable Type</label>
+                            <select class="form-select" id="dependent_variable" name="dependent_variable" required>
+                                <option value="">Select dependent variable type</option>
+                                <option value="continuous">Continuous</option>
+                                <option value="binary">Binary</option>
+                                <option value="categorical">Categorical</option>
+                                <option value="count">Count</option>
+                                <option value="ordinal">Ordinal</option>
+                                <option value="time_to_event">Time-to-Event</option>
+                            </select>
+                            <div class="form-text">What type of variable are you trying to predict or explain?</div>
+                        </div>
 
-            <label for="dependent_variable">Dependent Variable Type:</label>
-            <select name="dependent_variable" required>
-                <option value="numerical">Numerical</option>
-                <option value="categorical">Categorical</option>
-            </select>
+                        <div class="mb-4">
+                            <label class="form-label">Independent Variable Types</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="independent_variables" value="continuous" id="iv_continuous">
+                                <label class="form-check-label" for="iv_continuous">Continuous</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="independent_variables" value="categorical" id="iv_categorical">
+                                <label class="form-check-label" for="iv_categorical">Categorical</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="independent_variables" value="binary" id="iv_binary">
+                                <label class="form-check-label" for="iv_binary">Binary</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="independent_variables" value="count" id="iv_count">
+                                <label class="form-check-label" for="iv_count">Count</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="independent_variables" value="ordinal" id="iv_ordinal">
+                                <label class="form-check-label" for="iv_ordinal">Ordinal</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="independent_variables" value="time" id="iv_time">
+                                <label class="form-check-label" for="iv_time">Time</label>
+                            </div>
+                            <div class="form-text">Select all types of independent variables in your analysis</div>
+                        </div>
 
-            <label for="independent_variables">Independent Variables (select multiple if needed):</label>
-            <select name="independent_variables" multiple required>
-                <option value="numerical">Numerical</option>
-                <option value="categorical">Categorical</option>
-            </select>
+                        <div class="mb-4">
+                            <label for="sample_size" class="form-label">Sample Size</label>
+                            <input type="number" class="form-control" id="sample_size" name="sample_size" 
+                                   min="1" required>
+                            <div class="form-text">Enter the number of observations in your dataset</div>
+                        </div>
 
-            <button type="submit">Suggest Model</button>
-        </form>
+                        <div class="mb-4">
+                            <label for="missing_data" class="form-label">Missing Data Pattern</label>
+                            <select class="form-select" id="missing_data" name="missing_data" required>
+                                <option value="">Select missing data pattern</option>
+                                <option value="none">No Missing Data</option>
+                                <option value="MCAR">Missing Completely at Random (MCAR)</option>
+                                <option value="MAR">Missing at Random (MAR)</option>
+                                <option value="MNAR">Missing Not at Random (MNAR)</option>
+                            </select>
+                            <div class="form-text">How is missing data distributed in your dataset?</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="data_distribution" class="form-label">Data Distribution</label>
+                            <select class="form-select" id="data_distribution" name="data_distribution" required>
+                                <option value="">Select data distribution</option>
+                                <option value="normal">Normal</option>
+                                <option value="non_normal">Non-normal</option>
+                                <option value="unknown">Unknown</option>
+                            </select>
+                            <div class="form-text">What is the distribution of your dependent variable?</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="relationship_type" class="form-label">Expected Relationship</label>
+                            <select class="form-select" id="relationship_type" name="relationship_type" required>
+                                <option value="">Select expected relationship</option>
+                                <option value="linear">Linear</option>
+                                <option value="non_linear">Non-linear</option>
+                                <option value="unknown">Unknown</option>
+                            </select>
+                            <div class="form-text">What type of relationship do you expect between variables?</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-graph-up-arrow"></i> Get Model Recommendation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-</body>
-</html>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+});
+</script>
+{% endblock %}

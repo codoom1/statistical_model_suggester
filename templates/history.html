@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .history-card { margin-bottom: 20px; }
+        .timestamp { color: #6c757d; font-size: 0.9em; }
+        .model-badge { font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Analysis History</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if history %}
+                            <div class="list-group">
+                                {% for entry in history %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">{{ entry.research_question }}</h5>
+                                        <small class="timestamp">{{ entry.timestamp }}</small>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="badge bg-info model-badge">Model: {{ entry.recommended_model }}</span>
+                                        <span class="badge bg-secondary model-badge">Goal: {{ entry.analysis_goal }}</span>
+                                        <span class="badge bg-secondary model-badge">Dependent: {{ entry.dependent_variable }}</span>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><strong>Independent Variables:</strong></p>
+                                            <ul class="list-unstyled">
+                                                {% for var in entry.independent_variables %}
+                                                <li>{{ var }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><strong>Data Characteristics:</strong></p>
+                                            <ul class="list-unstyled">
+                                                <li>Sample Size: {{ entry.sample_size }}</li>
+                                                <li>Missing Data: {{ entry.missing_data }}</li>
+                                                <li>Distribution: {{ entry.data_distribution }}</li>
+                                                <li>Relationship: {{ entry.relationship_type }}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="/results/{{ loop.index0 }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                No analysis history found. Start a new analysis to see your history here.
+                            </div>
+                        {% endif %}
+                        
+                        <div class="text-center mt-4">
+                            <a href="/" class="btn btn-primary">Start New Analysis</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

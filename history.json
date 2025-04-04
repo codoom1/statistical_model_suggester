@@ -1,0 +1,134 @@
+[
+  {
+    "timestamp": "2025-04-04 17:11:52",
+    "research_question": "Are there difference between and female blood presure?",
+    "recommended_model": "T-Test",
+    "explanation": "\n    Based on your data characteristics, a T-Test is recommended because:\n    \n    1. It is suitable for hypothesis_test analysis with continuous dependent variables\n    2. It can handle binary independent variables\n    3. It works well with medium sample sizes\n    4. It can handle none missing data patterns\n    5. It is appropriate for unknown data distribution\n    6. It can model unknown relationships\n    \n    Implementation notes:\n    - Statistical test for comparing means between two groups.\n    - Consider preprocessing steps for binary variables\n    - Check assumptions specific to T-Test\n    "
+  },
+  {
+    "timestamp": "2025-04-04 17:24:36",
+    "research_question": "Are there difference between and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "binary",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": 500,
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "unknown",
+    "recommended_model": "Logistic Regression"
+  },
+  {
+    "timestamp": "2025-04-04 17:27:36",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": 500,
+    "missing_data": "none",
+    "data_distribution": "non_normal",
+    "relationship_type": "unknown",
+    "recommended_model": "Mann-Whitney U Test"
+  },
+  {
+    "timestamp": "2025-04-04 17:34:13",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": 50,
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-04 17:40:03",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "30",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-04 17:42:21",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "30",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-04 17:43:18",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "30",
+    "missing_data": "none",
+    "data_distribution": "non_normal",
+    "relationship_type": "unknown",
+    "recommended_model": "Mann-Whitney U Test"
+  },
+  {
+    "timestamp": "2025-04-04 17:44:13",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "300",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-04 17:45:07",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "explore",
+    "dependent_variable": "",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "300",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-04 17:47:27",
+    "research_question": "Are there difference between male and female affect peoples opinion?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "50",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  }
+]

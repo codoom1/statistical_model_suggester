@@ -1,0 +1,365 @@
+{
+    "Linear Regression": {
+        "description": "A linear approach to modeling the relationship between a dependent variable and one or more independent variables.",
+        "use_cases": ["prediction", "exploration", "inference"],
+        "analysis_goals": ["predict", "explore"],
+        "dependent_variable": ["continuous"],
+        "independent_variables": ["continuous", "categorical", "binary"],
+        "sample_size": ["small", "medium", "large"],
+        "missing_data": ["none", "random", "systematic"],
+        "data_distribution": ["normal", "non_normal"],
+        "relationship_type": ["linear"],
+        "implementation": {
+            "python": {
+                "code": "from sklearn.linear_model import LinearRegression\n\nmodel = LinearRegression()\nmodel.fit(X, y)\npredictions = model.predict(X_test)",
+                "documentation": "https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html"
+            },
+            "r": {
+                "code": "model <- lm(y ~ x1 + x2, data=df)\nsummary(model)\npredictions <- predict(model, newdata=test_data)",
+                "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/lm"
+            },
+            "spss": {
+                "code": "REGRESSION\n  /MISSING LISTWISE\n  /STATISTICS COEFF OUTS R ANOVA\n  /CRITERIA=PIN(.05) POUT(.10)\n  /NOORIGIN\n  /DEPENDENT y\n  /METHOD=ENTER x1 x2",
+                "documentation": "https://www.ibm.com/docs/en/spss-statistics/25.0.0?topic=regression-linear"
+            },
+            "sas": {
+                "code": "proc reg data=dataset;\n  model y = x1 x2;\n  run;",
+                "documentation": "https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/statug/statug_reg_syntax.htm"
+            },
+            "stata": {
+                "code": "regress y x1 x2",
+                "documentation": "https://www.stata.com/manuals/rregress.pdf"
+            }
+        }
+    },
+    "Logistic Regression": {
+        "description": "A statistical model that uses a logistic function to model a binary dependent variable.",
+        "use_cases": ["classification", "prediction", "inference"],
+        "analysis_goals": ["predict", "classify"],
+        "dependent_variable": ["binary"],
+        "independent_variables": ["continuous", "categorical", "binary"],
+        "sample_size": ["small", "medium", "large"],
+        "missing_data": ["none", "random", "systematic"],
+        "data_distribution": ["normal", "non_normal"],
+        "relationship_type": ["linear", "non_linear"],
+        "implementation": {
+            "python": {
+                "code": "from sklearn.linear_model import LogisticRegression\n\nmodel = LogisticRegression()\nmodel.fit(X, y)\npredictions = model.predict(X_test)",
+                "documentation": "https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html"
+            },
+            "r": {
+                "code": "model <- glm(y ~ x1 + x2, family=binomial, data=df)\nsummary(model)\npredictions <- predict(model, newdata=test_data, type='response')",
+                "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/glm"
+            },
+            "spss": {
+                "code": "LOGISTIC REGRESSION VARIABLES y\n  /METHOD=ENTER x1 x2\n  /CONTRAST (x1)=Indicator\n  /CONTRAST (x2)=Indicator\n  /PRINT=CI(95)\n  /CRITERIA=PIN(0.05) POUT(0.10) ITERATE(20) CUT(0.5)",
+                "documentation": "https://www.ibm.com/docs/en/spss-statistics/25.0.0?topic=regression-logistic"
+            },
+            "sas": {
+                "code": "proc logistic data=dataset;\n  model y(event='1') = x1 x2;\n  run;",
+                "documentation": "https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/statug/statug_logistic_syntax.htm"
+            },
+            "stata": {
+                "code": "logit y x1 x2",
+                "documentation": "https://www.stata.com/manuals/rlogit.pdf"
+            }
+        }
+    },
+    "Poisson Regression": {
+        "description": "A generalized linear model form of regression analysis used to model count data.",
+        "use_cases": ["prediction", "inference"],
+        "analysis_goals": ["predict"],
+        "dependent_variable": ["count"],
+        "independent_variables": ["continuous", "categorical", "binary"],
+        "sample_size": ["medium", "large"],
+        "missing_data": ["none", "random"],
+        "data_distribution": ["poisson"],
+        "relationship_type": ["linear", "non_linear"],
+        "implementation": {
+            "python": {
+                "code": "from statsmodels.api import GLM\nimport statsmodels.api as sm\n\nmodel = GLM(y, X, family=sm.families.Poisson())\nresults = model.fit()\npredictions = results.predict(X_test)",
+                "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.genmod.generalized_linear_model.GLM.html"
+            },
+            "r": {
+                "code": "model <- glm(y ~ x1 + x2, family=poisson, data=df)\nsummary(model)\npredictions <- predict(model, newdata=test_data, type='response')",
+                "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/glm"
+            },
+            "spss": {
+                "code": "GENLIN y BY x1 x2\n  /MODEL x1 x2 INTERCEPT=YES\n  DISTRIBUTION=POISSON LINK=LOG\n  /CRITERIA SCALE=MLE COVB=MODEL PCONVERGE=1E-006(ABSOLUTE) SINGULAR=1E-012 ANALYSISTYPE=3(WALD) CILEVEL=95 CITYPE=WALD LIKELIHOOD=FULL\n  /MISSING CLASSMISSING=EXCLUDE\n  /PRINT CPS DESCRIPTIVES MODELINFO FIT SUMMARY SOLUTION",
+                "documentation": "https://www.ibm.com/docs/en/spss-statistics/25.0.0?topic=regression-generalized-linear-models"
+            },
+            "sas": {
+                "code": "proc genmod data=dataset;\n  model y = x1 x2 / dist=poisson;\n  run;",
+                "documentation": "https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/statug/statug_genmod_syntax.htm"
+            },
+            "stata": {
+                "code": "poisson y x1 x2",
+                "documentation": "https://www.stata.com/manuals/rpoisson.pdf"
+            }
+        }
+    },
+    "Ordinal Regression": {
+        "description": "A regression model for ordinal dependent variables.",
+        "use_cases": ["prediction", "inference"],
+        "analysis_goals": ["predict"],
+        "dependent_variable": ["ordinal"],
+        "independent_variables": ["continuous", "categorical", "binary"],
+        "sample_size": ["medium", "large"],
+        "missing_data": ["none", "random"],
+        "data_distribution": ["normal", "non_normal"],
+        "relationship_type": ["linear", "non_linear"],
+        "implementation": {
+            "python": {
+                "code": "from statsmodels.miscmodels.ordinal_model import OrderedModel\n\nmodel = OrderedModel(y, X, distr='logit')\nresults = model.fit()\npredictions = results.predict(X_test)",
+                "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.miscmodels.ordinal_model.OrderedModel.html"
+            },
+            "r": {
+                "code": "library(MASS)\nmodel <- polr(y ~ x1 + x2, data=df, Hess=TRUE)\nsummary(model)\npredictions <- predict(model, newdata=test_data, type='probs')",
+                "documentation": "https://www.rdocumentation.org/packages/MASS/versions/7.3-54/topics/polr"
+            },
+            "spss": {
+                "code": "PLUM y WITH x1 x2\n  /CRITERIA=CIN(95) DELTA(0) LCONVERGE(0) MXITER(100) MXSTEP(5) PCONVERGE(1.0E-6) SINGULAR(1.0E-8)\n  /LINK=LOGIT\n  /PRINT=FIT PARAMETER SUMMARY TPARAMETER",
+                "documentation": "https://www.ibm.com/docs/en/spss-statistics/25.0.0?topic=regression-plum"
+            },
+            "sas": {
+                "code": "proc logistic data=dataset;\n  model y = x1 x2 / link=logit;\n  run;",
+                "documentation": "https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/statug/statug_logistic_syntax.htm"
+            },
+            "stata": {
+                "code": "ologit y x1 x2",
+                "documentation": "https://www.stata.com/manuals/rologit.pdf"
+            }
+        }
+    },
+    "Cox Regression": {
+        "description": "A regression model commonly used in medical research for investigating the association between survival time and one or more predictor variables.",
+        "use_cases": ["prediction", "inference"],
+        "analysis_goals": ["predict"],
+        "dependent_variable": ["time_to_event"],
+        "independent_variables": ["continuous", "categorical", "binary"],
+        "sample_size": ["medium", "large"],
+        "missing_data": ["none", "random"],
+        "data_distribution": ["non_normal"],
+        "relationship_type": ["linear", "non_linear"],
+        "implementation": {
+            "python": {
+                "code": "from lifelines import CoxPHFitter\n\nmodel = CoxPHFitter()\nmodel.fit(df, duration_col='time', event_col='event', covariates=['x1', 'x2'])\npredictions = model.predict_survival_function(df_test)",
+                "documentation": "https://lifelines.readthedocs.io/en/latest/fitters/regression/CoxPHFitter.html"
+            },
+            "r": {
+                "code": "library(survival)\nmodel <- coxph(Surv(time, event) ~ x1 + x2, data=df)\nsummary(model)\npredictions <- predict(model, newdata=test_data, type='risk')",
+                "documentation": "https://www.rdocumentation.org/packages/survival/versions/3.2-13/topics/coxph"
+            },
+            "spss": {
+                "code": "COXREG time\n  /STATUS=event(1)\n  /METHOD=ENTER x1 x2\n  /PRINT=CI(95)\n  /CRITERIA=PIN(.05) POUT(.10) ITERATE(20)",
+                "documentation": "https://www.ibm.com/docs/en/spss-statistics/25.0.0?topic=regression-cox"
+            },
+            "sas": {
+                "code": "proc phreg data=dataset;\n  model time*event(0) = x1 x2;\n  run;",
+                "documentation": "https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/statug/statug_phreg_syntax.htm"
+            },
+            "stata": {
+                "code": "stset time, failure(event)\nstcox x1 x2",
+                "documentation": "https://www.stata.com/manuals/ststcox.pdf"
+            }
+        }
+    },
+    "Multinomial Logistic Regression": {
+        "description": "A classification method that generalizes logistic regression to multiclass problems.",
+        "use_cases": ["classification", "prediction"],
+        "analysis_goals": ["classify"],
+        "dependent_variable": ["categorical"],
+        "independent_variables": ["continuous", "categorical", "binary"],
+        "sample_size": ["medium", "large"],
+        "missing_data": ["none", "random"],
+        "data_distribution": ["normal", "non_normal"],
+        "relationship_type": ["linear", "non_linear"],
+        "implementation": {
+            "python": {
+                "code": "from sklearn.linear_model import LogisticRegression\n\nmodel = LogisticRegression(multi_class='multinomial')\nmodel.fit(X, y)\npredictions = model.predict(X_test)",
+                "documentation": "https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html"
+            },
+            "r": {
+                "code": "library(nnet)\nmodel <- multinom(y ~ x1 + x2, data=df)\nsummary(model)\npredictions <- predict(model, newdata=test_data)",
+                "documentation": "https://www.rdocumentation.org/packages/nnet/versions/7.3-16/topics/multinom"
+            },
+            "spss": {
+                "code": "NOMREG y WITH x1 x2\n  /CRITERIA=CIN(95) DELTA(0) MXITER(100) MXSTEP(5) CHKSEP(20) LCONVERGE(0) PCONVERGE(1.0E-6) SINGULAR(1.0E-8)\n  /MODEL\n  /INTERCEPT=INCLUDE\n  /PRINT=PARAMETER SUMMARY LRT CPS STEP MFI",
+                "documentation": "https://www.ibm.com/docs/en/spss-statistics/25.0.0?topic=regression-nomreg"
+            },
+            "sas": {
+                "code": "proc logistic data=dataset;\n  class y;\n  model y = x1 x2 / link=glogit;\n  run;",
+                "documentation": "https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/statug/statug_logistic_syntax.htm"
+            },
+            "stata": {
+                "code": "mlogit y x1 x2",
+                "documentation": "https://www.stata.com/manuals/rmlogit.pdf"
+            }
+        }
+    },
+    "Principal Component Analysis": {
+        "description": "A dimensionality reduction technique that transforms a large set of variables into a smaller one that still contains most of the information in the large set.",
+        "use_cases": ["exploration", "dimensionality reduction"],
+        "analysis_goals": ["explore"],
+        "dependent_variable": [],
+        "independent_variables": ["continuous"],
+        "sample_size": ["medium", "large"],
+        "missing_data": ["none", "random"],
+        "data_distribution": ["normal", "non_normal"],
+        "relationship_type": ["linear"],
+        "implementation": {
+            "python": {
+                "code": "from sklearn.decomposition import PCA\n\npca = PCA(n_components=2)\npca.fit(X)\ntransformed = pca.transform(X)",
+                "documentation": "https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html"
+            },
+            "r": {
+                "code": "pca <- prcomp(df, scale=TRUE)\nsummary(pca)\nplot(pca$x[,1:2])",
+                "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/prcomp"
+            },
+            "spss": {
+                "code": "FACTOR\n  /VARIABLES x1 x2 x3\n  /MISSING LISTWISE\n  /ANALYSIS x1 x2 x3\n  /PRINT INITIAL EXTRACTION ROTATION\n  /CRITERIA MINEIGEN(1) ITERATE(25)\n  /EXTRACTION PC\n  /ROTATION NOROTATE\n  /METHOD=CORRELATION.",
+                "documentation": "https://www.ibm.com/docs/en/spss-statistics/25.0.0?topic=regression-factor"
+            },
+            "sas": {
+                "code": "proc princomp data=dataset out=pc_out;\n  var x1 x2 x3;\n  run;",
+                "documentation": "https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/statug/statug_princomp_syntax.htm"
+            },
+            "stata": {
+                "code": "pca x1 x2 x3",
+                "documentation": "https://www.stata.com/manuals/rpca.pdf"
+            }
+        }
+    },
+    "T-Test": {
+        "description": "A statistical test that compares the means of two groups.",
+        "use_cases": ["hypothesis testing", "inference"],
+        "analysis_goals": ["hypothesis_test"],
+        "dependent_variable": ["continuous"],
+        "independent_variables": ["binary"],
+        "sample_size": ["small", "medium", "large"],
+        "missing_data": ["none", "random"],
+        "data_distribution": ["normal"],
+        "relationship_type": ["linear"],
+        "implementation": {
+            "python": {
+                "code": "from scipy import stats\n\nt_stat, p_value = stats.ttest_ind(group1, group2)",
+                "documentation": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html"
+            },
+            "r": {
+                "code": "t.test(y ~ group, data=df)",
+                "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/t.test"
+            },
+            "spss": {
+                "code": "T-TEST GROUPS=group(1 2)\n  /VARIABLES=y\n  /CRITERIA=CI(.95).",
+                "documentation": "https://www.ibm.com/docs/en/spss-statistics/25.0.0?topic=tests-t-test"
+            },
+            "sas": {
+                "code": "proc ttest data=dataset;\n  class group;\n  var y;\n  run;",
+                "documentation": "https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/statug/statug_ttest_syntax.htm"
+            },
+            "stata": {
+                "code": "ttest y, by(group)",
+                "documentation": "https://www.stata.com/manuals/rttest.pdf"
+            }
+        }
+    },
+    "Chi-Square Test": {
+        "description": "A statistical test used to determine if there is a significant association between two categorical variables.",
+        "use_cases": ["hypothesis testing", "inference"],
+        "analysis_goals": ["hypothesis_test"],
+        "dependent_variable": ["categorical"],
+        "independent_variables": ["categorical"],
+        "sample_size": ["small", "medium", "large"],
+        "missing_data": ["none"],
+        "data_distribution": ["non_normal"],
+        "relationship_type": ["non_linear"],
+        "implementation": {
+            "python": {
+                "code": "from scipy import stats\n\nchi2, p_value, dof, expected = stats.chi2_contingency(observed)",
+                "documentation": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html"
+            },
+            "r": {
+                "code": "chisq.test(table(x, y))",
+                "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/chisq.test"
+            },
+            "spss": {
+                "code": "CROSSTABS\n  /TABLES=x BY y\n  /STATISTICS=CHISQ\n  /CELLS=COUNT EXPECTED ROW COLUMN TOTAL\n  /COUNT ROUND CELL.",
+                "documentation": "https://www.ibm.com/docs/en/spss-statistics/25.0.0?topic=tests-crosstabs"
+            },
+            "sas": {
+                "code": "proc freq data=dataset;\n  tables x*y / chisq;\n  run;",
+                "documentation": "https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/statug/statug_freq_syntax.htm"
+            },
+            "stata": {
+                "code": "tabulate x y, chi2",
+                "documentation": "https://www.stata.com/manuals/rtabulate.pdf"
+            }
+        }
+    },
+    "Mann-Whitney U Test": {
+        "description": "A non-parametric test that compares two independent groups.",
+        "use_cases": ["hypothesis testing", "inference"],
+        "analysis_goals": ["non_parametric", "hypothesis_test"],
+        "dependent_variable": ["continuous", "ordinal"],
+        "independent_variables": ["binary"],
+        "sample_size": ["small", "medium", "large"],
+        "missing_data": ["none", "random"],
+        "data_distribution": ["non_normal"],
+        "relationship_type": ["non_linear"],
+        "implementation": {
+            "python": {
+                "code": "from scipy import stats\n\nu_stat, p_value = stats.mannwhitneyu(group1, group2)",
+                "documentation": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html"
+            },
+            "r": {
+                "code": "wilcox.test(y ~ group, data=df)",
+                "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/wilcox.test"
+            },
+            "spss": {
+                "code": "NPAR TESTS\n  /M-W= y BY group(1 2)\n  /MISSING ANALYSIS.",
+                "documentation": "https://www.ibm.com/docs/en/spss-statistics/25.0.0?topic=tests-nonparametric-tests"
+            },
+            "sas": {
+                "code": "proc npar1way data=dataset wilcoxon;\n  class group;\n  var y;\n  run;",
+                "documentation": "https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/statug/statug_npar1way_syntax.htm"
+            },
+            "stata": {
+                "code": "ranksum y, by(group)",
+                "documentation": "https://www.stata.com/manuals/rranksum.pdf"
+            }
+        }
+    },
+    "ARIMA": {
+        "description": "A statistical model for analyzing and forecasting time series data.",
+        "use_cases": ["forecasting", "time series analysis"],
+        "analysis_goals": ["time_series", "predict"],
+        "dependent_variable": ["continuous"],
+        "independent_variables": ["time"],
+        "sample_size": ["medium", "large"],
+        "missing_data": ["none"],
+        "data_distribution": ["normal", "non_normal"],
+        "relationship_type": ["linear", "non_linear"],
+        "implementation": {
+            "python": {
+                "code": "from statsmodels.tsa.arima.model import ARIMA\n\nmodel = ARIMA(y, order=(1,1,1))\nresults = model.fit()\nforecast = results.forecast(steps=10)",
+                "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.arima.model.ARIMA.html"
+            },
+            "r": {
+                "code": "model <- arima(y, order=c(1,1,1))\nforecast <- predict(model, n.ahead=10)",
+                "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/arima"
+            },
+            "spss": {
+                "code": "ARIMA y\n  /MODEL=(1,1,1)\n  /FORECAST EXACT\n  /PRINT=ALL\n  /PLOT=ALL.",
+                "documentation": "https://www.ibm.com/docs/en/spss-statistics/25.0.0?topic=regression-arima"
+            },
+            "sas": {
+                "code": "proc arima data=dataset;\n  identify var=y;\n  estimate p=1 d=1 q=1;\n  forecast lead=10;\n  run;",
+                "documentation": "https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.4/etsug/etsug_arima_syntax.htm"
+            },
+            "stata": {
+                "code": "arima y, arima(1,1,1)\npredict forecast, dynamic(.)",
+                "documentation": "https://www.stata.com/manuals/tsarima.pdf"
+            }
+        }
+    }
+} 
