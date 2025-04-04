@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistical Model Suggester</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Statistical Model Suggester</h1>
+        <form action="/submit" method="post">
+            <label for="dataset_type">Dataset Type:</label>
+            <select name="dataset_type" required>
+                <option value="numerical">Numerical</option>
+                <option value="categorical">Categorical</option>
+                <option value="mixed">Mixed (Numerical + Categorical)</option>
+            </select>
+
+            <label for="size">Sample Size:</label>
+            <input type="number" name="size" required>
+
+            <label for="missing_data">Missing Data Handling:</label>
+            <select name="missing_data">
+                <option value="none">None</option>
+                <option value="some">Some</option>
+                <option value="many">Many</option>
+            </select>
+
+            <label for="research_question">Research Question:</label>
+            <textarea name="research_question" required></textarea>
+
+            <label for="analysis_goal">Analysis Goal:</label>
+            <select name="analysis_goal" required>
+                <option value="predict">Predict</option>
+                <option value="classify">Classify</option>
+                <option value="explore">Explore</option>
+            </select>
+
+            <label for="dependent_variable">Dependent Variable Type:</label>
+            <select name="dependent_variable" required>
+                <option value="numerical">Numerical</option>
+                <option value="categorical">Categorical</option>
+            </select>
+
+            <label for="independent_variables">Independent Variables (select multiple if needed):</label>
+            <select name="independent_variables" multiple required>
+                <option value="numerical">Numerical</option>
+                <option value="categorical">Categorical</option>
+            </select>
+
+            <button type="submit">Suggest Model</button>
+        </form>
+    </div>
+</body>
+</html>

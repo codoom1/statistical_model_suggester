@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistical Model Suggestion Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='results.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Suggested Statistical Model</h1>
+
+        <div class="result">
+            <h2>Recommended Model: {{ recommended_model }}</h2>
+            <p>{{ explanation }}</p>
+            <br>
+            <h2>Competing Models:</h2>
+<p>{{ ", ".join(competing_models) }}</p>
+        </div>
+
+        <a href="/" class="btn">Go Back</a>
+    </div>
+</body>
+</html>
