@@ -142,11 +142,72 @@
                             </div>
                             <div class="card-body">
                                 <p>{{ model_details.synthetic_data.description }}</p>
-                                <h6>R Code for Data Generation and Analysis</h6>
-                                <pre class="bg-light p-3" style="overflow-x: auto;"><code>{{ model_details.synthetic_data.r_code }}</code></pre>
-                                <div class="alert alert-info mt-3">
-                                    <i class="bi bi-info-circle-fill me-2"></i>
-                                    <small>Copy this code into your R environment to generate synthetic data and perform analysis with this model.</small>
+                                
+                                <ul class="nav nav-tabs mb-3" id="syntheticDataTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="code-tab" data-bs-toggle="tab" data-bs-target="#code" type="button" role="tab">R Code</button>
+                                    </li>
+                                    {% if model_details.synthetic_data.results %}
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab">Analysis Results</button>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                                
+                                <div class="tab-content" id="syntheticDataTabContent">
+                                    <!-- R Code Tab -->
+                                    <div class="tab-pane fade show active" id="code" role="tabpanel">
+                                        <h6>R Code for Data Generation and Analysis</h6>
+                                        <pre class="bg-light p-3" style="overflow-x: auto;"><code>{{ model_details.synthetic_data.r_code }}</code></pre>
+                                        <div class="alert alert-info mt-3">
+                                            <i class="bi bi-info-circle-fill me-2"></i>
+                                            <small>Copy this code into your R environment to generate synthetic data and perform analysis with this model.</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Results Tab -->
+                                    {% if model_details.synthetic_data.results %}
+                                    <div class="tab-pane fade" id="results" role="tabpanel">
+                                        <h6 class="mb-3">Expected Analysis Results</h6>
+                                        
+                                        <!-- Text Output -->
+                                        <div class="card mb-3">
+                                            <div class="card-header bg-light">
+                                                <h6 class="mb-0">Console Output</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <pre class="bg-dark text-white p-3" style="overflow-x: auto; font-size: 0.85rem;"><code>{{ model_details.synthetic_data.results.text_output }}</code></pre>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Plot Output -->
+                                        {% if model_details.synthetic_data.results.plots %}
+                                        <div class="card">
+                                            <div class="card-header bg-light">
+                                                <h6 class="mb-0">Visualizations</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    {% for plot_data in model_details.synthetic_data.results.plots %}
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="card">
+                                                            <div class="card-body text-center">
+                                                                <img src="data:image/png;base64,{{ plot_data }}" alt="Plot {{ loop.index }}" class="img-fluid">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="alert alert-info mt-3">
+                                            <i class="bi bi-info-circle-fill me-2"></i>
+                                            <small>These results are from running the R code on synthetic data. Your actual results may vary depending on your data.</small>
+                                        </div>
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
