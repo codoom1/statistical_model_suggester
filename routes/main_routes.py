@@ -366,6 +366,57 @@ def model_details(model_name):
     except Exception as e:
         return render_template('error.html', error=str(e))
 
+@main.route('/model/<model_name>/interpretation')
+def model_interpretation(model_name):
+    """Display interpretation guide for a specific model"""
+    try:
+        model_info = get_model_details(model_name)
+        if not model_info:
+            return render_template('error.html', error="Model not found")
+        
+        # Import the interpretation utilities
+        from utils.interpretation import generate_interpretation_data
+        
+        # Generate interpretation data
+        interpretation_data = generate_interpretation_data(model_name, model_info)
+        
+        return render_template('model_interpretation.html',
+                             model_name=model_name,
+                             model_details=model_info,
+                             interpretation=interpretation_data)
+    except Exception as e:
+        return render_template('error.html', error=str(e))
+
+@main.route('/model/<model_name>/download-interpretation')
+def download_interpretation(model_name):
+    """Generate and download interpretation guide as HTML file"""
+    try:
+        model_info = get_model_details(model_name)
+        if not model_info:
+            return render_template('error.html', error="Model not found")
+        
+        # Import the interpretation utilities
+        from utils.interpretation import generate_interpretation_data
+        
+        # Generate interpretation data
+        interpretation_data = generate_interpretation_data(model_name, model_info)
+        
+        # Render the interpretation guide
+        html_content = render_template('model_interpretation.html',
+                                     model_name=model_name,
+                                     model_details=model_info,
+                                     interpretation=interpretation_data)
+        
+        # Create response with HTML content
+        from flask import make_response
+        response = make_response(html_content)
+        response.headers["Content-Disposition"] = f"attachment; filename={model_name.replace(' ', '_')}_interpretation_guide.html"
+        response.headers["Content-Type"] = "text/html"
+        
+        return response
+    except Exception as e:
+        return render_template('error.html', error=str(e))
+
 @main.route('/history/<int:index>')
 def view_history_result(index):
     """View a specific result from history"""
@@ -391,6 +442,5 @@ def view_history_result(index):
         return render_template('error.html', error=str(e))
 
 @main.route('/analysis-form')
-@login_required
 def analysis_form():
     return render_template('analysis_form.html') 
