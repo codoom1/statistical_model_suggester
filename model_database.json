@@ -56,6 +56,10 @@
                 "code": "regress y x1 x2",
                 "documentation": "https://www.stata.com/manuals/rregress.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Linear Regression analysis",
+            "r_code": "# Generate synthetic data for linear regression\nset.seed(123)\nn <- 100  # sample size\nx1 <- rnorm(n, mean = 10, sd = 2)  # continuous predictor\nx2 <- rbinom(n, 1, 0.5)  # binary predictor\nx3 <- factor(sample(1:3, n, replace = TRUE))  # categorical predictor with 3 levels\n# Create outcome with a linear relationship plus some noise\ny <- 2 + 0.5 * x1 + 1.5 * x2 + rnorm(n, mean = 0, sd = 1)\n# Combine into a data frame\ndf <- data.frame(y = y, x1 = x1, x2 = x2, x3 = x3)\n\n# Descriptive statistics\nsummary(df)\ncor(df[, c(\"y\", \"x1\", \"x2\")])\nboxplot(y ~ x2, data = df, main = \"Y by Binary Predictor\", xlab = \"X2\", ylab = \"Y\")\nplot(x1, y, main = \"Scatterplot of Y vs X1\", xlab = \"X1\", ylab = \"Y\")\n\n# Model fitting\nmodel <- lm(y ~ x1 + x2 + x3, data = df)\nsummary(model)\n\n# Diagnostic plots\npar(mfrow = c(2, 2))\nplot(model)\n\n# Predictions\nnew_data <- data.frame(x1 = c(8, 10, 12), x2 = c(0, 1, 0), x3 = factor(c(1, 2, 3), levels = 1:3))\npredictions <- predict(model, newdata = new_data, interval = \"confidence\")\nprint(cbind(new_data, predictions))\n"
         }
     },
     "Logistic Regression": {
@@ -116,6 +120,10 @@
                 "code": "logit y x1 x2",
                 "documentation": "https://www.stata.com/manuals/rlogit.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Logistic Regression analysis",
+            "r_code": "# Generate synthetic data for logistic regression\nset.seed(123)\nn <- 200  # sample size\nx1 <- rnorm(n, mean = 0, sd = 1)  # continuous predictor\nx2 <- rnorm(n, mean = 0, sd = 1)  # another continuous predictor\nx3 <- factor(sample(1:3, n, replace = TRUE))  # categorical predictor\n\n# Generate binary outcome based on logistic model\nlogit <- -1 + 0.8 * x1 - 1.2 * x2  # linear predictor\nprob <- 1 / (1 + exp(-logit))  # apply logistic function to get probabilities\ny <- rbinom(n, 1, prob)  # generate binary outcome\n\n# Combine into a data frame\ndf <- data.frame(y = factor(y), x1 = x1, x2 = x2, x3 = x3)\n\n# Descriptive statistics\nsummary(df)\ntable(df$y)  # frequency of outcome\ntable(df$y, df$x3)  # contingency table with categorical predictor\n\n# Visualization\nboxplot(x1 ~ y, data = df, main = \"X1 by Outcome\", xlab = \"Outcome (Y)\", ylab = \"X1\")\nboxplot(x2 ~ y, data = df, main = \"X2 by Outcome\", xlab = \"Outcome (Y)\", ylab = \"X2\")\n\n# Model fitting\nmodel <- glm(y ~ x1 + x2 + x3, family = binomial(link = \"logit\"), data = df)\nsummary(model)\n\n# Effects on odds ratios\nexp(coef(model))  # exponentiated coefficients give odds ratios\nexp(confint(model))  # confidence intervals for odds ratios\n\n# Predictions\nnew_data <- data.frame(x1 = c(-1, 0, 1), x2 = c(1, 0, -1), x3 = factor(c(1, 2, 3), levels = 1:3))\npredicted_probs <- predict(model, newdata = new_data, type = \"response\")\npredicted_class <- ifelse(predicted_probs > 0.5, 1, 0)\nprint(cbind(new_data, prob = predicted_probs, class = predicted_class))\n\n# ROC curve and AUC\nlibrary(pROC)\nroc_obj <- roc(df$y, predict(model, type = \"response\"))\nplot(roc_obj, main = \"ROC Curve\")\nauc(roc_obj)  # Area Under the Curve\n"
         }
     },
     "Poisson Regression": {
@@ -171,6 +179,10 @@
                 "code": "poisson y x1 x2",
                 "documentation": "https://www.stata.com/manuals/rpoisson.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Poisson Regression analysis",
+            "r_code": "# Generate synthetic data for Poisson regression\nset.seed(123)\nn <- 200  # sample size\nx1 <- runif(n, 0, 3)  # continuous predictor\nx2 <- factor(sample(LETTERS[1:3], n, replace = TRUE))  # categorical predictor\noffset_var <- runif(n, 0.5, 2)  # exposure variable (e.g., time, area)\n\n# Generate count outcome based on Poisson model\nlog_mu <- 0.3 + 0.7 * x1 + log(offset_var)  # log(expected count)\nmu <- exp(log_mu)  # expected count\ny <- rpois(n, mu)  # generate count based on Poisson distribution\n\n# Combine into a data frame\ndf <- data.frame(y = y, x1 = x1, x2 = x2, offset_var = offset_var)\n\n# Descriptive statistics\nsummary(df)\ntable(df$y)  # frequency distribution of counts\naggregate(y ~ x2, data = df, FUN = mean)  # mean counts by group\n\n# Visualization\nhist(df$y, breaks = 20, main = \"Distribution of Count Outcome\", xlab = \"Count\")\nplot(x1, y, main = \"Relationship between X1 and Count\", xlab = \"X1\", ylab = \"Count\")\nboxplot(y ~ x2, data = df, main = \"Count by Category\", xlab = \"Category (X2)\", ylab = \"Count\")\n\n# Model fitting\nmodel <- glm(y ~ x1 + x2 + offset(log(offset_var)), family = poisson, data = df)\nsummary(model)\n\n# Check for overdispersion\ndispersion <- sum(residuals(model, type = \"pearson\")^2) / model$df.residual\ncat(\"Dispersion parameter:\", dispersion, \"\\n\")\n\n# If overdispersion is present (parameter much > 1), consider negative binomial instead\nif (dispersion > 1.5) {\n  library(MASS)\n  nb_model <- glm.nb(y ~ x1 + x2 + offset(log(offset_var)), data = df)\n  summary(nb_model)\n}\n\n# Predictions\nnew_data <- data.frame(\n  x1 = c(0.5, 1.5, 2.5),\n  x2 = factor(c(\"A\", \"B\", \"C\"), levels = c(\"A\", \"B\", \"C\")),\n  offset_var = c(1, 1, 1)\n)\npredicted_counts <- predict(model, newdata = new_data, type = \"response\")\nprint(cbind(new_data, predicted_count = predicted_counts))\n\n# Effect sizes (interpreted as rate ratios)\nexp(coef(model))\nconf_int <- exp(confint(model))\nprint(cbind(\"Rate Ratio\" = exp(coef(model)), conf_int)) "
         }
     },
     "Ordinal Regression": {
@@ -227,6 +239,10 @@
                 "code": "ologit y x1 x2",
                 "documentation": "https://www.stata.com/manuals/rologit.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Ordinal Regression analysis",
+            "r_code": "# Generate synthetic data for this model type\nset.seed(123)\nn <- 100  # sample size\n\n# Generate data\n# ...specific code for this model...\n\n# Descriptive statistics\n# ...specific code for this model...\n\n# Visualization\n# ...specific code for this model...\n\n# Model fitting\n# ...specific code for this model...\n\n# Model evaluation\n# ...specific code for this model...\n"
         }
     },
     "Cox Regression": {
@@ -282,6 +298,10 @@
                 "code": "stset time, failure(event)\nstcox x1 x2",
                 "documentation": "https://www.stata.com/manuals/ststcox.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Cox Regression analysis",
+            "r_code": "# Generate synthetic data for Cox regression\nset.seed(123)\nn <- 200  # sample size\n\n# Generate covariates\nage <- runif(n, 40, 80)\nsex <- factor(rbinom(n, 1, 0.5), labels = c(\"Male\", \"Female\"))\ntreatment <- factor(rbinom(n, 1, 0.5), labels = c(\"Control\", \"Treatment\"))\nbiomarker <- rnorm(n, mean = 100, sd = 20)\n\n# Generate survival times based on covariates\n# Higher age, male sex, and higher biomarker are associated with shorter survival\nlambda <- exp(-4 + 0.02 * age + 0.5 * (sex == \"Male\") - \n              0.8 * (treatment == \"Treatment\") + 0.01 * biomarker)\nevent_time <- rexp(n, rate = lambda)\ncensoring_time <- runif(n, 0, 10)  # administrative censoring\n\n# Determine observed time and censoring indicator\nobserved_time <- pmin(event_time, censoring_time)\nevent <- as.numeric(event_time <= censoring_time)  # 1=event observed, 0=censored\n\n# Create data frame\ndf <- data.frame(\n  time = observed_time,\n  event = event,\n  age = age,\n  sex = sex,\n  treatment = treatment,\n  biomarker = biomarker\n)\n\n# Descriptive statistics\nsummary(df)\ntable(df$event)  # number of events vs. censored\ntable(df$event, df$treatment)  # events by treatment group\ntable(df$event, df$sex)  # events by sex\n\n# Kaplan-Meier curves\nlibrary(survival)\nkm_fit <- survfit(Surv(time, event) ~ treatment, data = df)\nplot(km_fit, xlab = \"Time\", ylab = \"Survival Probability\", \n     main = \"Kaplan-Meier Curves by Treatment\", col = c(\"blue\", \"red\"))\nlegend(\"topright\", levels(df$treatment), col = c(\"blue\", \"red\"), lty = 1)\n\n# Log-rank test for equality of survival curves\nsurvdiff(Surv(time, event) ~ treatment, data = df)\n\n# Cox proportional hazards model\ncox_model <- coxph(Surv(time, event) ~ age + sex + treatment + biomarker, data = df)\nsummary(cox_model)\n\n# Hazard ratios and confidence intervals\nhazard_ratios <- exp(coef(cox_model))\nconf_int <- exp(confint(cox_model))\nhr_table <- cbind(\"Hazard Ratio\" = hazard_ratios, conf_int)\nprint(hr_table)\n\n# Check proportional hazards assumption\nph_test <- cox.zph(cox_model)\nprint(ph_test)\nplot(ph_test)\n\n# Predicted survival curves for specific profiles\nnew_data <- data.frame(\n  age = c(50, 50, 70, 70),\n  sex = factor(c(\"Female\", \"Female\", \"Male\", \"Male\"), levels = levels(df$sex)),\n  treatment = factor(c(\"Treatment\", \"Control\", \"Treatment\", \"Control\"), levels = levels(df$treatment)),\n  biomarker = c(100, 100, 100, 100)\n)\n\npred_surv <- survfit(cox_model, newdata = new_data)\nplot(pred_surv, col = 1:4, xlab = \"Time\", ylab = \"Survival Probability\",\n     main = \"Predicted Survival Curves for Different Profiles\")\nlegend(\"topright\", c(\"Female, 50, Treatment\", \"Female, 50, Control\", \n                     \"Male, 70, Treatment\", \"Male, 70, Control\"),\n       col = 1:4, lty = 1) "
         }
     },
     "Multinomial Logistic Regression": {
@@ -338,6 +358,10 @@
                 "code": "mlogit y x1 x2",
                 "documentation": "https://www.stata.com/manuals/rmlogit.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Multinomial Logistic Regression analysis",
+            "r_code": "# Generate synthetic data for this model type\nset.seed(123)\nn <- 100  # sample size\n\n# Generate data\n# ...specific code for this model...\n\n# Descriptive statistics\n# ...specific code for this model...\n\n# Visualization\n# ...specific code for this model...\n\n# Model fitting\n# ...specific code for this model...\n\n# Model evaluation\n# ...specific code for this model...\n"
         }
     },
     "Principal Component Analysis": {
@@ -389,6 +413,10 @@
                 "code": "pca x1 x2 x3",
                 "documentation": "https://www.stata.com/manuals/rpca.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Principal Component Analysis analysis",
+            "r_code": "# Generate synthetic data for Principal Component Analysis\nset.seed(123)\nn <- 100  # sample size\n\n# Create a correlation matrix to ensure variables are correlated\ncor_matrix <- matrix(c(\n  1.0, 0.8, 0.6, 0.5, 0.4,\n  0.8, 1.0, 0.7, 0.6, 0.5,\n  0.6, 0.7, 1.0, 0.7, 0.6,\n  0.5, 0.6, 0.7, 1.0, 0.7,\n  0.4, 0.5, 0.6, 0.7, 1.0\n), nrow = 5)\n\n# Use Cholesky decomposition to generate correlated data\nlibrary(MASS)  # for mvrnorm\nmu <- c(10, 15, 12, 8, 20)  # means of variables\nvars <- c(5, 8, 3, 6, 10)  # variances of variables\nsigma <- diag(sqrt(vars)) %*% cor_matrix %*% diag(sqrt(vars))  # covariance matrix\nX <- mvrnorm(n, mu, sigma)\ncolnames(X) <- paste0(\"V\", 1:5)\ndf <- as.data.frame(X)\n\n# Descriptive statistics\nsummary(df)\ncor(df)  # correlation matrix\n\n# Visualization of correlations\npairs(df, main = \"Scatterplot Matrix of Variables\")\n\n# Perform PCA\npca_result <- prcomp(df, scale = TRUE)  # standardize variables\nsummary(pca_result)  # proportion of variance explained by each PC\n\n# Scree plot to visualize eigenvalues\nplot(pca_result, type = \"l\", main = \"Scree Plot\")\n\n# Biplot to visualize variables and observations in PC space\nbiplot(pca_result, cex = c(0.8, 1), scale = 0)\n\n# Loadings (correlations between original variables and principal components)\nprint(pca_result$rotation)\n\n# PC scores (coordinates of observations in PC space)\nhead(pca_result$x)\n\n# Determine number of components to retain\n# Kaiser criterion: eigenvalues > 1\neigenvalues <- pca_result$sdev^2\nnum_components <- sum(eigenvalues > 1)\ncat(\"Number of components to retain by Kaiser criterion:\", num_components, \"\\n\")\n\n# Cumulative variance explained\ncum_var <- cumsum(pca_result$sdev^2) / sum(pca_result$sdev^2)\nplot(cum_var, type = \"b\", xlab = \"Number of Components\", \n     ylab = \"Cumulative Proportion of Variance Explained\",\n     main = \"Cumulative Variance Explained\")\nabline(h = 0.8, col = \"red\", lty = 2)  # typically aim for 80% explained variance "
         }
     },
     "T-Test": {
@@ -442,6 +470,10 @@
                 "code": "ttest y, by(group)",
                 "documentation": "https://www.stata.com/manuals/rttest.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for T-Test analysis",
+            "r_code": "# Generate synthetic data for this model type\nset.seed(123)\nn <- 100  # sample size\n\n# Generate data\n# ...specific code for this model...\n\n# Descriptive statistics\n# ...specific code for this model...\n\n# Visualization\n# ...specific code for this model...\n\n# Model fitting\n# ...specific code for this model...\n\n# Model evaluation\n# ...specific code for this model...\n"
         }
     },
     "Chi-Square Test": {
@@ -494,6 +526,10 @@
                 "code": "tabulate x y, chi2",
                 "documentation": "https://www.stata.com/manuals/rtabulate.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Chi-Square Test analysis",
+            "r_code": "# Generate synthetic data for Chi-Square Test\nset.seed(123)\nn <- 100  # sample size\n\n# Generate predictors and outcome variables\n# (Specific data generation would depend on the model type)\n\n# Descriptive statistics and visualization\n# (Specific analysis would depend on the model type)\n\n# Model fitting and evaluation\n# (Specific model code would depend on the model type)\n"
         }
     },
     "Mann-Whitney U Test": {
@@ -549,6 +585,10 @@
                 "code": "ranksum y, by(group)",
                 "documentation": "https://www.stata.com/manuals/rranksum.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Mann-Whitney U Test analysis",
+            "r_code": "# Generate synthetic data for Mann-Whitney U Test\nset.seed(123)\nn <- 100  # sample size\n\n# Generate predictors and outcome variables\n# (Specific data generation would depend on the model type)\n\n# Descriptive statistics and visualization\n# (Specific analysis would depend on the model type)\n\n# Model fitting and evaluation\n# (Specific model code would depend on the model type)\n"
         }
     },
     "ARIMA": {
@@ -603,6 +643,10 @@
                 "code": "arima y, arima(1,1,1)\npredict forecast, dynamic(.)",
                 "documentation": "https://www.stata.com/manuals/tsarima.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for ARIMA analysis",
+            "r_code": "# Generate synthetic data for this model type\nset.seed(123)\nn <- 100  # sample size\n\n# Generate data\n# ...specific code for this model...\n\n# Descriptive statistics\n# ...specific code for this model...\n\n# Visualization\n# ...specific code for this model...\n\n# Model fitting\n# ...specific code for this model...\n\n# Model evaluation\n# ...specific code for this model...\n"
         }
     },
     "Negative_Binomial_Regression": {
@@ -657,6 +701,10 @@
                 "code": "# Negative_Binomial_Regression implementation for stata\n# Code available in professional versions",
                 "documentation": "https://www.example.com/stata/negative_binomial_regression_docs"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Negative_Binomial_Regression analysis",
+            "r_code": "# Generate synthetic data for Poisson regression\nset.seed(123)\nn <- 200  # sample size\nx1 <- runif(n, 0, 3)  # continuous predictor\nx2 <- factor(sample(LETTERS[1:3], n, replace = TRUE))  # categorical predictor\noffset_var <- runif(n, 0.5, 2)  # exposure variable (e.g., time, area)\n\n# Generate count outcome based on Poisson model\nlog_mu <- 0.3 + 0.7 * x1 + log(offset_var)  # log(expected count)\nmu <- exp(log_mu)  # expected count\ny <- rpois(n, mu)  # generate count based on Poisson distribution\n\n# Combine into a data frame\ndf <- data.frame(y = y, x1 = x1, x2 = x2, offset_var = offset_var)\n\n# Descriptive statistics\nsummary(df)\ntable(df$y)  # frequency distribution of counts\naggregate(y ~ x2, data = df, FUN = mean)  # mean counts by group\n\n# Visualization\nhist(df$y, breaks = 20, main = \"Distribution of Count Outcome\", xlab = \"Count\")\nplot(x1, y, main = \"Relationship between X1 and Count\", xlab = \"X1\", ylab = \"Count\")\nboxplot(y ~ x2, data = df, main = \"Count by Category\", xlab = \"Category (X2)\", ylab = \"Count\")\n\n# Model fitting\nmodel <- glm(y ~ x1 + x2 + offset(log(offset_var)), family = poisson, data = df)\nsummary(model)\n\n# Check for overdispersion\ndispersion <- sum(residuals(model, type = \"pearson\")^2) / model$df.residual\ncat(\"Dispersion parameter:\", dispersion, \"\\n\")\n\n# If overdispersion is present (parameter much > 1), consider negative binomial instead\nif (dispersion > 1.5) {\n  library(MASS)\n  nb_model <- glm.nb(y ~ x1 + x2 + offset(log(offset_var)), data = df)\n  summary(nb_model)\n}\n\n# Predictions\nnew_data <- data.frame(\n  x1 = c(0.5, 1.5, 2.5),\n  x2 = factor(c(\"A\", \"B\", \"C\"), levels = c(\"A\", \"B\", \"C\")),\n  offset_var = c(1, 1, 1)\n)\npredicted_counts <- predict(model, newdata = new_data, type = \"response\")\nprint(cbind(new_data, predicted_count = predicted_counts))\n\n# Effect sizes (interpreted as rate ratios)\nexp(coef(model))\nconf_int <- exp(confint(model))\nprint(cbind(\"Rate Ratio\" = exp(coef(model)), conf_int)) "
         }
     },
     "Probit_Regression": {
@@ -710,6 +758,10 @@
                 "code": "# Probit_Regression implementation for stata\n# Code available in professional versions",
                 "documentation": "https://www.example.com/stata/probit_regression_docs"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Probit_Regression analysis",
+            "r_code": "# Generate synthetic data for logistic regression\nset.seed(123)\nn <- 200  # sample size\nx1 <- rnorm(n, mean = 0, sd = 1)  # continuous predictor\nx2 <- rnorm(n, mean = 0, sd = 1)  # another continuous predictor\nx3 <- factor(sample(1:3, n, replace = TRUE))  # categorical predictor\n\n# Generate binary outcome based on logistic model\nlogit <- -1 + 0.8 * x1 - 1.2 * x2  # linear predictor\nprob <- 1 / (1 + exp(-logit))  # apply logistic function to get probabilities\ny <- rbinom(n, 1, prob)  # generate binary outcome\n\n# Combine into a data frame\ndf <- data.frame(y = factor(y), x1 = x1, x2 = x2, x3 = x3)\n\n# Descriptive statistics\nsummary(df)\ntable(df$y)  # frequency of outcome\ntable(df$y, df$x3)  # contingency table with categorical predictor\n\n# Visualization\nboxplot(x1 ~ y, data = df, main = \"X1 by Outcome\", xlab = \"Outcome (Y)\", ylab = \"X1\")\nboxplot(x2 ~ y, data = df, main = \"X2 by Outcome\", xlab = \"Outcome (Y)\", ylab = \"X2\")\n\n# Model fitting\nmodel <- glm(y ~ x1 + x2 + x3, family = binomial(link = \"logit\"), data = df)\nsummary(model)\n\n# Effects on odds ratios\nexp(coef(model))  # exponentiated coefficients give odds ratios\nexp(confint(model))  # confidence intervals for odds ratios\n\n# Predictions\nnew_data <- data.frame(x1 = c(-1, 0, 1), x2 = c(1, 0, -1), x3 = factor(c(1, 2, 3), levels = 1:3))\npredicted_probs <- predict(model, newdata = new_data, type = \"response\")\npredicted_class <- ifelse(predicted_probs > 0.5, 1, 0)\nprint(cbind(new_data, prob = predicted_probs, class = predicted_class))\n\n# ROC curve and AUC\nlibrary(pROC)\nroc_obj <- roc(df$y, predict(model, type = \"response\"))\nplot(roc_obj, main = \"ROC Curve\")\nauc(roc_obj)  # Area Under the Curve\n"
         }
     },
     "Tobit_Regression": {
@@ -763,6 +815,10 @@
                 "code": "# Tobit_Regression implementation for stata\n# Code available in professional versions",
                 "documentation": "https://www.example.com/stata/tobit_regression_docs"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Tobit_Regression analysis",
+            "r_code": "# Generate synthetic data for linear regression\nset.seed(123)\nn <- 100  # sample size\nx1 <- rnorm(n, mean = 10, sd = 2)  # continuous predictor\nx2 <- rbinom(n, 1, 0.5)  # binary predictor\nx3 <- factor(sample(1:3, n, replace = TRUE))  # categorical predictor with 3 levels\n# Create outcome with a linear relationship plus some noise\ny <- 2 + 0.5 * x1 + 1.5 * x2 + rnorm(n, mean = 0, sd = 1)\n# Combine into a data frame\ndf <- data.frame(y = y, x1 = x1, x2 = x2, x3 = x3)\n\n# Descriptive statistics\nsummary(df)\ncor(df[, c(\"y\", \"x1\", \"x2\")])\nboxplot(y ~ x2, data = df, main = \"Y by Binary Predictor\", xlab = \"X2\", ylab = \"Y\")\nplot(x1, y, main = \"Scatterplot of Y vs X1\", xlab = \"X1\", ylab = \"Y\")\n\n# Model fitting\nmodel <- lm(y ~ x1 + x2 + x3, data = df)\nsummary(model)\n\n# Diagnostic plots\npar(mfrow = c(2, 2))\nplot(model)\n\n# Predictions\nnew_data <- data.frame(x1 = c(8, 10, 12), x2 = c(0, 1, 0), x3 = factor(c(1, 2, 3), levels = 1:3))\npredictions <- predict(model, newdata = new_data, interval = \"confidence\")\nprint(cbind(new_data, predictions))\n"
         }
     },
     "Random Forest": {
@@ -820,6 +876,10 @@
                 "code": "# Random Forest implementation for stata\n# Code example available in professional version",
                 "documentation": "https://www.statistical-models.org/stata/random_forest"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Random Forest analysis",
+            "r_code": "# Generate synthetic data for Random Forest\nset.seed(123)\nn <- 500  # sample size\n\n# Generate predictors\nx1 <- rnorm(n)  # continuous predictor\nx2 <- rnorm(n)  # continuous predictor\nx3 <- factor(sample(letters[1:4], n, replace = TRUE))  # categorical predictor\nx4 <- sample(0:1, n, replace = TRUE)  # binary predictor\n\n# Generate outcome based on a non-linear relationship\n# We'll make a complex decision boundary that's ideal for random forest\ny_reg <- 2*x1^2 + 3*sin(x1*x2) + 0.5*x1*x2 + rnorm(n, 0, 2)  # continuous outcome for regression\ny_class <- factor(ifelse(x1^2 + x2^2 + as.numeric(x3) + rnorm(n, 0, 0.7) > 3, \"A\", \"B\"))  # binary outcome for classification\n\n# Combine into data frames\ndf_reg <- data.frame(y = y_reg, x1 = x1, x2 = x2, x3 = x3, x4 = x4)\ndf_class <- data.frame(y = y_class, x1 = x1, x2 = x2, x3 = x3, x4 = x4)\n\n# Split data into training and testing sets\nset.seed(456)\ntrain_idx <- sample(1:n, 0.7*n)\ntrain_reg <- df_reg[train_idx, ]\ntest_reg <- df_reg[-train_idx, ]\ntrain_class <- df_class[train_idx, ]\ntest_class <- df_class[-train_idx, ]\n\n# Descriptive statistics and exploratory visualization\nsummary(df_reg)\nsummary(df_class)\n\n# Visualize relationships\npar(mfrow = c(2, 2))\nplot(x1, y_reg, main = \"Y vs X1 (Regression)\")\nplot(x2, y_reg, main = \"Y vs X2 (Regression)\")\nboxplot(x1 ~ y_class, main = \"X1 by Class\")\nboxplot(x2 ~ y_class, main = \"X2 by Class\")\npar(mfrow = c(1, 1))\n\n# Install and load randomForest package if not already installed\nif (!require(randomForest)) {\n  install.packages(\"randomForest\")\n  library(randomForest)\n} else {\n  library(randomForest)\n}\n\n# Random Forest for Regression\nrf_reg <- randomForest(\n  y ~ x1 + x2 + x3 + x4, \n  data = train_reg,\n  ntree = 500,  # number of trees\n  mtry = 2,     # number of variables randomly sampled at each split\n  importance = TRUE\n)\n\n# Model summary\nprint(rf_reg)\n\n# Variable importance\nvarImpPlot(rf_reg)\nimportance(rf_reg)\n\n# Make predictions\npred_reg <- predict(rf_reg, newdata = test_reg)\nmse <- mean((test_reg$y - pred_reg)^2)\nrmse <- sqrt(mse)\nr_squared <- 1 - sum((test_reg$y - pred_reg)^2) / sum((test_reg$y - mean(test_reg$y))^2)\n\ncat(\"Regression performance metrics:\\n\")\ncat(\"Mean Squared Error (MSE):\", mse, \"\\n\")\ncat(\"Root Mean Squared Error (RMSE):\", rmse, \"\\n\")\ncat(\"R-squared:\", r_squared, \"\\n\\n\")\n\n# Plot predictions vs actual\nplot(test_reg$y, pred_reg, main = \"Actual vs Predicted Values\",\n     xlab = \"Actual\", ylab = \"Predicted\")\nabline(0, 1, col = \"red\")  # 45-degree line\n\n# Random Forest for Classification\nrf_class <- randomForest(\n  y ~ x1 + x2 + x3 + x4, \n  data = train_class,\n  ntree = 500,\n  mtry = 2,\n  importance = TRUE\n)\n\n# Model summary\nprint(rf_class)\n\n# Variable importance\nvarImpPlot(rf_class)\nimportance(rf_class)\n\n# Make predictions\npred_class <- predict(rf_class, newdata = test_class)\nconf_matrix <- table(Predicted = pred_class, Actual = test_class$y)\naccuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)\n\ncat(\"Classification performance metrics:\\n\")\ncat(\"Confusion Matrix:\\n\")\nprint(conf_matrix)\ncat(\"Accuracy:\", accuracy, \"\\n\")\n\n# ROC curve and AUC (for binary classification)\nif (length(levels(test_class$y)) == 2) {\n  if (!require(pROC)) {\n    install.packages(\"pROC\")\n    library(pROC)\n  } else {\n    library(pROC)\n  }\n  \n  pred_prob <- predict(rf_class, newdata = test_class, type = \"prob\")\n  roc_obj <- roc(test_class$y, pred_prob[, 2])\n  auc_value <- auc(roc_obj)\n  \n  plot(roc_obj, main = paste(\"ROC Curve (AUC =\", round(auc_value, 3), \")\"))\n  cat(\"AUC:\", auc_value, \"\\n\")\n}\n\n# Tuning the model with cross-validation\nif (!require(caret)) {\n  install.packages(\"caret\")\n  library(caret)\n} else {\n  library(caret)\n}\n\n# Define tuning grid\ntuneGrid <- expand.grid(\n  .mtry = c(1, 2, 3, 4)\n)\n\n# Set up cross-validation\nctrl <- trainControl(\n  method = \"cv\",         # k-fold cross-validation\n  number = 5,            # number of folds\n  verboseIter = FALSE\n)\n\n# Train model with cross-validation\nset.seed(789)\nrf_tuned <- train(\n  y ~ x1 + x2 + x3 + x4,\n  data = train_class,\n  method = \"rf\",\n  trControl = ctrl,\n  tuneGrid = tuneGrid,\n  importance = TRUE\n)\n\n# View results\nprint(rf_tuned)\nplot(rf_tuned)\n\n# Best model results\nprint(rf_tuned$bestTune)\nvarImp(rf_tuned)\n\n# Final predictions with tuned model\nfinal_pred <- predict(rf_tuned, newdata = test_class)\nfinal_conf_matrix <- table(Predicted = final_pred, Actual = test_class$y)\nfinal_accuracy <- sum(diag(final_conf_matrix)) / sum(final_conf_matrix)\n\ncat(\"\\nTuned model accuracy:\", final_accuracy, \"\\n\") "
         }
     },
     "Support Vector Machine": {
@@ -876,6 +936,10 @@
                 "code": "# Support Vector Machine implementation for stata\n# Code available in professional versions",
                 "documentation": "https://www.example.com/stata/support_vector_machine_docs"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Support Vector Machine analysis",
+            "r_code": "# Generate synthetic data for this model type\nset.seed(123)\nn <- 100  # sample size\n\n# Generate data\n# ...specific code for this model...\n\n# Descriptive statistics\n# ...specific code for this model...\n\n# Visualization\n# ...specific code for this model...\n\n# Model fitting\n# ...specific code for this model...\n\n# Model evaluation\n# ...specific code for this model...\n"
         }
     },
     "K-Means Clustering": {
@@ -927,6 +991,10 @@
                 "code": "# K-Means Clustering implementation for stata\n# Code available in professional versions",
                 "documentation": "https://www.example.com/stata/k-means_clustering_docs"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for K-Means Clustering analysis",
+            "r_code": "# Generate synthetic data for this model type\nset.seed(123)\nn <- 100  # sample size\n\n# Generate data\n# ...specific code for this model...\n\n# Descriptive statistics\n# ...specific code for this model...\n\n# Visualization\n# ...specific code for this model...\n\n# Model fitting\n# ...specific code for this model...\n\n# Model evaluation\n# ...specific code for this model...\n"
         }
     },
     "Hierarchical_Clustering": {
@@ -978,6 +1046,10 @@
                 "code": "cluster wards var1 var2 var3\ncluster generate clusters = groups(3)\n\n# To visualize:\ncluster dendrogram, labels(id_var) cutnumber(3)",
                 "documentation": "https://www.stata.com/manuals/mvcluster.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Hierarchical_Clustering analysis",
+            "r_code": "# Generate synthetic data for this model type\nset.seed(123)\nn <- 100  # sample size\n\n# Generate data\n# ...specific code for this model...\n\n# Descriptive statistics\n# ...specific code for this model...\n\n# Visualization\n# ...specific code for this model...\n\n# Model fitting\n# ...specific code for this model...\n\n# Model evaluation\n# ...specific code for this model...\n"
         }
     },
     "Neural_Network": {
@@ -1034,6 +1106,10 @@
                 "code": "mlp fit x1-x8, hidden(64) activation(relu) output(activation(sigmoid)) epochs(150) batch(10)",
                 "documentation": "https://www.stata.com/manuals/myml.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Neural_Network analysis",
+            "r_code": "# Generate synthetic data for Neural_Network\nset.seed(123)\nn <- 100  # sample size\n\n# Generate predictors and outcome variables\n# (Specific data generation would depend on the model type)\n\n# Descriptive statistics and visualization\n# (Specific analysis would depend on the model type)\n\n# Model fitting and evaluation\n# (Specific model code would depend on the model type)\n"
         }
     },
     "XGBoost": {
@@ -1091,6 +1167,10 @@
                 "code": "xgb fit x1-x8, target(y) iterations(100)",
                 "documentation": "https://www.stata.com/manuals/mlxgboost.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for XGBoost analysis",
+            "r_code": "# Generate synthetic data for this model type\nset.seed(123)\nn <- 100  # sample size\n\n# Generate data\n# ...specific code for this model...\n\n# Descriptive statistics\n# ...specific code for this model...\n\n# Visualization\n# ...specific code for this model...\n\n# Model fitting\n# ...specific code for this model...\n\n# Model evaluation\n# ...specific code for this model...\n"
         }
     },
     "LightGBM": {
@@ -1148,6 +1228,10 @@
                 "code": "lgb fit x1-x8, target(y) iterations(100)",
                 "documentation": "https://www.stata.com/manuals/mllightgbm.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for LightGBM analysis",
+            "r_code": "# Generate synthetic data for LightGBM\nset.seed(123)\nn <- 100  # sample size\n\n# Generate predictors and outcome variables\n# (Specific data generation would depend on the model type)\n\n# Descriptive statistics and visualization\n# (Specific analysis would depend on the model type)\n\n# Model fitting and evaluation\n# (Specific model code would depend on the model type)\n"
         }
     },
     "CatBoost": {
@@ -1204,6 +1288,10 @@
                 "code": "catboost fit x1-x8, target(y) iterations(100)",
                 "documentation": "https://www.stata.com/manuals/mlcatboost.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for CatBoost analysis",
+            "r_code": "# Generate synthetic data for CatBoost\nset.seed(123)\nn <- 100  # sample size\n\n# Generate predictors and outcome variables\n# (Specific data generation would depend on the model type)\n\n# Descriptive statistics and visualization\n# (Specific analysis would depend on the model type)\n\n# Model fitting and evaluation\n# (Specific model code would depend on the model type)\n"
         }
     },
     "K_Nearest_Neighbors": {
@@ -1261,6 +1349,10 @@
                 "code": "knn fit x1-x8, target(y) k(3)",
                 "documentation": "https://www.stata.com/manuals/mlknn.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for K_Nearest_Neighbors analysis",
+            "r_code": "# Generate synthetic data for K_Nearest_Neighbors\nset.seed(123)\nn <- 100  # sample size\n\n# Generate predictors and outcome variables\n# (Specific data generation would depend on the model type)\n\n# Descriptive statistics and visualization\n# (Specific analysis would depend on the model type)\n\n# Model fitting and evaluation\n# (Specific model code would depend on the model type)\n"
         }
     },
     "Gaussian_Mixture_Model": {
@@ -1313,6 +1405,10 @@
                 "code": "gmm fit x1-x8, components(3)",
                 "documentation": "https://www.stata.com/manuals/mlgmm.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Gaussian_Mixture_Model analysis",
+            "r_code": "# Generate synthetic data for this model type\nset.seed(123)\nn <- 100  # sample size\n\n# Generate data\n# ...specific code for this model...\n\n# Descriptive statistics\n# ...specific code for this model...\n\n# Visualization\n# ...specific code for this model...\n\n# Model fitting\n# ...specific code for this model...\n\n# Model evaluation\n# ...specific code for this model...\n"
         }
     },
     "Lasso_Regression": {
@@ -1369,6 +1465,10 @@
                 "code": "lasso linear y x1 x2 x3",
                 "documentation": "https://www.stata.com/manuals/mlasso.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Lasso_Regression analysis",
+            "r_code": "# Generate synthetic data for Lasso_Regression\nset.seed(123)\nn <- 100  # sample size\n\n# Generate predictors and outcome variables\n# (Specific data generation would depend on the model type)\n\n# Descriptive statistics and visualization\n# (Specific analysis would depend on the model type)\n\n# Model fitting and evaluation\n# (Specific model code would depend on the model type)\n"
         }
     },
     "Ridge_Regression": {
@@ -1425,6 +1525,10 @@
                 "code": "ridge linear y x1 x2 x3",
                 "documentation": "https://www.stata.com/manuals/mridge.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Ridge_Regression analysis",
+            "r_code": "# Generate synthetic data for Ridge_Regression\nset.seed(123)\nn <- 100  # sample size\n\n# Generate predictors and outcome variables\n# (Specific data generation would depend on the model type)\n\n# Descriptive statistics and visualization\n# (Specific analysis would depend on the model type)\n\n# Model fitting and evaluation\n# (Specific model code would depend on the model type)\n"
         }
     },
     "Elastic_Net": {
@@ -1481,6 +1585,10 @@
                 "code": "elasticnet linear y x1 x2 x3",
                 "documentation": "https://www.stata.com/manuals/melasticnet.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Elastic_Net analysis",
+            "r_code": "# Generate synthetic data for Elastic_Net\nset.seed(123)\nn <- 100  # sample size\n\n# Generate predictors and outcome variables\n# (Specific data generation would depend on the model type)\n\n# Descriptive statistics and visualization\n# (Specific analysis would depend on the model type)\n\n# Model fitting and evaluation\n# (Specific model code would depend on the model type)\n"
         }
     },
     "Causal_Inference": {
@@ -1537,6 +1645,10 @@
                 "code": "teffects psmatch (outcome) (treatment x1 x2)",
                 "documentation": "https://www.stata.com/manuals/teffectsintro.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Causal_Inference analysis",
+            "r_code": "# Generate synthetic data for Causal_Inference\nset.seed(123)\nn <- 100  # sample size\n\n# Generate predictors and outcome variables\n# (Specific data generation would depend on the model type)\n\n# Descriptive statistics and visualization\n# (Specific analysis would depend on the model type)\n\n# Model fitting and evaluation\n# (Specific model code would depend on the model type)\n"
         }
     },
     "Structural_Equation_Modeling": {
@@ -1593,6 +1705,10 @@
                 "code": "sem (eta1 -> y1 y2 y3) (eta2 -> y4 y5 y6) (eta2 <- eta1 x1 x2)",
                 "documentation": "https://www.stata.com/manuals/ssem.pdf"
             }
+        },
+        "synthetic_data": {
+            "description": "A dataset suitable for Structural_Equation_Modeling analysis",
+            "r_code": "# Generate synthetic data for Structural_Equation_Modeling\nset.seed(123)\nn <- 100  # sample size\n\n# Generate predictors and outcome variables\n# (Specific data generation would depend on the model type)\n\n# Descriptive statistics and visualization\n# (Specific analysis would depend on the model type)\n\n# Model fitting and evaluation\n# (Specific model code would depend on the model type)\n"
         }
     },
     "Bayesian_Linear_Regression": {
@@ -1651,7 +1767,11 @@
         ],
         "relationship_type": [
             "linear"
-        ]
+        ],
+        "synthetic_data": {
+            "description": "A dataset suitable for Bayesian_Linear_Regression analysis",
+            "r_code": "# Generate synthetic data for Bayesian Linear Regression\nset.seed(123)\nn <- 100  # sample size\nx1 <- rnorm(n, mean = 0, sd = 1)  # predictor 1\nx2 <- rnorm(n, mean = 0, sd = 1)  # predictor 2\n\n# True parameter values\ntrue_beta0 <- 2.5   # intercept\ntrue_beta1 <- 1.8   # effect of x1\ntrue_beta2 <- -0.7  # effect of x2\ntrue_sigma <- 1.3   # residual standard deviation\n\n# Generate outcome with specified effects and noise\ny <- true_beta0 + true_beta1 * x1 + true_beta2 * x2 + rnorm(n, 0, true_sigma)\n\n# Create data frame\ndf <- data.frame(y = y, x1 = x1, x2 = x2)\n\n# Descriptive statistics\nsummary(df)\ncor(df)  # correlation matrix\n\n# Exploratory visualization\npar(mfrow = c(1, 2))\nplot(x1, y, main = \"Y vs X1\", xlab = \"X1\", ylab = \"Y\")\nplot(x2, y, main = \"Y vs X2\", xlab = \"X2\", ylab = \"Y\")\npar(mfrow = c(1, 1))\n\n# Fit ordinary least squares for comparison\nlm_model <- lm(y ~ x1 + x2, data = df)\nsummary(lm_model)\n\n# Bayesian linear regression using rstanarm\nlibrary(rstanarm)\n\n# Prior specification\n# By default, rstanarm uses weakly informative priors:\n# - Normal(0, 10) for coefficients\n# - half-Cauchy(0, 5) for the residual standard deviation\n\n# Fit Bayesian model\n# normal() specifies the likelihood function\n# student_t() specifies the prior distribution for the coefficients\nstan_model <- stan_glm(\n  y ~ x1 + x2, \n  data = df, \n  family = gaussian(),\n  prior = normal(0, 2.5),  # adjust the scale for different levels of prior information\n  prior_intercept = normal(0, 5),\n  prior_aux = exponential(1),\n  chains = 4,  # number of Markov chains\n  iter = 2000,  # number of iterations per chain\n  seed = 123\n)\n\n# Summarize posterior distributions\nprint(stan_model)\nsummary(stan_model)\n\n# Plot posterior distributions\nplot(stan_model, \"hist\")  # histogram of parameter posterior distributions\nplot(stan_model, \"trace\")  # trace plots to check MCMC convergence\nplot(stan_model, \"dens\")  # kernel density plots of posterior distributions\n\n# Posterior intervals (credible intervals)\nposterior_interval(stan_model, prob = 0.95)\n\n# Extract posterior samples for custom analysis\nposterior_samples <- as.matrix(stan_model)\nhead(posterior_samples)\n\n# Calculate posterior probabilities\nprob_beta1_positive <- mean(posterior_samples[, \"x1\"] > 0)\nprob_beta2_negative <- mean(posterior_samples[, \"x2\"] < 0)\n\ncat(\"Probability that effect of x1 is positive:\", prob_beta1_positive, \"\\n\")\ncat(\"Probability that effect of x2 is negative:\", prob_beta2_negative, \"\\n\")\n\n# Posterior predictive checks\npp_check(stan_model)  # visual check of model fit\n\n# Predictions for new data\nnew_data <- data.frame(\n  x1 = c(-1, 0, 1),\n  x2 = c(1, 0, -1)\n)\n\n# Point predictions (using posterior mean)\npred_mean <- posterior_linpred(stan_model, newdata = new_data, transform = TRUE)\npred_mean_vals <- colMeans(pred_mean)\n\n# Posterior predictive distribution (including observation noise)\npred_dist <- posterior_predict(stan_model, newdata = new_data)\n\n# Summarize predictions\npred_interval <- t(apply(pred_dist, 2, quantile, probs = c(0.025, 0.5, 0.975)))\ncolnames(pred_interval) <- c(\"2.5%\", \"50%\", \"97.5%\")\n\n# Display predictions with credible intervals\nfinal_predictions <- cbind(new_data, \n                          \"Posterior Mean\" = pred_mean_vals,\n                          pred_interval)\nprint(final_predictions) "
+        }
     },
     "Bayesian_Ridge_Regression": {
         "description": "Linear regression with L2 regularization through Bayesian priors.",
@@ -1713,7 +1833,11 @@
         ],
         "relationship_type": [
             "linear"
-        ]
+        ],
+        "synthetic_data": {
+            "description": "A dataset suitable for Bayesian_Ridge_Regression analysis",
+            "r_code": "# Generate synthetic data for Bayesian Linear Regression\nset.seed(123)\nn <- 100  # sample size\nx1 <- rnorm(n, mean = 0, sd = 1)  # predictor 1\nx2 <- rnorm(n, mean = 0, sd = 1)  # predictor 2\n\n# True parameter values\ntrue_beta0 <- 2.5   # intercept\ntrue_beta1 <- 1.8   # effect of x1\ntrue_beta2 <- -0.7  # effect of x2\ntrue_sigma <- 1.3   # residual standard deviation\n\n# Generate outcome with specified effects and noise\ny <- true_beta0 + true_beta1 * x1 + true_beta2 * x2 + rnorm(n, 0, true_sigma)\n\n# Create data frame\ndf <- data.frame(y = y, x1 = x1, x2 = x2)\n\n# Descriptive statistics\nsummary(df)\ncor(df)  # correlation matrix\n\n# Exploratory visualization\npar(mfrow = c(1, 2))\nplot(x1, y, main = \"Y vs X1\", xlab = \"X1\", ylab = \"Y\")\nplot(x2, y, main = \"Y vs X2\", xlab = \"X2\", ylab = \"Y\")\npar(mfrow = c(1, 1))\n\n# Fit ordinary least squares for comparison\nlm_model <- lm(y ~ x1 + x2, data = df)\nsummary(lm_model)\n\n# Bayesian linear regression using rstanarm\nlibrary(rstanarm)\n\n# Prior specification\n# By default, rstanarm uses weakly informative priors:\n# - Normal(0, 10) for coefficients\n# - half-Cauchy(0, 5) for the residual standard deviation\n\n# Fit Bayesian model\n# normal() specifies the likelihood function\n# student_t() specifies the prior distribution for the coefficients\nstan_model <- stan_glm(\n  y ~ x1 + x2, \n  data = df, \n  family = gaussian(),\n  prior = normal(0, 2.5),  # adjust the scale for different levels of prior information\n  prior_intercept = normal(0, 5),\n  prior_aux = exponential(1),\n  chains = 4,  # number of Markov chains\n  iter = 2000,  # number of iterations per chain\n  seed = 123\n)\n\n# Summarize posterior distributions\nprint(stan_model)\nsummary(stan_model)\n\n# Plot posterior distributions\nplot(stan_model, \"hist\")  # histogram of parameter posterior distributions\nplot(stan_model, \"trace\")  # trace plots to check MCMC convergence\nplot(stan_model, \"dens\")  # kernel density plots of posterior distributions\n\n# Posterior intervals (credible intervals)\nposterior_interval(stan_model, prob = 0.95)\n\n# Extract posterior samples for custom analysis\nposterior_samples <- as.matrix(stan_model)\nhead(posterior_samples)\n\n# Calculate posterior probabilities\nprob_beta1_positive <- mean(posterior_samples[, \"x1\"] > 0)\nprob_beta2_negative <- mean(posterior_samples[, \"x2\"] < 0)\n\ncat(\"Probability that effect of x1 is positive:\", prob_beta1_positive, \"\\n\")\ncat(\"Probability that effect of x2 is negative:\", prob_beta2_negative, \"\\n\")\n\n# Posterior predictive checks\npp_check(stan_model)  # visual check of model fit\n\n# Predictions for new data\nnew_data <- data.frame(\n  x1 = c(-1, 0, 1),\n  x2 = c(1, 0, -1)\n)\n\n# Point predictions (using posterior mean)\npred_mean <- posterior_linpred(stan_model, newdata = new_data, transform = TRUE)\npred_mean_vals <- colMeans(pred_mean)\n\n# Posterior predictive distribution (including observation noise)\npred_dist <- posterior_predict(stan_model, newdata = new_data)\n\n# Summarize predictions\npred_interval <- t(apply(pred_dist, 2, quantile, probs = c(0.025, 0.5, 0.975)))\ncolnames(pred_interval) <- c(\"2.5%\", \"50%\", \"97.5%\")\n\n# Display predictions with credible intervals\nfinal_predictions <- cbind(new_data, \n                          \"Posterior Mean\" = pred_mean_vals,\n                          pred_interval)\nprint(final_predictions) "
+        }
     },
     "Bayesian_Logistic_Regression": {
         "description": "Logistic regression with Bayesian inference for classification problems.",
@@ -1771,7 +1895,11 @@
         ],
         "relationship_type": [
             "linear"
-        ]
+        ],
+        "synthetic_data": {
+            "description": "A dataset suitable for Bayesian_Logistic_Regression analysis",
+            "r_code": "# Generate synthetic data for Bayesian Linear Regression\nset.seed(123)\nn <- 100  # sample size\nx1 <- rnorm(n, mean = 0, sd = 1)  # predictor 1\nx2 <- rnorm(n, mean = 0, sd = 1)  # predictor 2\n\n# True parameter values\ntrue_beta0 <- 2.5   # intercept\ntrue_beta1 <- 1.8   # effect of x1\ntrue_beta2 <- -0.7  # effect of x2\ntrue_sigma <- 1.3   # residual standard deviation\n\n# Generate outcome with specified effects and noise\ny <- true_beta0 + true_beta1 * x1 + true_beta2 * x2 + rnorm(n, 0, true_sigma)\n\n# Create data frame\ndf <- data.frame(y = y, x1 = x1, x2 = x2)\n\n# Descriptive statistics\nsummary(df)\ncor(df)  # correlation matrix\n\n# Exploratory visualization\npar(mfrow = c(1, 2))\nplot(x1, y, main = \"Y vs X1\", xlab = \"X1\", ylab = \"Y\")\nplot(x2, y, main = \"Y vs X2\", xlab = \"X2\", ylab = \"Y\")\npar(mfrow = c(1, 1))\n\n# Fit ordinary least squares for comparison\nlm_model <- lm(y ~ x1 + x2, data = df)\nsummary(lm_model)\n\n# Bayesian linear regression using rstanarm\nlibrary(rstanarm)\n\n# Prior specification\n# By default, rstanarm uses weakly informative priors:\n# - Normal(0, 10) for coefficients\n# - half-Cauchy(0, 5) for the residual standard deviation\n\n# Fit Bayesian model\n# normal() specifies the likelihood function\n# student_t() specifies the prior distribution for the coefficients\nstan_model <- stan_glm(\n  y ~ x1 + x2, \n  data = df, \n  family = gaussian(),\n  prior = normal(0, 2.5),  # adjust the scale for different levels of prior information\n  prior_intercept = normal(0, 5),\n  prior_aux = exponential(1),\n  chains = 4,  # number of Markov chains\n  iter = 2000,  # number of iterations per chain\n  seed = 123\n)\n\n# Summarize posterior distributions\nprint(stan_model)\nsummary(stan_model)\n\n# Plot posterior distributions\nplot(stan_model, \"hist\")  # histogram of parameter posterior distributions\nplot(stan_model, \"trace\")  # trace plots to check MCMC convergence\nplot(stan_model, \"dens\")  # kernel density plots of posterior distributions\n\n# Posterior intervals (credible intervals)\nposterior_interval(stan_model, prob = 0.95)\n\n# Extract posterior samples for custom analysis\nposterior_samples <- as.matrix(stan_model)\nhead(posterior_samples)\n\n# Calculate posterior probabilities\nprob_beta1_positive <- mean(posterior_samples[, \"x1\"] > 0)\nprob_beta2_negative <- mean(posterior_samples[, \"x2\"] < 0)\n\ncat(\"Probability that effect of x1 is positive:\", prob_beta1_positive, \"\\n\")\ncat(\"Probability that effect of x2 is negative:\", prob_beta2_negative, \"\\n\")\n\n# Posterior predictive checks\npp_check(stan_model)  # visual check of model fit\n\n# Predictions for new data\nnew_data <- data.frame(\n  x1 = c(-1, 0, 1),\n  x2 = c(1, 0, -1)\n)\n\n# Point predictions (using posterior mean)\npred_mean <- posterior_linpred(stan_model, newdata = new_data, transform = TRUE)\npred_mean_vals <- colMeans(pred_mean)\n\n# Posterior predictive distribution (including observation noise)\npred_dist <- posterior_predict(stan_model, newdata = new_data)\n\n# Summarize predictions\npred_interval <- t(apply(pred_dist, 2, quantile, probs = c(0.025, 0.5, 0.975)))\ncolnames(pred_interval) <- c(\"2.5%\", \"50%\", \"97.5%\")\n\n# Display predictions with credible intervals\nfinal_predictions <- cbind(new_data, \n                          \"Posterior Mean\" = pred_mean_vals,\n                          pred_interval)\nprint(final_predictions) "
+        }
     },
     "Bayesian_Hierarchical_Regression": {
         "description": "Multilevel modeling with partial pooling for grouped/clustered data.",
@@ -1835,7 +1963,11 @@
         ],
         "relationship_type": [
             "linear"
-        ]
+        ],
+        "synthetic_data": {
+            "description": "A dataset suitable for Bayesian_Hierarchical_Regression analysis",
+            "r_code": "# Generate synthetic data for Bayesian Linear Regression\nset.seed(123)\nn <- 100  # sample size\nx1 <- rnorm(n, mean = 0, sd = 1)  # predictor 1\nx2 <- rnorm(n, mean = 0, sd = 1)  # predictor 2\n\n# True parameter values\ntrue_beta0 <- 2.5   # intercept\ntrue_beta1 <- 1.8   # effect of x1\ntrue_beta2 <- -0.7  # effect of x2\ntrue_sigma <- 1.3   # residual standard deviation\n\n# Generate outcome with specified effects and noise\ny <- true_beta0 + true_beta1 * x1 + true_beta2 * x2 + rnorm(n, 0, true_sigma)\n\n# Create data frame\ndf <- data.frame(y = y, x1 = x1, x2 = x2)\n\n# Descriptive statistics\nsummary(df)\ncor(df)  # correlation matrix\n\n# Exploratory visualization\npar(mfrow = c(1, 2))\nplot(x1, y, main = \"Y vs X1\", xlab = \"X1\", ylab = \"Y\")\nplot(x2, y, main = \"Y vs X2\", xlab = \"X2\", ylab = \"Y\")\npar(mfrow = c(1, 1))\n\n# Fit ordinary least squares for comparison\nlm_model <- lm(y ~ x1 + x2, data = df)\nsummary(lm_model)\n\n# Bayesian linear regression using rstanarm\nlibrary(rstanarm)\n\n# Prior specification\n# By default, rstanarm uses weakly informative priors:\n# - Normal(0, 10) for coefficients\n# - half-Cauchy(0, 5) for the residual standard deviation\n\n# Fit Bayesian model\n# normal() specifies the likelihood function\n# student_t() specifies the prior distribution for the coefficients\nstan_model <- stan_glm(\n  y ~ x1 + x2, \n  data = df, \n  family = gaussian(),\n  prior = normal(0, 2.5),  # adjust the scale for different levels of prior information\n  prior_intercept = normal(0, 5),\n  prior_aux = exponential(1),\n  chains = 4,  # number of Markov chains\n  iter = 2000,  # number of iterations per chain\n  seed = 123\n)\n\n# Summarize posterior distributions\nprint(stan_model)\nsummary(stan_model)\n\n# Plot posterior distributions\nplot(stan_model, \"hist\")  # histogram of parameter posterior distributions\nplot(stan_model, \"trace\")  # trace plots to check MCMC convergence\nplot(stan_model, \"dens\")  # kernel density plots of posterior distributions\n\n# Posterior intervals (credible intervals)\nposterior_interval(stan_model, prob = 0.95)\n\n# Extract posterior samples for custom analysis\nposterior_samples <- as.matrix(stan_model)\nhead(posterior_samples)\n\n# Calculate posterior probabilities\nprob_beta1_positive <- mean(posterior_samples[, \"x1\"] > 0)\nprob_beta2_negative <- mean(posterior_samples[, \"x2\"] < 0)\n\ncat(\"Probability that effect of x1 is positive:\", prob_beta1_positive, \"\\n\")\ncat(\"Probability that effect of x2 is negative:\", prob_beta2_negative, \"\\n\")\n\n# Posterior predictive checks\npp_check(stan_model)  # visual check of model fit\n\n# Predictions for new data\nnew_data <- data.frame(\n  x1 = c(-1, 0, 1),\n  x2 = c(1, 0, -1)\n)\n\n# Point predictions (using posterior mean)\npred_mean <- posterior_linpred(stan_model, newdata = new_data, transform = TRUE)\npred_mean_vals <- colMeans(pred_mean)\n\n# Posterior predictive distribution (including observation noise)\npred_dist <- posterior_predict(stan_model, newdata = new_data)\n\n# Summarize predictions\npred_interval <- t(apply(pred_dist, 2, quantile, probs = c(0.025, 0.5, 0.975)))\ncolnames(pred_interval) <- c(\"2.5%\", \"50%\", \"97.5%\")\n\n# Display predictions with credible intervals\nfinal_predictions <- cbind(new_data, \n                          \"Posterior Mean\" = pred_mean_vals,\n                          pred_interval)\nprint(final_predictions) "
+        }
     },
     "Bayesian_Quantile_Regression": {
         "description": "Bayesian approach to quantile regression using asymmetric Laplace distribution.",
@@ -1893,7 +2025,11 @@
         ],
         "relationship_type": [
             "linear"
-        ]
+        ],
+        "synthetic_data": {
+            "description": "A dataset suitable for Bayesian_Quantile_Regression analysis",
+            "r_code": "# Generate synthetic data for Bayesian Linear Regression\nset.seed(123)\nn <- 100  # sample size\nx1 <- rnorm(n, mean = 0, sd = 1)  # predictor 1\nx2 <- rnorm(n, mean = 0, sd = 1)  # predictor 2\n\n# True parameter values\ntrue_beta0 <- 2.5   # intercept\ntrue_beta1 <- 1.8   # effect of x1\ntrue_beta2 <- -0.7  # effect of x2\ntrue_sigma <- 1.3   # residual standard deviation\n\n# Generate outcome with specified effects and noise\ny <- true_beta0 + true_beta1 * x1 + true_beta2 * x2 + rnorm(n, 0, true_sigma)\n\n# Create data frame\ndf <- data.frame(y = y, x1 = x1, x2 = x2)\n\n# Descriptive statistics\nsummary(df)\ncor(df)  # correlation matrix\n\n# Exploratory visualization\npar(mfrow = c(1, 2))\nplot(x1, y, main = \"Y vs X1\", xlab = \"X1\", ylab = \"Y\")\nplot(x2, y, main = \"Y vs X2\", xlab = \"X2\", ylab = \"Y\")\npar(mfrow = c(1, 1))\n\n# Fit ordinary least squares for comparison\nlm_model <- lm(y ~ x1 + x2, data = df)\nsummary(lm_model)\n\n# Bayesian linear regression using rstanarm\nlibrary(rstanarm)\n\n# Prior specification\n# By default, rstanarm uses weakly informative priors:\n# - Normal(0, 10) for coefficients\n# - half-Cauchy(0, 5) for the residual standard deviation\n\n# Fit Bayesian model\n# normal() specifies the likelihood function\n# student_t() specifies the prior distribution for the coefficients\nstan_model <- stan_glm(\n  y ~ x1 + x2, \n  data = df, \n  family = gaussian(),\n  prior = normal(0, 2.5),  # adjust the scale for different levels of prior information\n  prior_intercept = normal(0, 5),\n  prior_aux = exponential(1),\n  chains = 4,  # number of Markov chains\n  iter = 2000,  # number of iterations per chain\n  seed = 123\n)\n\n# Summarize posterior distributions\nprint(stan_model)\nsummary(stan_model)\n\n# Plot posterior distributions\nplot(stan_model, \"hist\")  # histogram of parameter posterior distributions\nplot(stan_model, \"trace\")  # trace plots to check MCMC convergence\nplot(stan_model, \"dens\")  # kernel density plots of posterior distributions\n\n# Posterior intervals (credible intervals)\nposterior_interval(stan_model, prob = 0.95)\n\n# Extract posterior samples for custom analysis\nposterior_samples <- as.matrix(stan_model)\nhead(posterior_samples)\n\n# Calculate posterior probabilities\nprob_beta1_positive <- mean(posterior_samples[, \"x1\"] > 0)\nprob_beta2_negative <- mean(posterior_samples[, \"x2\"] < 0)\n\ncat(\"Probability that effect of x1 is positive:\", prob_beta1_positive, \"\\n\")\ncat(\"Probability that effect of x2 is negative:\", prob_beta2_negative, \"\\n\")\n\n# Posterior predictive checks\npp_check(stan_model)  # visual check of model fit\n\n# Predictions for new data\nnew_data <- data.frame(\n  x1 = c(-1, 0, 1),\n  x2 = c(1, 0, -1)\n)\n\n# Point predictions (using posterior mean)\npred_mean <- posterior_linpred(stan_model, newdata = new_data, transform = TRUE)\npred_mean_vals <- colMeans(pred_mean)\n\n# Posterior predictive distribution (including observation noise)\npred_dist <- posterior_predict(stan_model, newdata = new_data)\n\n# Summarize predictions\npred_interval <- t(apply(pred_dist, 2, quantile, probs = c(0.025, 0.5, 0.975)))\ncolnames(pred_interval) <- c(\"2.5%\", \"50%\", \"97.5%\")\n\n# Display predictions with credible intervals\nfinal_predictions <- cbind(new_data, \n                          \"Posterior Mean\" = pred_mean_vals,\n                          pred_interval)\nprint(final_predictions) "
+        }
     },
     "Bayesian_Additive_Regression_Trees": {
         "description": "Nonparametric Bayesian approach using sum-of-trees model.",
@@ -1951,7 +2087,11 @@
         ],
         "relationship_type": [
             "linear"
-        ]
+        ],
+        "synthetic_data": {
+            "description": "A dataset suitable for Bayesian_Additive_Regression_Trees analysis",
+            "r_code": "# Generate synthetic data for Bayesian Linear Regression\nset.seed(123)\nn <- 100  # sample size\nx1 <- rnorm(n, mean = 0, sd = 1)  # predictor 1\nx2 <- rnorm(n, mean = 0, sd = 1)  # predictor 2\n\n# True parameter values\ntrue_beta0 <- 2.5   # intercept\ntrue_beta1 <- 1.8   # effect of x1\ntrue_beta2 <- -0.7  # effect of x2\ntrue_sigma <- 1.3   # residual standard deviation\n\n# Generate outcome with specified effects and noise\ny <- true_beta0 + true_beta1 * x1 + true_beta2 * x2 + rnorm(n, 0, true_sigma)\n\n# Create data frame\ndf <- data.frame(y = y, x1 = x1, x2 = x2)\n\n# Descriptive statistics\nsummary(df)\ncor(df)  # correlation matrix\n\n# Exploratory visualization\npar(mfrow = c(1, 2))\nplot(x1, y, main = \"Y vs X1\", xlab = \"X1\", ylab = \"Y\")\nplot(x2, y, main = \"Y vs X2\", xlab = \"X2\", ylab = \"Y\")\npar(mfrow = c(1, 1))\n\n# Fit ordinary least squares for comparison\nlm_model <- lm(y ~ x1 + x2, data = df)\nsummary(lm_model)\n\n# Bayesian linear regression using rstanarm\nlibrary(rstanarm)\n\n# Prior specification\n# By default, rstanarm uses weakly informative priors:\n# - Normal(0, 10) for coefficients\n# - half-Cauchy(0, 5) for the residual standard deviation\n\n# Fit Bayesian model\n# normal() specifies the likelihood function\n# student_t() specifies the prior distribution for the coefficients\nstan_model <- stan_glm(\n  y ~ x1 + x2, \n  data = df, \n  family = gaussian(),\n  prior = normal(0, 2.5),  # adjust the scale for different levels of prior information\n  prior_intercept = normal(0, 5),\n  prior_aux = exponential(1),\n  chains = 4,  # number of Markov chains\n  iter = 2000,  # number of iterations per chain\n  seed = 123\n)\n\n# Summarize posterior distributions\nprint(stan_model)\nsummary(stan_model)\n\n# Plot posterior distributions\nplot(stan_model, \"hist\")  # histogram of parameter posterior distributions\nplot(stan_model, \"trace\")  # trace plots to check MCMC convergence\nplot(stan_model, \"dens\")  # kernel density plots of posterior distributions\n\n# Posterior intervals (credible intervals)\nposterior_interval(stan_model, prob = 0.95)\n\n# Extract posterior samples for custom analysis\nposterior_samples <- as.matrix(stan_model)\nhead(posterior_samples)\n\n# Calculate posterior probabilities\nprob_beta1_positive <- mean(posterior_samples[, \"x1\"] > 0)\nprob_beta2_negative <- mean(posterior_samples[, \"x2\"] < 0)\n\ncat(\"Probability that effect of x1 is positive:\", prob_beta1_positive, \"\\n\")\ncat(\"Probability that effect of x2 is negative:\", prob_beta2_negative, \"\\n\")\n\n# Posterior predictive checks\npp_check(stan_model)  # visual check of model fit\n\n# Predictions for new data\nnew_data <- data.frame(\n  x1 = c(-1, 0, 1),\n  x2 = c(1, 0, -1)\n)\n\n# Point predictions (using posterior mean)\npred_mean <- posterior_linpred(stan_model, newdata = new_data, transform = TRUE)\npred_mean_vals <- colMeans(pred_mean)\n\n# Posterior predictive distribution (including observation noise)\npred_dist <- posterior_predict(stan_model, newdata = new_data)\n\n# Summarize predictions\npred_interval <- t(apply(pred_dist, 2, quantile, probs = c(0.025, 0.5, 0.975)))\ncolnames(pred_interval) <- c(\"2.5%\", \"50%\", \"97.5%\")\n\n# Display predictions with credible intervals\nfinal_predictions <- cbind(new_data, \n                          \"Posterior Mean\" = pred_mean_vals,\n                          pred_interval)\nprint(final_predictions) "
+        }
     },
     "Bayesian_Model_Averaging": {
         "description": "Accounts for model uncertainty by averaging over multiple models.",
@@ -2009,6 +2149,10 @@
         ],
         "relationship_type": [
             "linear"
-        ]
+        ],
+        "synthetic_data": {
+            "description": "A dataset suitable for Bayesian_Model_Averaging analysis",
+            "r_code": "# Generate synthetic data for Bayesian Linear Regression\nset.seed(123)\nn <- 100  # sample size\nx1 <- rnorm(n, mean = 0, sd = 1)  # predictor 1\nx2 <- rnorm(n, mean = 0, sd = 1)  # predictor 2\n\n# True parameter values\ntrue_beta0 <- 2.5   # intercept\ntrue_beta1 <- 1.8   # effect of x1\ntrue_beta2 <- -0.7  # effect of x2\ntrue_sigma <- 1.3   # residual standard deviation\n\n# Generate outcome with specified effects and noise\ny <- true_beta0 + true_beta1 * x1 + true_beta2 * x2 + rnorm(n, 0, true_sigma)\n\n# Create data frame\ndf <- data.frame(y = y, x1 = x1, x2 = x2)\n\n# Descriptive statistics\nsummary(df)\ncor(df)  # correlation matrix\n\n# Exploratory visualization\npar(mfrow = c(1, 2))\nplot(x1, y, main = \"Y vs X1\", xlab = \"X1\", ylab = \"Y\")\nplot(x2, y, main = \"Y vs X2\", xlab = \"X2\", ylab = \"Y\")\npar(mfrow = c(1, 1))\n\n# Fit ordinary least squares for comparison\nlm_model <- lm(y ~ x1 + x2, data = df)\nsummary(lm_model)\n\n# Bayesian linear regression using rstanarm\nlibrary(rstanarm)\n\n# Prior specification\n# By default, rstanarm uses weakly informative priors:\n# - Normal(0, 10) for coefficients\n# - half-Cauchy(0, 5) for the residual standard deviation\n\n# Fit Bayesian model\n# normal() specifies the likelihood function\n# student_t() specifies the prior distribution for the coefficients\nstan_model <- stan_glm(\n  y ~ x1 + x2, \n  data = df, \n  family = gaussian(),\n  prior = normal(0, 2.5),  # adjust the scale for different levels of prior information\n  prior_intercept = normal(0, 5),\n  prior_aux = exponential(1),\n  chains = 4,  # number of Markov chains\n  iter = 2000,  # number of iterations per chain\n  seed = 123\n)\n\n# Summarize posterior distributions\nprint(stan_model)\nsummary(stan_model)\n\n# Plot posterior distributions\nplot(stan_model, \"hist\")  # histogram of parameter posterior distributions\nplot(stan_model, \"trace\")  # trace plots to check MCMC convergence\nplot(stan_model, \"dens\")  # kernel density plots of posterior distributions\n\n# Posterior intervals (credible intervals)\nposterior_interval(stan_model, prob = 0.95)\n\n# Extract posterior samples for custom analysis\nposterior_samples <- as.matrix(stan_model)\nhead(posterior_samples)\n\n# Calculate posterior probabilities\nprob_beta1_positive <- mean(posterior_samples[, \"x1\"] > 0)\nprob_beta2_negative <- mean(posterior_samples[, \"x2\"] < 0)\n\ncat(\"Probability that effect of x1 is positive:\", prob_beta1_positive, \"\\n\")\ncat(\"Probability that effect of x2 is negative:\", prob_beta2_negative, \"\\n\")\n\n# Posterior predictive checks\npp_check(stan_model)  # visual check of model fit\n\n# Predictions for new data\nnew_data <- data.frame(\n  x1 = c(-1, 0, 1),\n  x2 = c(1, 0, -1)\n)\n\n# Point predictions (using posterior mean)\npred_mean <- posterior_linpred(stan_model, newdata = new_data, transform = TRUE)\npred_mean_vals <- colMeans(pred_mean)\n\n# Posterior predictive distribution (including observation noise)\npred_dist <- posterior_predict(stan_model, newdata = new_data)\n\n# Summarize predictions\npred_interval <- t(apply(pred_dist, 2, quantile, probs = c(0.025, 0.5, 0.975)))\ncolnames(pred_interval) <- c(\"2.5%\", \"50%\", \"97.5%\")\n\n# Display predictions with credible intervals\nfinal_predictions <- cbind(new_data, \n                          \"Posterior Mean\" = pred_mean_vals,\n                          pred_interval)\nprint(final_predictions) "
+        }
     }
 }

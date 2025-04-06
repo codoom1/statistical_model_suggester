@@ -23,9 +23,16 @@
                         <div class="alert alert-info">
                             {{ explanation | safe }}
                         </div>
-                        <a href="{{ url_for('main.model_details', model_name=recommended_model) }}" class="btn btn-primary">
-                            View Model Details
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('main.model_details', model_name=recommended_model) }}" class="btn btn-primary">
+                                <i class="bi bi-info-circle me-1"></i> View Model Details
+                            </a>
+                            {% if MODEL_DATABASE[recommended_model].synthetic_data %}
+                            <a href="{{ url_for('main.model_details', model_name=recommended_model) }}#synthetic-data" class="btn btn-success">
+                                <i class="bi bi-file-code me-1"></i> See Synthetic Data Example
+                            </a>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <!-- Alternative Models -->
