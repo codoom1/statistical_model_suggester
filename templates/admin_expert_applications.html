@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Expert Applications{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Expert Applications</h4>
+                <span class="badge bg-primary rounded-pill">{{ experts_pending|length }}</span>
+            </div>
+            <div class="card-body">
+                {% if experts_pending %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Institution</th>
+                                    <th>Applied On</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for expert in experts_pending %}
+                                <tr>
+                                    <td>{{ expert.username }}</td>
+                                    <td>{{ expert.email }}</td>
+                                    <td>{{ expert.institution or 'Not specified' }}</td>
+                                    <td>{{ expert.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#expertModal{{ expert.id }}">
+                                            Review
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Expert review modals -->
+                    {% for expert in experts_pending %}
+                    <div class="modal fade" id="expertModal{{ expert.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Expert Application: {{ expert.username }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <h6>User Information</h6>
+                                        <ul class="list-group mb-3">
+                                            <li class="list-group-item"><strong>Username:</strong> {{ expert.username }}</li>
+                                            <li class="list-group-item"><strong>Email:</strong> {{ expert.email }}</li>
+                                            <li class="list-group-item"><strong>Member Since:</strong> {{ expert.created_at.strftime('%Y-%m-%d') }}</li>
+                                            <li class="list-group-item"><strong>Institution:</strong> {{ expert.institution or 'Not specified' }}</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <h6>Areas of Expertise</h6>
+                                        <div class="p-3 bg-light rounded">
+                                            {{ expert.expertise }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <h6>Professional Bio</h6>
+                                        <div class="p-3 bg-light rounded">
+                                            {{ expert.bio }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <form method="POST" action="{{ url_for('admin.approve_expert', user_id=expert.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-success">Approve Expert</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <p class="mb-0">No pending expert applications at this time.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

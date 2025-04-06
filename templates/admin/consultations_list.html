@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Consultations - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Manage Consultations</h1>
+    
+    <div class="card mt-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Requester</th>
+                            <th>Expert</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for consultation in consultations %}
+                        <tr>
+                            <td>{{ consultation.title }}</td>
+                            <td>{{ consultation.requester.username }}</td>
+                            <td>
+                                {% if consultation.expert %}
+                                    {{ consultation.expert.username }}
+                                {% else %}
+                                    <span class="badge bg-warning">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if consultation.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif consultation.status == 'in_progress' %}
+                                    <span class="badge bg-info">In Progress</span>
+                                {% elif consultation.status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% elif consultation.status == 'cancelled' %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ consultation.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                {% if not consultation.expert %}
+                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#assignModal{{ consultation.id }}">
+                                    Assign Expert
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                        <!-- Assign Expert Modal -->
+                        <div class="modal fade" id="assignModal{{ consultation.id }}" tabindex="-1" aria-labelledby="assignModalLabel{{ consultation.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="assignModalLabel{{ consultation.id }}">Assign Expert to Consultation</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form action="{{ url_for('admin.assign_consultation', consultation_id=consultation.id) }}" method="post">
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label for="expert_id" class="form-label">Select Expert</label>
+                                                <select class="form-select" id="expert_id" name="expert_id" required>
+                                                    <option value="">Choose an expert...</option>
+                                                    {% for expert in experts %}
+                                                    <option value="{{ expert.id }}">{{ expert.username }} - {{ expert.expertise }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary">Assign Expert</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No consultations found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

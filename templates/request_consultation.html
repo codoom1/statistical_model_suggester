@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Request Consultation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Request Consultation</h1>
+    
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Expert Details</h5>
+            <p class="card-text">
+                {{ expert.username }} - {{ expert.areas_of_expertise[:50] }}{% if expert.areas_of_expertise|length > 50 %}...{% endif %}
+            </p>
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('expert.request_consultation', expert_id=expert.id) }}">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="analysis_goal" class="form-label">Analysis Goal</label>
+                    <input type="text" class="form-control" id="analysis_goal" name="analysis_goal" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="dependent_variable" class="form-label">Dependent Variable</label>
+                    <input type="text" class="form-control" id="dependent_variable" name="dependent_variable" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="independent_variables" class="form-label">Independent Variables (comma-separated)</label>
+                    <input type="text" class="form-control" id="independent_variables" name="independent_variables" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="sample_size" class="form-label">Sample Size</label>
+                    <input type="number" class="form-control" id="sample_size" name="sample_size" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="missing_data" class="form-label">Missing Data</label>
+                    <select class="form-select" id="missing_data" name="missing_data" required>
+                        <option value="none">None</option>
+                        <option value="some">Some</option>
+                        <option value="significant">Significant</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="data_distribution" class="form-label">Data Distribution</label>
+                    <select class="form-select" id="data_distribution" name="data_distribution" required>
+                        <option value="normal">Normal</option>
+                        <option value="non_normal">Non-normal</option>
+                        <option value="unknown">Unknown</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="relationship_type" class="form-label">Relationship Type</label>
+                    <select class="form-select" id="relationship_type" name="relationship_type" required>
+                        <option value="linear">Linear</option>
+                        <option value="non_linear">Non-linear</option>
+                        <option value="unknown">Unknown</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Submit Request</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

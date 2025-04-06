@@ -23,7 +23,7 @@
                         <div class="alert alert-info">
                             {{ explanation | safe }}
                         </div>
-                        <a href="{{ url_for('model_details', model_name=recommended_model) }}" class="btn btn-primary">
+                        <a href="{{ url_for('main.model_details', model_name=recommended_model) }}" class="btn btn-primary">
                             View Model Details
                         </a>
                     </div>
@@ -45,7 +45,7 @@
                                                 <div class="card-body">
                                                     <h6>{{ model_name }}</h6>
                                                     <p class="small">{{ model_info.description }}</p>
-                                                    <a href="{{ url_for('model_details', model_name=model_name) }}" class="btn btn-sm btn-outline-secondary">
+                                                    <a href="{{ url_for('main.model_details', model_name=model_name) }}" class="btn btn-sm btn-outline-secondary">
                                                         View Details
                                                     </a>
                                                 </div>
@@ -67,9 +67,9 @@
                     </div>
 
                     <div class="text-center mt-4">
-                        <a href="/" class="btn btn-primary">Start New Analysis</a>
-                        <a href="/history" class="btn btn-secondary">View History</a>
-                        <a href="/models" class="btn btn-info">Browse All Models</a>
+                        <a href="{{ url_for('main.analysis_form') }}" class="btn btn-primary">Start New Analysis</a>
+                        <a href="{{ url_for('main.history') }}" class="btn btn-secondary">View History</a>
+                        <a href="{{ url_for('main.models_list') }}" class="btn btn-info">Browse All Models</a>
                     </div>
                 </div>
             </div>

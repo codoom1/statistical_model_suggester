@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}My Consultations{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>My Consultations</h1>
+    
+    {% if current_user.is_expert %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Consultations I'm Providing</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Requester</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for consultation in expert_consultations %}
+                            <tr>
+                                <td>{{ consultation.title }}</td>
+                                <td>{{ consultation.requester.username }}</td>
+                                <td>
+                                    {% if consultation.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elif consultation.status == 'in_progress' %}
+                                        <span class="badge bg-info">In Progress</span>
+                                    {% elif consultation.status == 'completed' %}
+                                        <span class="badge bg-success">Completed</span>
+                                    {% elif consultation.status == 'cancelled' %}
+                                        <span class="badge bg-danger">Cancelled</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ consultation.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('expert.view_consultation', consultation_id=consultation.id) }}" class="btn btn-sm btn-primary">View</a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">No consultations found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Consultations I've Requested</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Expert</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for consultation in requested_consultations %}
+                        <tr>
+                            <td>{{ consultation.title }}</td>
+                            <td>
+                                {% if consultation.expert %}
+                                    {{ consultation.expert.username }}
+                                {% else %}
+                                    <span class="badge bg-warning">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if consultation.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif consultation.status == 'in_progress' %}
+                                    <span class="badge bg-info">In Progress</span>
+                                {% elif consultation.status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% elif consultation.status == 'cancelled' %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ consultation.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <a href="{{ url_for('expert.view_consultation', consultation_id=consultation.id) }}" class="btn btn-sm btn-primary">View</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">No consultations found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}Statistical Model Suggester{% endblock %}
+
+{% block container_start %}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Reset navbar margin for homepage */
+.navbar {
+    margin-bottom: 0 !important;
+    background-color: #8b1a1d !important; /* Dark red color similar to the reference image */
+    box-shadow: none;
+    border-bottom: none;
+}
+
+/* Reset body background */
+body {
+    background-color: transparent !important;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.hero {
+    position: relative;
+    width: 100%;
+    min-height: 400px; /* Adjusted height to match reference image */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Left align content similar to reference */
+    margin: 0;
+    padding: 0;
+    background-color: #1a1a1a;
+    overflow: hidden;
+}
+
+.hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    background-image: url("{{ url_for('static', filename='images/stats-background.png') }}"), linear-gradient(to bottom, #1a1a1a, #333);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+}
+
+.container-fluid {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7); /* Darkened overlay to match reference image */
+    z-index: 2;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 3;
+    color: white;
+    text-align: left; /* Left aligned like reference image */
+    padding: 2rem 3rem; /* Increased left padding to match reference */
+    max-width: 1200px;
+    width: 100%;
+}
+
+.hero h1 {
+    color: white !important;
+    font-size: 4rem; /* Slightly adjusted font size */
+    font-weight: 300;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero p {
+    color: white !important;
+    font-size: 1.5rem;
+    font-weight: 300;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    max-width: 80%; /* Constrain text width */
+}
+
+.hero .btn {
+    border-radius: 2px; /* Squared buttons more like reference */
+    padding: 0.5rem 1.5rem;
+    text-transform: uppercase;
+    font-weight: 500;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.hero .btn-light {
+    background-color: #ffffff;
+    border-color: #ffffff;
+    color: #333;
+}
+
+.hero .btn-outline-light {
+    border-color: #ffffff;
+    color: #ffffff;
+}
+
+.consultation-section {
+    padding: 5rem 0;
+    background-color: #f8f9fa;
+}
+
+.consultation-card {
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    padding: 2rem;
+    height: 100%;
+    transition: all 0.2s ease-in-out;
+    will-change: transform;
+}
+
+.consultation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.consultation-icon {
+    font-size: 2.5rem;
+    color: #007bff;
+    margin-bottom: 1.5rem;
+}
+
+.consultation-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+.consultation-description {
+    color: #6c757d;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+.stats-section {
+    padding: 4rem 0;
+    background-color: rgba(255, 255, 255, 0.17);
+}
+
+.stat-item {
+    text-align: center;
+    padding: 2rem;
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 600;
+    color: #007bff;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 1.1rem;
+    color: #6c757d;
+}
+
+/* Adjust hero section styles for smaller screens */
+@media (max-width: 768px) {
+    .hero {
+        min-height: 300px;
+    }
+    
+    .hero h1 {
+        font-size: 3rem;
+    }
+    
+    .hero p {
+        font-size: 1.2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Full width hero section -->
+<div class="container-fluid px-0">
+    <section class="hero" id="hero-section">
+        <div class="hero-background"></div>
+        <div class="hero-overlay"></div>
+        <div class="container">
+            <div class="hero-content">
+                <h1>Statistical Model Suggester</h1>
+                <p class="lead">Providing expert statistical guidance and model recommendations for your research needs</p>
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('main.analysis_form') }}" class="btn btn-light btn-lg">
+                        <i class="bi bi-graph-up me-2"></i>Start Your Analysis
+                    </a>
+                    <a href="{{ url_for('main.models_list') }}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-database me-2"></i>Browse Models
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const hero = document.getElementById('hero-section');
+    const heroBackground = document.querySelector('.hero-background');
+    
+    // Lazy-load the background image
+    const img = new Image();
+    img.src = "{{ url_for('static', filename='images/stats-background.png') }}";
+    img.loading = "lazy";
+    
+    img.onload = function() {
+        console.log('Background image loaded successfully');
+        heroBackground.style.backgroundImage = `url('${img.src}'), linear-gradient(to bottom, #1a1a1a, #333)`;
+        heroBackground.style.backgroundSize = 'cover';
+        heroBackground.style.backgroundPosition = 'center';
+        heroBackground.style.margin = '0';
+        heroBackground.style.padding = '0';
+        hero.classList.add('image-loaded');
+    };
+    
+    img.onerror = function(e) {
+        console.error('Background image failed to load:', e);
+        hero.classList.add('no-image');
+    };
+});
+</script>
+
+<!-- Container for the rest of the content -->
+<div class="container">
+    <section class="consultation-section">
+        <h2 class="text-center mb-5">Our Services</h2>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="consultation-card">
+                    <i class="bi bi-cpu consultation-icon"></i>
+                    <h3 class="consultation-title">Model Selection</h3>
+                    <p class="consultation-description">Get personalized recommendations for the most appropriate statistical models based on your data characteristics and research goals.</p>
+                    <a href="{{ url_for('main.analysis_form') }}" class="btn btn-primary">Get Started</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="consultation-card">
+                    <i class="bi bi-people consultation-icon"></i>
+                    <h3 class="consultation-title">Expert Consultation</h3>
+                    <p class="consultation-description">Connect with qualified statisticians for personalized guidance and validation of your analysis approach.</p>
+                    <a href="{{ url_for('expert.experts_list') }}" class="btn btn-primary">Find Experts</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="consultation-card">
+                    <i class="bi bi-book consultation-icon"></i>
+                    <h3 class="consultation-title">Educational Resources</h3>
+                    <p class="consultation-description">Access comprehensive documentation, tutorials, and examples for each statistical model in our database.</p>
+                    <a href="{{ url_for('main.models_list') }}" class="btn btn-primary">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats-section">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.models_count }}</div>
+                    <div class="stat-label">Statistical Models</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.access_hours }}</div>
+                    <div class="stat-label">Model Access</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.verification_rate }}</div>
+                    <div class="stat-label">Expert Verified</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block container_end %}{% endblock %} 

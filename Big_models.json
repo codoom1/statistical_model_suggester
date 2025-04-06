@@ -1,0 +1,350 @@
+{
+    "Statistical_Models": {
+      "Parametric": {
+        "Linear_Regression": {
+          "description": "A linear approach for modeling the relationship between a dependent variable and independent variables.",
+          "use_cases": ["prediction", "inference"],
+          "analysis_goals": ["relationship", "predict"],
+          "dependent_variable": ["continuous"],
+          "independent_variables": ["continuous", "categorical"],
+          "sample_size": ["medium", "large"],
+          "missing_data": ["none", "random"],
+          "data_distribution": ["normal"],
+          "relationship_type": ["linear"],
+          "implementation": {
+            "python": {
+              "code": "from sklearn.linear_model import LinearRegression\nmodel = LinearRegression()\nmodel.fit(X, y)",
+              "documentation": "https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html"
+            },
+            "r": {
+              "code": "lm(y ~ x1 + x2, data=df)",
+              "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/lm"
+            }
+          }
+        },
+        "Logistic_Regression": {
+          "description": "A regression model where the dependent variable is categorical.",
+          "use_cases": ["classification", "probability estimation"],
+          "analysis_goals": ["classify", "probability"],
+          "dependent_variable": ["binary", "categorical"],
+          "independent_variables": ["continuous", "categorical"],
+          "sample_size": ["medium", "large"],
+          "missing_data": ["none", "random"],
+          "data_distribution": ["any"],
+          "relationship_type": ["linear", "non_linear"],
+          "implementation": {
+            "python": {
+              "code": "from sklearn.linear_model import LogisticRegression\nmodel = LogisticRegression()\nmodel.fit(X, y)",
+              "documentation": "https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html"
+            },
+            "r": {
+              "code": "glm(y ~ x1 + x2, family=binomial(link='logit'), data=df)",
+              "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/glm"
+            }
+          }
+        },
+        "Poisson_Regression": {
+          "description": "Generalized linear model for count data and contingency tables.",
+          "use_cases": ["count prediction", "rate analysis"],
+          "analysis_goals": ["predict", "analyze_rates"],
+          "dependent_variable": ["count"],
+          "independent_variables": ["continuous", "categorical"],
+          "sample_size": ["medium", "large"],
+          "missing_data": ["none", "random"],
+          "data_distribution": ["poisson"],
+          "relationship_type": ["log-linear"],
+          "implementation": {
+            "python": {
+              "code": "import statsmodels.api as sm\nmodel = sm.GLM(y, X, family=sm.families.Poisson())",
+              "documentation": "https://www.statsmodels.org/stable/glm.html"
+            },
+            "r": {
+              "code": "glm(y ~ x1 + x2, family=poisson(link='log'), data=df)",
+              "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/glm"
+            }
+          }
+        },
+        "Negative_Binomial_Regression": {
+          "description": "Generalized linear model for overdispersed count data.",
+          "use_cases": ["overdispersed counts", "rate analysis"],
+          "analysis_goals": ["predict", "analyze_rates"],
+          "dependent_variable": ["count"],
+          "independent_variables": ["continuous", "categorical"],
+          "sample_size": ["medium", "large"],
+          "missing_data": ["none", "random"],
+          "data_distribution": ["negative_binomial"],
+          "relationship_type": ["log-linear"],
+          "implementation": {
+            "python": {
+              "code": "import statsmodels.api as sm\nmodel = sm.GLM(y, X, family=sm.families.NegativeBinomial())",
+              "documentation": "https://www.statsmodels.org/stable/glm.html"
+            },
+            "r": {
+              "code": "library(MASS)\nglm.nb(y ~ x1 + x2, data=df)",
+              "documentation": "https://www.rdocumentation.org/packages/MASS/versions/7.3-51.4/topics/glm.nb"
+            }
+          }
+        },
+        "Probit_Regression": {
+          "description": "Regression where the dependent variable is binary and modeled using probit link function.",
+          "use_cases": ["binary classification"],
+          "analysis_goals": ["classify", "probability"],
+          "dependent_variable": ["binary"],
+          "independent_variables": ["continuous", "categorical"],
+          "sample_size": ["medium", "large"],
+          "missing_data": ["none", "random"],
+          "data_distribution": ["normal"],
+          "relationship_type": ["non_linear"],
+          "implementation": {
+            "python": {
+              "code": "import statsmodels.api as sm\nmodel = sm.Probit(y, X)\nresults = model.fit()",
+              "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.discrete.discrete_model.Probit.html"
+            },
+            "r": {
+              "code": "glm(y ~ x1 + x2, family=binomial(link='probit'), data=df)",
+              "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/glm"
+            }
+          }
+        },
+        "Tobit_Regression": {
+          "description": "Regression model for censored dependent variables.",
+          "use_cases": ["censored data", "limited dependent variables"],
+          "analysis_goals": ["predict", "analyze_censored"],
+          "dependent_variable": ["censored"],
+          "independent_variables": ["continuous", "categorical"],
+          "sample_size": ["medium", "large"],
+          "missing_data": ["none"],
+          "data_distribution": ["normal"],
+          "relationship_type": ["linear"],
+          "implementation": {
+            "python": {
+              "code": "import statsmodels.api as sm\nmodel = sm.Tobit(y, X)\nresults = model.fit()",
+              "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.Tobit.html"
+            },
+            "r": {
+              "code": "library(AER)\ntobit(y ~ x1 + x2, data=df)",
+              "documentation": "https://www.rdocumentation.org/packages/AER/versions/1.2-9/topics/tobit"
+            }
+          }
+        }
+      },
+      "Non_Parametric": {
+        "Mann_Whitney_U_Test": {
+          "description": "A non-parametric test used to determine whether two independent samples come from the same distribution.",
+          "use_cases": ["hypothesis testing", "comparison"],
+          "analysis_goals": ["compare", "test"],
+          "dependent_variable": ["continuous", "ordinal"],
+          "independent_variables": ["categorical"],
+          "sample_size": ["small", "medium"],
+          "missing_data": ["none"],
+          "data_distribution": ["non_normal"],
+          "relationship_type": ["any"],
+          "implementation": {
+            "python": {
+              "code": "from scipy.stats import mannwhitneyu\nstat, p_value = mannwhitneyu(x, y)",
+              "documentation": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html"
+            },
+            "r": {
+              "code": "wilcox.test(x, y)",
+              "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/wilcox.test"
+            }
+          }
+        },
+        "Kruskal_Wallis_Test": {
+          "description": "Non-parametric method for testing whether samples originate from the same distribution.",
+          "use_cases": ["hypothesis testing", "multiple group comparison"],
+          "analysis_goals": ["compare", "test"],
+          "dependent_variable": ["continuous", "ordinal"],
+          "independent_variables": ["categorical"],
+          "sample_size": ["small", "medium"],
+          "missing_data": ["none"],
+          "data_distribution": ["non_normal"],
+          "relationship_type": ["any"],
+          "implementation": {
+            "python": {
+              "code": "from scipy.stats import kruskal\nstat, p_value = kruskal(*groups)",
+              "documentation": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kruskal.html"
+            },
+            "r": {
+              "code": "kruskal.test(y ~ group, data=df)",
+              "documentation": "https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/kruskal.test"
+            }
+          }
+        },
+        "Kernel_Regression": {
+          "description": "Non-parametric technique to estimate the conditional expectation of a random variable.",
+          "use_cases": ["non-linear prediction", "smoothing"],
+          "analysis_goals": ["predict", "smooth"],
+          "dependent_variable": ["continuous"],
+          "independent_variables": ["continuous"],
+          "sample_size": ["small", "medium"],
+          "missing_data": ["none"],
+          "data_distribution": ["any"],
+          "relationship_type": ["non_linear"],
+          "implementation": {
+            "python": {
+              "code": "from statsmodels.nonparametric.kernel_regression import KernelReg\nmodel = KernelReg(y, X, var_type='c')",
+              "documentation": "https://www.statsmodels.org/stable/nonparametric.html"
+            },
+            "r": {
+              "code": "library(np)\nmodel <- npreg(y ~ x, data=df)",
+              "documentation": "https://www.rdocumentation.org/packages/np/versions/0.60-10/topics/npreg"
+            }
+          }
+        }
+      }
+    },
+    "Machine_Learning_Models": {
+      "Random_Forest": {
+        "description": "An ensemble learning method for classification and regression that operates by constructing multiple decision trees.",
+        "use_cases": ["classification", "regression"],
+        "analysis_goals": ["predict", "classify"],
+        "dependent_variable": ["continuous", "categorical"],
+        "independent_variables": ["continuous", "categorical"],
+        "sample_size": ["medium", "large"],
+        "missing_data": ["random"],
+        "data_distribution": ["any"],
+        "relationship_type": ["non_linear"],
+        "implementation": {
+          "python": {
+            "code": "from sklearn.ensemble import RandomForestClassifier\nmodel = RandomForestClassifier()\nmodel.fit(X, y)",
+            "documentation": "https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html"
+          },
+          "r": {
+            "code": "library(randomForest)\nrf_model <- randomForest(y ~ ., data=df)",
+            "documentation": "https://www.rdocumentation.org/packages/randomForest"
+          }
+        }
+      },
+      "Support_Vector_Machines": {
+        "description": "Supervised learning models with associated learning algorithms that analyze data for classification and regression analysis.",
+        "use_cases": ["classification", "regression"],
+        "analysis_goals": ["classify", "predict"],
+        "dependent_variable": ["continuous", "categorical"],
+        "independent_variables": ["continuous", "categorical"],
+        "sample_size": ["medium", "large"],
+        "missing_data": ["none"],
+        "data_distribution": ["any"],
+        "relationship_type": ["linear", "non_linear"],
+        "implementation": {
+          "python": {
+            "code": "from sklearn.svm import SVC\nmodel = SVC()\nmodel.fit(X, y)",
+            "documentation": "https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html"
+          },
+          "r": {
+            "code": "library(e1071)\nsvm_model <- svm(y ~ ., data=df)",
+            "documentation": "https://www.rdocumentation.org/packages/e1071/versions/1.7-3/topics/svm"
+          }
+        }
+      },
+      "Gradient_Boosting_Machines": {
+        "description": "Machine learning technique for regression and classification problems, producing a prediction model in the form of an ensemble of weak prediction models.",
+        "use_cases": ["classification", "regression"],
+        "analysis_goals": ["predict", "classify"],
+        "dependent_variable": ["continuous", "categorical"],
+        "independent_variables": ["continuous", "categorical"],
+        "sample_size": ["medium", "large"],
+        "missing_data": ["random"],
+        "data_distribution": ["any"],
+        "relationship_type": ["non_linear"],
+        "implementation": {
+          "python": {
+            "code": "from sklearn.ensemble import GradientBoostingClassifier\nmodel = GradientBoostingClassifier()\nmodel.fit(X, y)",
+            "documentation": "https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.GradientBoostingClassifier.html"
+          },
+          "r": {
+            "code": "library(gbm)\ngbm_model <- gbm(y ~ ., data=df, distribution='bernoulli')",
+            "documentation": "https://www.rdocumentation.org/packages/gbm/versions/2.1.8/topics/gbm"
+          }
+        }
+      }
+    },
+    "Bayesian_Models": {
+      "Bayesian_Linear_Regression": {
+        "description": "A Bayesian approach to linear regression where parameters are treated as random variables.",
+        "use_cases": ["prediction", "inference"],
+        "analysis_goals": ["predict", "inference"],
+        "dependent_variable": ["continuous"],
+        "independent_variables": ["continuous", "categorical"],
+        "sample_size": ["any"],
+        "missing_data": ["random"],
+        "data_distribution": ["normal"],
+        "relationship_type": ["linear"],
+        "implementation": {
+          "python": {
+            "code": "import pymc3 as pm\nwith pm.Model() as model:\n    beta = pm.Normal('beta', mu=0, sd=10)\n    y = pm.Normal('y', mu=beta * X, sd=1, observed=y_obs)",
+            "documentation": "https://docs.pymc.io/"
+          },
+          "r": {
+            "code": "library(brms)\nfit <- brm(y ~ x, data = df)",
+            "documentation": "https://paul-buerkner.github.io/brms/"
+          }
+        }
+      },
+      "Hierarchical_Models": {
+        "description": "Models that incorporate multiple levels of random effects to account for nested data structures.",
+        "use_cases": ["multilevel data", "grouped data"],
+        "analysis_goals": ["inference", "predict"],
+        "dependent_variable": ["continuous", "categorical"],
+        "independent_variables": ["continuous", "categorical"],
+        "sample_size": ["medium", "large"],
+        "missing_data": ["random"],
+        "data_distribution": ["normal"],
+        "relationship_type": ["linear"],
+        "implementation": {
+          "python": {
+            "code": "import pymc3 as pm\nwith pm.Model() as hierarchical_model:\n    # Hyperpriors\n    mu_a = pm.Normal('mu_a', mu=0, sd=10)\n    sigma_a = pm.HalfNormal('sigma_a', sd=10)\n    \n    # Varying intercepts\n    a = pm.Normal('a', mu=mu_a, sd=sigma_a, shape=len(groups))\n    \n    # Common slope\n    b = pm.Normal('b', mu=0, sd=10)\n    \n    # Expected value\n    mu = a[group_idx] + b * x\n    \n    # Likelihood\n    y_obs = pm.Normal('y_obs', mu=mu, sd=sigma, observed=y)",
+            "documentation": "https://docs.pymc.io/"
+          },
+          "r": {
+            "code": "library(lme4)\nmodel <- lmer(y ~ x + (1|group), data=df)",
+            "documentation": "https://www.rdocumentation.org/packages/lme4/versions/1.1-27.1/topics/lmer"
+          }
+        }
+      }
+    },
+    "Actuarial_Models": {
+      "Survival_Analysis": {
+        "description": "Statistical methods for analyzing the expected duration of time until one or more events occur.",
+        "use_cases": ["survival analysis", "time-to-event"],
+        "analysis_goals": ["predict", "analyze_time"],
+        "dependent_variable": ["time", "event"],
+        "independent_variables": ["continuous", "categorical"],
+        "sample_size": ["medium", "large"],
+        "missing_data": ["censored"],
+        "data_distribution": ["any"],
+        "relationship_type": ["any"],
+        "implementation": {
+          "python": {
+            "code": "from lifelines import KaplanMeierFitter\nkmf = KaplanMeierFitter()\nkmf.fit(durations, events)",
+            "documentation": "https://lifelines.readthedocs.io/"
+          },
+          "r": {
+            "code": "library(survival)\nfit <- survfit(Surv(time, status) ~ 1, data = df)",
+            "documentation": "https://www.rdocumentation.org/packages/survival"
+          }
+        }
+      },
+      "Credibility_Theory": {
+        "description": "Methods for combining individual risk experience with group experience to produce more accurate premium estimates.",
+        "use_cases": ["insurance pricing", "risk assessment"],
+        "analysis_goals": ["estimate", "combine_data"],
+        "dependent_variable": ["risk"],
+        "independent_variables": ["experience", "exposure"],
+        "sample_size": ["medium", "large"],
+        "missing_data": ["none"],
+        "data_distribution": ["any"],
+        "relationship_type": ["linear"],
+        "implementation": {
+          "python": {
+            "code": "# No standard implementation - typically custom solutions",
+            "documentation": ""
+          },
+          "r": {
+            "code": "library(actuar)\ncredibility(model = y ~ x, data = df, weights = exposure)",
+            "documentation": "https://www.rdocumentation.org/packages/actuar"
+          }
+        }
+      }
+    }
+  }

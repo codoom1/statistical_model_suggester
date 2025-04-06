@@ -12,7 +12,7 @@
                     <p class="mb-0">Fill in your data characteristics to get a model recommendation</p>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('results') }}" class="needs-validation" novalidate>
+                    <form method="POST" action="{{ url_for('main.results') }}" class="needs-validation" novalidate>
                         <div class="mb-4">
                             <label for="research_question" class="form-label">Research Question</label>
                             <input type="text" class="form-control" id="research_question" name="research_question" 
@@ -36,8 +36,8 @@
                         </div>
 
                         <div class="mb-4">
-                            <label for="dependent_variable" class="form-label">Dependent Variable Type</label>
-                            <select class="form-select" id="dependent_variable" name="dependent_variable" required>
+                            <label for="dependent_variable_type" class="form-label">Dependent Variable Type</label>
+                            <select class="form-select" id="dependent_variable_type" name="dependent_variable_type" required>
                                 <option value="">Select dependent variable type</option>
                                 <option value="continuous">Continuous</option>
                                 <option value="binary">Binary</option>

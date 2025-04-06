@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{{ expert.username }} - Expert Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Expert Profile</h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="avatar-circle bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 120px; height: 120px; color: white; font-size: 3rem;">
+                        {{ expert.username[0].upper() }}
+                    </div>
+                    <h4>{{ expert.username }}</h4>
+                    {% if expert.institution %}
+                        <p class="lead mb-0">{{ expert.institution }}</p>
+                    {% endif %}
+                    <div class="mt-2">
+                        <span class="badge bg-success">Verified Expert</span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Areas of Expertise</h5>
+                    <p>{{ expert.expertise }}</p>
+                </div>
+
+                {% if expert.bio %}
+                <div class="mb-4">
+                    <h5>Bio</h5>
+                    <p>{{ expert.bio }}</p>
+                </div>
+                {% endif %}
+
+                {% if current_user.is_authenticated %}
+                <div class="d-grid">
+                    <a href="{{ url_for('expert.request_consultation', expert_id=expert.id) }}" class="btn btn-primary">
+                        <i class="bi bi-chat-dots me-1"></i> Request Consultation
+                    </a>
+                </div>
+                {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <a href="{{ url_for('auth.login') }}" class="alert-link">Log in</a> to request a consultation with this expert.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Public Consultations</h4>
+                <span class="badge bg-primary rounded-pill">{{ consultations|length }}</span>
+            </div>
+            <div class="card-body">
+                {% if consultations %}
+                    <div class="accordion" id="consultationAccordion">
+                        {% for consultation in consultations %}
+                            <div class="accordion-item mb-3 border rounded">
+                                <h2 class="accordion-header" id="heading{{ consultation.id }}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ consultation.id }}">
+                                        <div class="w-100 d-flex justify-content-between">
+                                            <span>{{ consultation.title }}</span>
+                                            <small class="text-muted me-4">{{ consultation.created_at.strftime('%Y-%m-%d') }}</small>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ consultation.id }}" class="accordion-collapse collapse" data-bs-parent="#consultationAccordion">
+                                    <div class="accordion-body">
+                                        <div class="mb-3">
+                                            <h6>Question:</h6>
+                                            <p>{{ consultation.question }}</p>
+                                        </div>
+                                        <div>
+                                            <h6>Expert Response:</h6>
+                                            <p>{{ consultation.response }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <p class="mb-0">No public consultations available from this expert yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

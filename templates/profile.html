@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Statistical Model Suggester{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- User Info -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-white py-3">
+                <h4 class="mb-0">Profile</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('main.profile') }}">
+                    <div class="text-center mb-4">
+                        <div class="avatar-circle bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px; color: white; font-size: 2.5rem;">
+                            {{ user.username[0].upper() }}
+                        </div>
+                        <h5>{{ user.username }}</h5>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                        </div>
+                        
+                        <p class="small text-muted mt-2">Member since {{ user.created_at.strftime('%B %d, %Y') }}</p>
+                        
+                        {% if user.is_expert %}
+                            <div class="mt-2">
+                                <span class="badge bg-success">Verified Expert</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if user.is_expert %}
+                        <div class="mb-3">
+                            <label for="institution" class="form-label">Institution</label>
+                            <input type="text" class="form-control" id="institution" name="institution" value="{{ user.institution or '' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="areas_of_expertise" class="form-label">Areas of Expertise</label>
+                            <textarea class="form-control" id="areas_of_expertise" name="areas_of_expertise" rows="3">{{ user.areas_of_expertise or '' }}</textarea>
+                            <div class="form-text">List your areas of expertise, separated by commas.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="5">{{ user.bio or '' }}</textarea>
+                            <div class="form-text">Write a brief bio about your experience and qualifications.</div>
+                        </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                        <a href="{{ url_for('main.analysis_form') }}" class="btn btn-outline-primary">Start New Analysis</a>
+                        <a href="{{ url_for('expert.my_consultations') }}" class="btn btn-outline-primary">My Consultations</a>
+                        
+                        {% if not user.is_expert %}
+                            <a href="{{ url_for('expert.apply_expert') }}" class="btn btn-outline-secondary">Apply to Become an Expert</a>
+                        {% endif %}
+                        
+                        {% if user.is_expert %}
+                            <a href="{{ url_for('expert.experts_list') }}" class="btn btn-outline-secondary">View All Experts</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis History -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-white py-3">
+                <h4 class="mb-0">Analysis History</h4>
+            </div>
+            <div class="card-body">
+                {% if analyses %}
+                    <div class="list-group">
+                        {% for analysis in analyses %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ analysis.research_question }}</h5>
+                                <small class="text-muted">{{ analysis.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                            <div class="mb-2">
+                                <span class="badge bg-info">Model: {{ analysis.recommended_model }}</span>
+                                <span class="badge bg-secondary">Goal: {{ analysis.analysis_goal }}</span>
+                                <span class="badge bg-secondary">Dependent: {{ analysis.dependent_variable }}</span>
+                            </div>
+                            <div class="mt-2">
+                                <a href="{{ url_for('main.user_analysis', analysis_id=analysis.id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <p class="mb-0">You haven't performed any analyses yet.</p>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('main.analysis_form') }}" class="btn btn-primary">Start Your First Analysis</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -17,7 +17,7 @@ A web application that helps users choose appropriate statistical models based o
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/statistical-model-suggester.git
+git clone https://github.com/codoom1/statistical-model-suggester.git
 cd statistical-model-suggester
 ```
 
@@ -46,7 +46,7 @@ python app.py
 
 2. Open your web browser and navigate to:
 ```
-http://localhost:8080
+http://localhost:8084
 ```
 
 3. Fill in the form with your data characteristics and analysis goals.

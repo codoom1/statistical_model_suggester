@@ -130,5 +130,160 @@
     "data_distribution": "unknown",
     "relationship_type": "unknown",
     "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-04 18:05:40",
+    "research_question": "Are there difference between male and female affect peoples opinion?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "",
+    "independent_variables": [
+      "categorical"
+    ],
+    "sample_size": "50",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "Chi-Square Test"
+  },
+  {
+    "timestamp": "2025-04-04 23:53:18",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "500",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-05 01:39:07",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "500",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-05 01:42:19",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "503",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-05 01:44:43",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "503",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-05 01:47:31",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "explore",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "677",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-05 01:55:03",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "90",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-05 12:01:44",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "binary"
+    ],
+    "sample_size": "90",
+    "missing_data": "little",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-05 12:29:08",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "categorical"
+    ],
+    "sample_size": "1",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-05 18:33:24",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "predict",
+    "dependent_variable": "categorical",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "1",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "K-Nearest Neighbors"
+  },
+  {
+    "timestamp": "2025-04-05 19:49:21",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "time_series",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "1",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "Linear Regression"
   }
 ]

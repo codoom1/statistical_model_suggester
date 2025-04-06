@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Consultation: {{ consultation.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="mb-3">
+            <a href="{{ url_for('expert.my_consultations') }}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left me-1"></i> Back to My Consultations
+            </a>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">{{ consultation.title }}</h4>
+                <span class="badge 
+                    {% if consultation.status == 'pending' %}bg-warning
+                    {% elif consultation.status == 'assigned' %}bg-info
+                    {% elif consultation.status == 'completed' %}bg-success
+                    {% else %}bg-secondary{% endif %}">
+                    {{ consultation.status|title }}
+                </span>
+            </div>
+            <div class="card-body">
+                {% if consultation.public %}
+                    <div class="alert alert-success mb-4">
+                        <i class="bi bi-eye me-2"></i> This consultation is publicly visible to help other users.
+                    </div>
+                {% endif %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Request Details</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <strong>Requested by:</strong> {{ consultation.requester.username }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Date:</strong> {{ consultation.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </li>
+                            {% if consultation.expert %}
+                            <li class="list-group-item">
+                                <strong>Assigned Expert:</strong> {{ consultation.expert.username }}
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    {% if consultation.analysis %}
+                    <div class="col-md-6">
+                        <h5>Linked Analysis</h5>
+                        <div class="card border">
+                            <div class="card-body">
+                                <h6>{{ consultation.analysis.research_question }}</h6>
+                                <p class="mb-1"><strong>Model:</strong> {{ consultation.analysis.recommended_model }}</p>
+                                <p class="mb-1"><strong>Goal:</strong> {{ consultation.analysis.analysis_goal }}</p>
+                                <p class="mb-0"><strong>Variables:</strong> {{ consultation.analysis.dependent_variable }}</p>
+                                <a href="{{ url_for('main.view_history_result', index=consultation.analysis.id) }}" class="btn btn-sm btn-outline-primary mt-2">
+                                    View Analysis
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Question</h5>
+                    <div class="p-3 bg-light rounded">
+                        {{ consultation.question|replace('\n', '<br>')|safe }}
+                    </div>
+                </div>
+                
+                {% if consultation.response %}
+                <div class="mb-4">
+                    <h5>Expert Response</h5>
+                    <div class="p-3 bg-light rounded">
+                        {{ consultation.response|replace('\n', '<br>')|safe }}
+                    </div>
+                    <div class="text-end text-muted small mt-2">
+                        Answered on {{ consultation.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>
+                {% elif consultation.expert_id == current_user.id %}
+                <form method="POST" action="{{ url_for('expert.respond_consultation', consultation_id=consultation.id) }}">
+                    <div class="mb-3">
+                        <label for="response" class="form-label">Your Response</label>
+                        <textarea class="form-control" id="response" name="response" rows="8" required 
+                            placeholder="Provide your expert advice and recommendations..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="public" name="public">
+                        <label class="form-check-label" for="public">
+                            Make this consultation publicly visible (to help other users with similar questions)
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Submit Response</button>
+                    </div>
+                </form>
+                {% elif consultation.status == 'pending' %}
+                <div class="alert alert-info">
+                    <i class="bi bi-hourglass-split me-2"></i> 
+                    Your consultation is pending assignment to an expert. You'll be notified when an expert responds.
+                </div>
+                {% elif consultation.status == 'assigned' %}
+                <div class="alert alert-info">
+                    <i class="bi bi-person-check me-2"></i>
+                    Your consultation has been assigned to {{ consultation.expert.username }} and is awaiting a response.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

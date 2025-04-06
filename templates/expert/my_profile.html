@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}My Expert Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">My Expert Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('expert.my_profile') }}">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" value="{{ expert.username }}" disabled>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" value="{{ expert.email }}" disabled>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="institution" class="form-label">Institution</label>
+                            <input type="text" class="form-control" id="institution" name="institution" value="{{ expert.institution or '' }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="areas_of_expertise" class="form-label">Areas of Expertise</label>
+                            <textarea class="form-control" id="areas_of_expertise" name="areas_of_expertise" rows="3" required>{{ expert.areas_of_expertise or '' }}</textarea>
+                            <div class="form-text">List your areas of expertise, separated by commas.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="5">{{ expert.bio or '' }}</textarea>
+                            <div class="form-text">Write a brief bio about your experience and qualifications.</div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Profile Preview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-circle bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px; color: white; font-size: 2.5rem;">
+                            {{ expert.username[0].upper() }}
+                        </div>
+                        <h5>{{ expert.username }}</h5>
+                        {% if expert.institution %}
+                            <p class="text-muted mb-0">{{ expert.institution }}</p>
+                        {% endif %}
+                        <div class="mt-2">
+                            <span class="badge bg-success">Verified Expert</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Areas of Expertise:</h6>
+                        <p>{{ expert.areas_of_expertise or 'Not specified' }}</p>
+                    </div>
+                    
+                    {% if expert.bio %}
+                    <div class="mb-3">
+                        <h6>Bio:</h6>
+                        <p>{{ expert.bio }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('expert.expert_profile', expert_id=expert.id) }}" class="btn btn-outline-primary">View Public Profile</a>
+                        <a href="{{ url_for('expert.my_consultations') }}" class="btn btn-outline-secondary">My Consultations</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

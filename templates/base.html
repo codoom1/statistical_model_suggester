@@ -9,210 +9,273 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
     <!-- Custom CSS -->
     <style>
-        :root {
-            --primary-color: #2563eb;
-            --secondary-color: #1e40af;
-            --accent-color: #3b82f6;
-            --text-color: #1f2937;
-            --light-bg: #f3f4f6;
-            --border-color: #e5e7eb;
-        }
-
         body {
-            font-family: 'Inter', sans-serif;
-            color: var(--text-color);
-            background-color: var(--light-bg);
-            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .navbar {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            background-color: #007bff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
         }
 
         .navbar-brand {
             font-weight: 600;
-            letter-spacing: 0.5px;
+            color: white !important;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.85) !important;
+        }
+
+        .nav-link:hover {
+            color: white !important;
         }
 
         .card {
             border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease-in-out;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 1.5rem;
         }
 
         .card-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background-color: #007bff;
             color: white;
-            border-radius: 12px 12px 0 0 !important;
-            padding: 1.5rem;
-        }
-
-        .form-control, .form-select {
-            border-radius: 8px;
-            border: 2px solid var(--border-color);
-            padding: 0.75rem 1rem;
-            transition: all 0.2s ease-in-out;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            font-weight: 500;
+            border-bottom: none;
+            padding: 1rem 1.25rem;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            border-radius: 8px;
-            padding: 0.75rem 1.5rem;
-            font-weight: 500;
-            transition: all 0.2s ease-in-out;
+            background-color: #007bff;
+            border-color: #007bff;
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            transform: translateY(-1px);
+            background-color: #0069d9;
+            border-color: #0062cc;
         }
 
         .btn-outline-primary {
-            border: 2px solid var(--primary-color);
-            color: var(--primary-color);
-            border-radius: 8px;
-            padding: 0.75rem 1.5rem;
-            font-weight: 500;
-            transition: all 0.2s ease-in-out;
+            color: #007bff;
+            border-color: #007bff;
         }
 
         .btn-outline-primary:hover {
-            background-color: var(--primary-color);
+            background-color: #007bff;
             color: white;
-            transform: translateY(-1px);
         }
 
-        .tooltip-icon {
-            cursor: help;
-            margin-left: 5px;
-            color: var(--accent-color);
-        }
-
-        pre {
-            background-color: var(--light-bg);
-            padding: 1rem;
-            border-radius: 8px;
-            overflow-x: auto;
-            border: 1px solid var(--border-color);
-        }
-
-        code {
-            color: var(--primary-color);
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-        }
-
-        .list-group-item {
-            border: none;
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem;
-        }
-
-        .list-group-item:last-child {
-            border-bottom: none;
-        }
-
-        .alert {
-            border-radius: 8px;
-            border: none;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .form-check-input:checked {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-
-        .form-check-input:focus {
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-        }
-
-        .nav-link {
-            color: rgba(255, 255, 255, 0.9);
+        .badge {
             font-weight: 500;
-            transition: all 0.2s ease-in-out;
         }
 
-        .nav-link:hover {
-            color: white;
-            transform: translateY(-1px);
+        .bg-primary {
+            background-color: #007bff !important;
         }
 
-        .footer {
-            background-color: white;
-            padding: 2rem 0;
-            margin-top: 4rem;
-            border-top: 1px solid var(--border-color);
+        .bg-success {
+            background-color: #28a745 !important;
         }
 
-        .footer a {
-            color: var(--primary-color);
+        .bg-info {
+            background-color: #17a2b8 !important;
+        }
+
+        .auth-card {
+            max-width: 450px;
+            margin: 0 auto;
+            border-radius: 10px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .auth-card .card-header, .auth-card .card-footer {
+            border: none;
+        }
+
+        .flash-messages {
+            margin-top: 1rem;
+        }
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .dropdown-item:active {
+            background-color: #007bff;
+        }
+
+        footer {
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            padding: 1.5rem 0;
+            margin-top: auto;
+        }
+
+        footer a {
+            color: #007bff;
+        }
+
+        footer a:hover {
+            color: #0056b3;
             text-decoration: none;
+        }
+
+        /* Style fixes for the profile page */
+        .avatar-circle {
+            background-color: #007bff !important;
+        }
+
+        /* Restore original styles for the model cards */
+        .model-card {
             transition: all 0.2s ease-in-out;
         }
 
-        .footer a:hover {
-            color: var(--secondary-color);
-            text-decoration: underline;
+        .model-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .content {
+            flex: 1;
+        }
+
+        .nav-link.active {
+            font-weight: 600;
+            color: #0d6efd !important;
+        }
+
+        .dropdown-item.active {
+            background-color: #0d6efd;
+        }
+
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: #0b5ed7;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .back-button i {
+            font-size: 1.5rem;
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('home') }}">
-                <i class="bi bi-graph-up me-2"></i>Statistical Model Suggester
-            </a>
+            <a class="navbar-brand" href="{{ url_for('main.home') }}">Statistical Model Suggester</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('home') }}">
-                            <i class="bi bi-house me-1"></i>Home
+                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('main.home') }}">
+                            <i class="bi bi-house-door me-1"></i>Home
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('history') }}">
+                        <a class="nav-link {% if request.path == '/models' %}active{% endif %}" href="{{ url_for('main.models_list') }}">
+                            <i class="bi bi-database me-1"></i>Models
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/history' %}active{% endif %}" href="{{ url_for('main.history') }}">
                             <i class="bi bi-clock-history me-1"></i>History
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/experts' in request.path %}active{% endif %}" href="{{ url_for('expert.experts_list') }}">
+                            <i class="bi bi-people me-1"></i>Experts
+                        </a>
+                    </li>
                 </ul>
+                <div class="d-flex">
+                    {% if current_user.is_authenticated %}
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>{{ current_user.username }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('main.profile') }}"><i class="bi bi-person me-2"></i>Profile</a></li>
+                            {% if current_user.is_expert %}
+                            <li><a class="dropdown-item" href="{{ url_for('expert.my_consultations') }}"><i class="bi bi-chat-text me-2"></i>My Consultations</a></li>
+                            {% endif %}
+                            {% if current_user.is_admin %}
+                            <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Admin Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.expert_applications') }}"><i class="bi bi-person-badge me-2"></i>Expert Applications</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light me-2">Login</a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-light">Register</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
 
-    {% block content %}{% endblock %}
+    {% block container_start %}
+    <div class="container">
+    {% endblock %}
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
-    <footer class="footer">
-        <div class="container">
+        {% block content %}{% endblock %}
+    {% block container_end %}
+    </div>
+    {% endblock %}
+
+    <footer class="mt-5 py-4">
+        <div class="container text-center">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-6 text-md-start">
                     <h5>Statistical Model Suggester</h5>
                     <p class="text-muted">Your intelligent guide to statistical modeling</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="mb-0">© 2024 Statistical Model Suggester. All rights reserved.</p>
+                    <p class="mb-0">© 2025 Statistical Model Suggester. All rights reserved.</p>
                 </div>
             </div>
         </div>
@@ -229,6 +292,11 @@
             return new bootstrap.Tooltip(tooltipTriggerEl)
         })
     </script>
-    {% block extra_js %}{% endblock %}
+    {% block scripts %}{% endblock %}
+
+    <!-- Back Button -->
+    <a href="javascript:history.back()" class="back-button" title="Go back">
+        <i class="bi bi-arrow-left"></i>
+    </a>
 </body>
 </html> 

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Our Experts - Statistical Model Suggester{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Statistical Analysis Experts</h4>
+                {% if current_user.is_authenticated and current_user.role != 'expert' %}
+                    <a href="{{ url_for('expert.apply_expert') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-person-plus me-1"></i> Apply to Become an Expert
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <p class="lead mb-4">
+                    Our experts are available to provide personalized guidance and insights on your 
+                    statistical analyses. Whether you're unsure about model selection, interpretation,
+                    or implementation, our experts can help.
+                </p>
+
+                {% if current_user.is_authenticated %}
+                    <div class="mb-4 text-center">
+                        <a href="{{ url_for('expert.request_consultation') }}" class="btn btn-primary">
+                            <i class="bi bi-chat-dots me-1"></i> Request Expert Consultation
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <a href="{{ url_for('auth.login') }}" class="alert-link">Log in</a> or 
+                        <a href="{{ url_for('auth.register') }}" class="alert-link">register</a> 
+                        to request expert consultations.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if experts %}
+        {% for expert in experts %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar-circle bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; color: white; font-size: 1.5rem;">
+                                {{ expert.username[0].upper() }}
+                            </div>
+                            <div>
+                                <h5 class="mb-1">{{ expert.username }}</h5>
+                                {% if expert.institution %}
+                                    <p class="text-muted mb-0 small">{{ expert.institution }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <h6 class="card-subtitle mb-2">Expertise:</h6>
+                        <p class="card-text">{{ expert.expertise }}</p>
+                        
+                        <div class="text-end mt-3">
+                            <a href="{{ url_for('expert.expert_profile', expert_id=expert.id) }}" class="btn btn-outline-primary btn-sm">View Profile</a>
+                            {% if current_user.is_authenticated %}
+                                <a href="{{ url_for('expert.request_consultation', expert_id=expert.id) }}" class="btn btn-outline-secondary btn-sm">
+                                    Request Consultation
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <p class="mb-0">No experts are currently available. Check back soon!</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

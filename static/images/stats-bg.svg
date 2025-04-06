@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background gradient -->
+    <defs>
+        <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#f8f9fa;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#e9ecef;stop-opacity:1" />
+        </linearGradient>
+        
+        <!-- Grid pattern -->
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#dee2e6" stroke-width="1"/>
+        </pattern>
+    </defs>
+
+    <!-- Base background -->
+    <rect width="100%" height="100%" fill="url(#bgGradient)"/>
+    
+    <!-- Grid overlay -->
+    <rect width="100%" height="100%" fill="url(#grid)" opacity="0.7"/>
+
+    <!-- Bell curve -->
+    <path d="M 200,800 C 200,800 400,200 960,200 C 1520,200 1720,800 1720,800" 
+          fill="none" 
+          stroke="#0066cc"
+          stroke-width="4"
+          opacity="0.5"/>
+
+    <!-- Scatter plot points -->
+    <g opacity="0.6">
+        <circle cx="400" cy="600" r="8" fill="#0066cc"/>
+        <circle cx="450" cy="550" r="8" fill="#0066cc"/>
+        <circle cx="500" cy="650" r="8" fill="#0066cc"/>
+        <circle cx="550" cy="500" r="8" fill="#0066cc"/>
+        <circle cx="600" cy="580" r="8" fill="#0066cc"/>
+        <circle cx="650" cy="620" r="8" fill="#0066cc"/>
+        <circle cx="700" cy="540" r="8" fill="#0066cc"/>
+    </g>
+
+    <!-- Line graph -->
+    <path d="M 1200,400 L 1300,500 L 1400,450 L 1500,600 L 1600,350"
+          fill="none"
+          stroke="#dc3545"
+          stroke-width="4"
+          opacity="0.5"/>
+
+    <!-- Bar chart -->
+    <g opacity="0.5">
+        <rect x="800" y="500" width="40" height="200" fill="#28a745"/>
+        <rect x="850" y="400" width="40" height="300" fill="#28a745"/>
+        <rect x="900" y="600" width="40" height="100" fill="#28a745"/>
+        <rect x="950" y="450" width="40" height="250" fill="#28a745"/>
+    </g>
+
+    <!-- Mathematical symbols -->
+    <g font-family="Arial" font-size="40" fill="#495057" opacity="0.5">
+        <text x="300" y="300">Σ</text>
+        <text x="1600" y="400">∫</text>
+        <text x="800" y="200">μ</text>
+        <text x="1200" y="700">σ</text>
+        <text x="400" y="800">∂</text>
+        <text x="1500" y="300">∞</text>
+    </g>
+
+    <!-- Pie chart segments -->
+    <g transform="translate(1100, 800)" opacity="0.5">
+        <path d="M 0 0 L 60 0 A 60 60 0 0 1 30 -52 Z" fill="#fd7e14"/>
+        <path d="M 0 0 L 30 -52 A 60 60 0 0 1 -30 -52 Z" fill="#20c997"/>
+        <path d="M 0 0 L -30 -52 A 60 60 0 0 1 -60 0 Z" fill="#0dcaf0"/>
+        <path d="M 0 0 L -60 0 A 60 60 0 0 1 0 60 Z" fill="#6f42c1"/>
+        <path d="M 0 0 L 0 60 A 60 60 0 0 1 60 0 Z" fill="#ffc107"/>
+    </g>
+
+    <!-- Additional decorative elements -->
+    <g opacity="0.4">
+        <!-- Axis lines -->
+        <line x1="100" y1="900" x2="300" y2="900" stroke="#495057" stroke-width="3"/>
+        <line x1="100" y1="900" x2="100" y2="700" stroke="#495057" stroke-width="3"/>
+        
+        <!-- Coordinate points -->
+        <circle cx="1400" cy="300" r="6" fill="#495057"/>
+        <circle cx="1450" cy="320" r="6" fill="#495057"/>
+        <circle cx="1500" cy="280" r="6" fill="#495057"/>
+    </g>
+
+    <!-- Additional grid lines -->
+    <g opacity="0.3" stroke="#dee2e6" stroke-width="1">
+        <line x1="0" y1="540" x2="1920" y2="540"/>
+        <line x1="960" y1="0" x2="960" y2="1080"/>
+    </g>
+</svg> 
