@@ -7,6 +7,7 @@ lifelines==0.27.8
 flask-login==0.6.3
 flask-sqlalchemy==3.1.1
 flask-wtf==1.2.1
+flask-mail==0.9.1
 email-validator==2.1.0.post1
 numpy==1.26.4
 pandas==2.2.1

@@ -45,6 +45,7 @@ class User(db.Model, UserMixin):
 class ExpertApplication(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
     areas_of_expertise = db.Column(db.Text, nullable=False)
     institution = db.Column(db.String(200))
     bio = db.Column(db.Text)
@@ -77,12 +78,13 @@ class Consultation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     requester_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     expert_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    analysis_id = db.Column(db.Integer, db.ForeignKey('analysis.id'), nullable=False)
+    analysis_id = db.Column(db.Integer, db.ForeignKey('analysis.id'), nullable=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     status = db.Column(db.String(20), default='pending')  # pending, in_progress, completed, cancelled
     response = db.Column(db.Text)
     is_public = db.Column(db.Boolean, default=False)
+    analysis_goal = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

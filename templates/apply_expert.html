@@ -2,12 +2,155 @@
 
 {% block title %}Apply to Become an Expert - Statistical Model Suggester{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Background styles */
+    body {
+        background-color: transparent !important;
+    }
+    
+    .expert-application-container {
+        position: relative;
+        min-height: 85vh;
+        padding: 4rem 0;
+        z-index: 1;
+    }
+    
+    .page-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("{{ url_for('static', filename='images/stats-background.png') }}"), linear-gradient(to bottom, #f8f9fa, #e9ecef);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.1;
+        z-index: -1;
+    }
+    
+    /* Hero section */
+    .hero-section {
+        background: linear-gradient(135deg, #1a4b8b 0%, #2e6dd1 100%);
+        color: white;
+        border-radius: 0.8rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Card styles */
+    .expert-card {
+        background: white;
+        border-radius: 0.8rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .expert-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .expert-card .card-header {
+        background: linear-gradient(135deg, #1a4b8b 0%, #2e6dd1 100%);
+        color: white;
+        padding: 1.5rem;
+        border-bottom: none;
+    }
+    
+    .expert-card .card-header h4 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .expert-card .card-body {
+        padding: 2rem;
+    }
+    
+    .expert-card .card-footer {
+        background-color: white;
+        border-top: none;
+        padding: 1.5rem;
+    }
+    
+    /* Form styles */
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+    }
+    
+    .form-control {
+        border-radius: 0.5rem;
+        border: 1px solid #ced4da;
+        padding: 0.7rem 1rem;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #1a4b8b;
+        box-shadow: 0 0 0 0.25rem rgba(26, 75, 139, 0.25);
+    }
+    
+    .form-text {
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+    
+    /* Button styles */
+    .btn-primary {
+        background: linear-gradient(135deg, #1a4b8b 0%, #2e6dd1 100%);
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.8rem 1.5rem;
+        font-weight: 500;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #174278 0%, #265cb1 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(26, 75, 139, 0.3);
+    }
+    
+    /* Footer adjustments */
+    footer {
+        position: relative;
+        z-index: 1;
+        margin-top: auto;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .expert-application-container {
+            padding: 2rem 0;
+        }
+        
+        .expert-card .card-body {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block container_start %}
+<div class="page-background"></div>
+<div class="container expert-application-container">
+{% endblock %}
+
 {% block content %}
+<div class="hero-section text-center">
+    <h2>Become a Statistical Expert</h2>
+    <p class="lead mb-0">Share your knowledge and help others find the right statistical models</p>
+</div>
+
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="card">
+        <div class="card expert-card">
             <div class="card-header">
-                <h4 class="mb-0">Apply to Become an Expert</h4>
+                <h4 class="mb-0">Expert Application Form</h4>
             </div>
             <div class="card-body">
                 <p class="mb-4">
@@ -15,7 +158,14 @@
                     Please fill out the form below to apply. Your application will be reviewed by our administrators.
                 </p>
                 
-                <form method="POST" action="{{ url_for('apply_expert') }}">
+                <form method="POST" action="{{ url_for('expert.apply_expert') }}">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" required 
+                            placeholder="your.email@example.com">
+                        <div class="form-text">We'll use this email to notify you about your application status</div>
+                    </div>
+                    
                     <div class="mb-3">
                         <label for="expertise" class="form-label">Areas of Expertise</label>
                         <textarea class="form-control" id="expertise" name="expertise" rows="3" required 
@@ -51,4 +201,29 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ensure the page background loads properly
+        const backgroundElement = document.querySelector('.page-background');
+        
+        // Lazy-load the background image
+        const img = new Image();
+        img.src = "{{ url_for('static', filename='images/stats-background.png') }}";
+        img.loading = "lazy";
+        
+        img.onload = function() {
+            console.log('Expert page background image loaded successfully');
+            backgroundElement.style.backgroundImage = `url('${img.src}'), linear-gradient(to bottom, #f8f9fa, #e9ecef)`;
+            backgroundElement.style.opacity = "0.1";
+        };
+        
+        img.onerror = function(e) {
+            console.error('Background image failed to load:', e);
+            backgroundElement.style.background = "linear-gradient(to bottom, #f8f9fa, #e9ecef)";
+        };
+    });
+</script>
 {% endblock %} 

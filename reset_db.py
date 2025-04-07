@@ -13,6 +13,8 @@ def reset_database():
         # Create all tables with new schema
         db.create_all()
         print("Created all tables with new schema.")
+        
+        print("Database has been reset successfully.")
 
 if __name__ == "__main__":
     reset_database() 

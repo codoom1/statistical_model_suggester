@@ -6,73 +6,87 @@
 <div class="container mt-4">
     <h1>Request Consultation</h1>
     
+    {% if selected_expert %}
     <div class="card mt-4">
         <div class="card-body">
             <h5 class="card-title">Expert Details</h5>
             <p class="card-text">
-                {{ expert.username }} - {{ expert.areas_of_expertise[:50] }}{% if expert.areas_of_expertise|length > 50 %}...{% endif %}
+                {{ selected_expert.username }} - {{ selected_expert.areas_of_expertise[:50] }}{% if selected_expert.areas_of_expertise|length > 50 %}...{% endif %}
             </p>
         </div>
     </div>
+    {% else %}
+    <div class="alert alert-info">
+        <p>Please select an expert from the list below, or continue to submit a general consultation request.</p>
+    </div>
+    {% endif %}
     
     <div class="card mt-4">
         <div class="card-body">
-            <form method="POST" action="{{ url_for('expert.request_consultation', expert_id=expert.id) }}">
+            <form method="POST" action="{{ url_for('expert.request_consultation') }}{% if selected_expert %}?expert_id={{ selected_expert.id }}{% endif %}">
                 <div class="mb-3">
-                    <label for="title" class="form-label">Title</label>
-                    <input type="text" class="form-control" id="title" name="title" required>
+                    <label for="title" class="form-label">Consultation Title</label>
+                    <input type="text" class="form-control" id="title" name="title" required 
+                           placeholder="E.g., Help with regression model selection for medical research">
+                    <div class="form-text">A brief, descriptive title for your statistical consultation request</div>
                 </div>
                 
                 <div class="mb-3">
-                    <label for="description" class="form-label">Description</label>
-                    <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+                    <label for="description" class="form-label">Statistical Problem Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="5" required
+                              placeholder="Please describe your statistical problem, including your research question, data characteristics, and specific challenges you're facing."></textarea>
+                    <div class="form-text">Provide details about your statistical question, dataset, and what specific help you need from the expert</div>
                 </div>
                 
+                {% if not selected_expert %}
                 <div class="mb-3">
-                    <label for="analysis_goal" class="form-label">Analysis Goal</label>
-                    <input type="text" class="form-control" id="analysis_goal" name="analysis_goal" required>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="dependent_variable" class="form-label">Dependent Variable</label>
-                    <input type="text" class="form-control" id="dependent_variable" name="dependent_variable" required>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="independent_variables" class="form-label">Independent Variables (comma-separated)</label>
-                    <input type="text" class="form-control" id="independent_variables" name="independent_variables" required>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="sample_size" class="form-label">Sample Size</label>
-                    <input type="number" class="form-control" id="sample_size" name="sample_size" required>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="missing_data" class="form-label">Missing Data</label>
-                    <select class="form-select" id="missing_data" name="missing_data" required>
-                        <option value="none">None</option>
-                        <option value="some">Some</option>
-                        <option value="significant">Significant</option>
+                    <label for="expert_id" class="form-label">Select Expert (Optional)</label>
+                    <select class="form-select" id="expert_id" name="expert_id">
+                        <option value="">No specific expert (admin will assign)</option>
+                        {% for expert in experts %}
+                        <option value="{{ expert.id }}">{{ expert.username }} - {{ expert.areas_of_expertise[:30] }}...</option>
+                        {% endfor %}
                     </select>
                 </div>
+                {% else %}
+                <input type="hidden" name="expert_id" value="{{ selected_expert.id }}">
+                {% endif %}
                 
+                {% if analyses %}
                 <div class="mb-3">
-                    <label for="data_distribution" class="form-label">Data Distribution</label>
-                    <select class="form-select" id="data_distribution" name="data_distribution" required>
-                        <option value="normal">Normal</option>
-                        <option value="non_normal">Non-normal</option>
-                        <option value="unknown">Unknown</option>
+                    <label for="analysis_id" class="form-label">Select Analysis (Optional)</label>
+                    <select class="form-select" id="analysis_id" name="analysis_id">
+                        <option value="">No specific analysis</option>
+                        {% for analysis in analyses %}
+                        <option value="{{ analysis.id }}" {% if selected_analysis and selected_analysis.id == analysis.id %}selected{% endif %}>
+                            {{ analysis.model_name }} - {{ analysis.created_at.strftime('%Y-%m-%d') }}
+                        </option>
+                        {% endfor %}
                     </select>
                 </div>
+                {% endif %}
                 
                 <div class="mb-3">
-                    <label for="relationship_type" class="form-label">Relationship Type</label>
-                    <select class="form-select" id="relationship_type" name="relationship_type" required>
-                        <option value="linear">Linear</option>
-                        <option value="non_linear">Non-linear</option>
-                        <option value="unknown">Unknown</option>
+                    <label for="analysis_goal" class="form-label">Primary Analysis Goal</label>
+                    <select class="form-select" id="analysis_goal" name="analysis_goal">
+                        <option value="predict">Prediction - Forecast future values based on existing data</option>
+                        <option value="classify">Classification - Categorize data into distinct groups</option>
+                        <option value="explore">Exploratory Analysis - Understand patterns and relationships in data</option>
+                        <option value="inference">Statistical Inference - Test hypotheses or estimate parameters</option>
+                        <option value="causal">Causal Analysis - Determine cause-effect relationships</option>
+                        <option value="other">Other (explain in description)</option>
                     </select>
+                    <div class="form-text">Select the primary goal of your statistical analysis</div>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="public" name="public" value="1">
+                    <label class="form-check-label" for="public">Make consultation public</label>
+                    <div class="form-text">
+                        If checked, your consultation and the expert's response will be visible to other users.
+                        This can benefit others with similar questions and contribute to the community's knowledge.
+                        Personal or sensitive details will still be kept private.
+                    </div>
                 </div>
                 
                 <button type="submit" class="btn btn-primary">Submit Request</button>

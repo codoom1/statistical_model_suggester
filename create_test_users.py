@@ -7,48 +7,68 @@ def create_test_users():
     app = create_app()
     
     with app.app_context():
-        # Create admin user
-        admin = User(
-            username='admin',
-            email='admin@example.com',
-            _is_admin=True,
-            _is_expert=False
-        )
-        admin.set_password('admin123')
+        # Check if users already exist
+        admin_exists = User.query.filter_by(username='admin').first() is not None
+        regular_exists = User.query.filter_by(username='testuser').first() is not None
+        expert_exists = User.query.filter_by(username='testexpert').first() is not None
         
-        # Create regular user
-        regular_user = User(
-            username='testuser',
-            email='testuser@example.com',
-            _is_admin=False,
-            _is_expert=False
-        )
-        regular_user.set_password('testuser123')
+        users_created = False
         
-        # Create expert user
-        expert_user = User(
-            username='testexpert',
-            email='testexpert@example.com',
-            _is_admin=False,
-            _is_expert=True,
-            is_approved_expert=True,
-            areas_of_expertise='Statistical Analysis, Data Science',
-            institution='Test University',
-            bio='Experienced data scientist with expertise in statistical analysis.'
-        )
-        expert_user.set_password('testexpert123')
+        # Create admin user if not exists
+        if not admin_exists:
+            admin = User(
+                username='admin',
+                email='admin@example.com',
+                _is_admin=True,
+                _is_expert=False
+            )
+            admin.set_password('admin123')
+            db.session.add(admin)
+            print("Created admin user (username: admin, password: admin123)")
+            users_created = True
+        else:
+            print("Admin user already exists, skipping creation")
         
-        # Add users to database
-        db.session.add(admin)
-        db.session.add(regular_user)
-        db.session.add(expert_user)
+        # Create regular user if not exists
+        if not regular_exists:
+            regular_user = User(
+                username='testuser',
+                email='testuser@example.com',
+                _is_admin=False,
+                _is_expert=False
+            )
+            regular_user.set_password('testuser123')
+            db.session.add(regular_user)
+            print("Created regular user (username: testuser, password: testuser123)")
+            users_created = True
+        else:
+            print("Regular user already exists, skipping creation")
         
-        # Commit changes
-        db.session.commit()
+        # Create expert user if not exists
+        if not expert_exists:
+            expert_user = User(
+                username='testexpert',
+                email='testexpert@example.com',
+                _is_admin=False,
+                _is_expert=True,
+                is_approved_expert=True,
+                areas_of_expertise='Statistical Analysis, Data Science',
+                institution='Test University',
+                bio='Experienced data scientist with expertise in statistical analysis.'
+            )
+            expert_user.set_password('testexpert123')
+            db.session.add(expert_user)
+            print("Created expert user (username: testexpert, password: testexpert123)")
+            users_created = True
+        else:
+            print("Expert user already exists, skipping creation")
         
-        print("Created admin user (username: admin, password: admin123)")
-        print("Created regular user (username: testuser, password: testuser123)")
-        print("Created expert user (username: testexpert, password: testexpert123)")
+        # Commit changes if any users were created
+        if users_created:
+            db.session.commit()
+            print("All created users committed to the database")
+        else:
+            print("No new users created")
 
 if __name__ == "__main__":
     create_test_users() 

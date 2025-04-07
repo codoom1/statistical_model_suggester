@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from models import db, User, Analysis, Consultation, ExpertApplication
 from datetime import datetime
 from functools import wraps
+from utils.email import send_expert_approved_email, send_expert_rejected_email
 
 expert = Blueprint('expert', __name__)
 
@@ -46,6 +47,28 @@ def expert_profile(expert_id):
     
     return render_template('expert_profile.html', expert=expert, consultations=consultations)
 
+@expert.route('/consultations')
+@login_required
+@expert_required
+def consultations():
+    """View consultations for the current expert"""
+    consultations = Consultation.query.filter_by(expert_id=current_user.id).all()
+    return render_template('expert/consultations.html', consultations=consultations)
+
+@expert.route('/consultation/<int:consultation_id>')
+@login_required
+@expert_required
+def view_consultation(consultation_id):
+    """View a specific consultation"""
+    consultation = Consultation.query.get_or_404(consultation_id)
+    
+    # Ensure the expert is authorized to view this consultation
+    if consultation.expert_id != current_user.id:
+        flash('You are not authorized to view this consultation.', 'danger')
+        return redirect(url_for('expert.consultations'))
+        
+    return render_template('expert/view_consultation.html', consultation=consultation)
+
 @expert.route('/apply-expert', methods=['GET', 'POST'])
 @login_required
 def apply_expert():
@@ -67,6 +90,7 @@ def apply_expert():
             
     if request.method == 'POST':
         # Get form data
+        email = request.form.get('email')
         expertise = request.form.get('expertise')
         institution = request.form.get('institution')
         bio = request.form.get('bio')
@@ -74,6 +98,7 @@ def apply_expert():
         # Create new expert application
         application = ExpertApplication(
             user_id=current_user.id,
+            email=email,
             areas_of_expertise=expertise,
             institution=institution,
             bio=bio,
@@ -114,7 +139,29 @@ def approve_expert(user_id):
     application.status = 'approved'
     db.session.commit()
     
+    # Send approval email
+    send_expert_approved_email(user, application.email)
+    
     flash(f'Expert status approved for {user.username}.', 'success')
+    return redirect(url_for('expert.admin_expert_applications'))
+
+@expert.route('/admin/reject-expert/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def reject_expert(user_id):
+    """Reject an expert application"""
+    application = ExpertApplication.query.filter_by(user_id=user_id, status='pending').first_or_404()
+    user = application.user
+    
+    user._is_expert = False
+    user.is_approved_expert = False
+    application.status = 'rejected'
+    db.session.commit()
+    
+    # Send rejection email
+    send_expert_rejected_email(user, application.email)
+    
+    flash(f'Expert application from {user.username} has been rejected.', 'info')
     return redirect(url_for('expert.admin_expert_applications'))
 
 @expert.route('/request-consultation', methods=['GET', 'POST'])
@@ -154,6 +201,10 @@ def request_consultation():
         description = request.form.get('description')
         expert_id = request.form.get('expert_id', type=int)
         analysis_id = request.form.get('analysis_id', type=int)
+        analysis_goal = request.form.get('analysis_goal')
+        
+        # Check if consultation should be public
+        is_public = request.form.get('public') == '1'
         
         # Validate form data
         if not title or not description:
@@ -171,7 +222,9 @@ def request_consultation():
             analysis_id=analysis_id if analysis_id else None,
             title=title,
             description=description,
-            status='in_progress' if expert_id else 'pending'
+            status='in_progress' if expert_id else 'pending',
+            is_public=is_public,
+            analysis_goal=analysis_goal
         )
         
         db.session.add(consultation)
@@ -201,23 +254,6 @@ def my_consultations():
     return render_template('my_consultations.html', 
                            user_consultations=user_consultations,
                            expert_consultations=expert_consultations)
-
-@expert.route('/consultation/<int:consultation_id>')
-@login_required
-def view_consultation(consultation_id):
-    """View a specific consultation"""
-    # Get the consultation
-    consultation = Consultation.query.get_or_404(consultation_id)
-    
-    # Security check - only the requester, assigned expert, or admin can view
-    if (consultation.requester_id != current_user.id and 
-        consultation.expert_id != current_user.id and 
-        not current_user.is_admin and
-        not consultation.is_public):
-        flash('You do not have permission to view this consultation.', 'danger')
-        return redirect(url_for('main.index'))
-    
-    return render_template('view_consultation.html', consultation=consultation)
 
 @expert.route('/consultation/<int:consultation_id>/respond', methods=['POST'])
 @login_required

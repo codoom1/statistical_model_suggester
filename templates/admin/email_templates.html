@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Email Templates - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Reset body and navbar styles for admin pages */
+    body {
+        background-color: transparent !important;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .navbar {
+        margin-bottom: 0 !important;
+        box-shadow: none;
+    }
+    
+    /* Admin hero section */
+    .admin-hero {
+        position: relative;
+        width: 100%;
+        min-height: 140px;
+        display: flex;
+        align-items: center;
+        background-color: #1a1a1a;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .admin-hero-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: url("{{ url_for('static', filename='images/admin/admin-background.svg') }}"), linear-gradient(to bottom, #541012, #8b1a1d);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: 1;
+    }
+    
+    .admin-hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2;
+    }
+    
+    .admin-hero-content {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        padding: 2rem 0;
+        color: white;
+    }
+    
+    .admin-hero h1 {
+        color: white !important;
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin: 0;
+        padding: 0;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    .admin-hero h1:after {
+        display: none;
+    }
+    
+    .admin-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    /* Admin badge */
+    .admin-badge {
+        position: fixed;
+        top: 70px;
+        right: 15px;
+        z-index: 1000;
+        background-color: #dc3545;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    /* Email templates styles */
+    .email-preview {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        background-color: #fff;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .email-preview h5 {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .email-content {
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block container_start %}
+<div class="admin-badge">
+    <i class="bi bi-shield-lock-fill me-1"></i> Admin Panel
+</div>
+
+<div class="admin-hero">
+    <div class="admin-hero-background"></div>
+    <div class="admin-hero-overlay"></div>
+    <div class="admin-hero-content">
+        <div class="container">
+            <div class="admin-header">
+                <div>
+                    <h1>Email Templates</h1>
+                    <p class="lead mb-0">Preview of the email templates sent to expert applicants</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Expert Application Email Templates</h4>
+                <p class="card-text">These templates are used when communicating with expert applicants.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Approval Email Template -->
+    <div class="col-md-6">
+        <div class="email-preview">
+            <h5>Approval Email</h5>
+            <div class="email-content">
+                <p><strong>Subject:</strong> Your Expert Application Has Been Approved!</p>
+                <hr>
+                <div class="mt-3">
+                    <p>Congratulations {username}!</p>
+                    
+                    <p>Your application to become an expert on the Statistical Model Suggester platform has been <strong>approved</strong>.</p>
+                    
+                    <p>You can now:</p>
+                    <ul>
+                        <li>Provide guidance to users about statistical models</li>
+                        <li>Offer consultations to users needing more in-depth assistance</li>
+                        <li>Share your expertise with the community</li>
+                    </ul>
+                    
+                    <p>Thank you for contributing your expertise to our platform!</p>
+                    
+                    <p>Best regards,<br>
+                    Statistical Model Suggester Team</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Rejection Email Template -->
+    <div class="col-md-6">
+        <div class="email-preview">
+            <h5>Rejection Email</h5>
+            <div class="email-content">
+                <p><strong>Subject:</strong> Update on Your Expert Application</p>
+                <hr>
+                <div class="mt-3">
+                    <p>Dear {username},</p>
+                    
+                    <p>Thank you for your interest in becoming an expert on the Statistical Model Suggester platform.</p>
+                    
+                    <p>After reviewing your application, we regret to inform you that we are unable to approve your expert status at this time.</p>
+                    
+                    <p>This decision may be due to one of several factors:</p>
+                    <ul>
+                        <li>We're looking for specific expertise in certain statistical domains</li>
+                        <li>We require more detailed information about your background and qualifications</li>
+                        <li>We have reached capacity for experts in your particular field</li>
+                    </ul>
+                    
+                    <p>You are welcome to apply again in the future with additional information about your qualifications and experience.</p>
+                    
+                    <p>Thank you for your understanding.</p>
+                    
+                    <p>Best regards,<br>
+                    Statistical Model Suggester Team</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5 class="card-title">Email Configuration Note</h5>
+                <p class="card-text">To send actual emails, you need to configure the SMTP settings in your .env file:</p>
+                <pre><code>
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USE_TLS=True
+MAIL_USERNAME=your_gmail@gmail.com
+MAIL_PASSWORD=your_app_password
+MAIL_DEFAULT_SENDER=noreply@statisticalmodelsuggester.com
+                </code></pre>
+                <p class="card-text">For Gmail, you must create an "App password" in your Google account security settings.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

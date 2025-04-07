@@ -171,32 +171,59 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Data for charts
+    const userGrowthDates = {{ user_growth_dates|tojson }};
+    const regularUsersGrowth = {{ regular_users_growth|tojson }};
+    const expertsGrowth = {{ experts_growth|tojson }};
+    const regularUsersCount = {{ regular_users_count }};
+    const expertsCount = {{ experts_count }};
+    const adminUsersCount = {{ admin_users_count }};
+    
     // User Growth Chart
     const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
     new Chart(userGrowthCtx, {
         type: 'line',
         data: {
-            labels: {{ user_growth_dates|tojson }},
+            labels: userGrowthDates,
             datasets: [{
                 label: 'Regular Users',
-                data: {{ regular_users_growth|tojson }},
+                data: regularUsersGrowth,
                 borderColor: '#0d6efd',
-                tension: 0.1
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                borderWidth: 2,
+                tension: 0.1,
+                fill: true
             }, {
                 label: 'Experts',
-                data: {{ experts_growth|tojson }},
+                data: expertsGrowth,
                 borderColor: '#198754',
-                tension: 0.1
+                backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                borderWidth: 2,
+                tension: 0.1,
+                fill: true
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
                 }
             }
         }
@@ -209,22 +236,33 @@
         data: {
             labels: ['Regular Users', 'Experts', 'Admins'],
             datasets: [{
-                data: [
-                    {{ regular_users_count }},
-                    {{ experts_count }},
-                    {{ admin_users_count }}
-                ],
-                backgroundColor: [
-                    '#0d6efd',
-                    '#198754',
-                    '#dc3545'
-                ]
+                data: [regularUsersCount, expertsCount, adminUsersCount],
+                backgroundColor: ['#0d6efd', '#198754', '#dc3545'],
+                borderColor: '#ffffff',
+                borderWidth: 2
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
         }
     });
+});
 </script>
 {% endblock %} 

@@ -2,10 +2,12 @@ import os
 import sys
 from flask import Flask, render_template, send_from_directory, request
 from flask_login import LoginManager
+from flask_mail import Mail
 from models import db, User, get_model_details
 import json
 import argparse
 import logging
+from utils.email import init_mail
 
 def create_app():
     app = Flask(__name__)
@@ -13,12 +15,23 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
+    # Configure Flask-Mail
+    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
+    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@statisticalmodelsuggester.com')
+    
     # Set up logging
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
     
     # Initialize database
     db.init_app(app)
+    
+    # Initialize mail
+    init_mail(app)
     
     # Initialize login manager
     login_manager = LoginManager()

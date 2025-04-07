@@ -2,81 +2,307 @@
 
 {% block title %}Our Experts - Statistical Model Suggester{% endblock %}
 
-{% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">Statistical Analysis Experts</h4>
-                {% if current_user.is_authenticated and current_user.role != 'expert' %}
-                    <a href="{{ url_for('expert.apply_expert') }}" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-person-plus me-1"></i> Apply to Become an Expert
-                    </a>
-                {% endif %}
-            </div>
-            <div class="card-body">
-                <p class="lead mb-4">
-                    Our experts are available to provide personalized guidance and insights on your 
-                    statistical analyses. Whether you're unsure about model selection, interpretation,
-                    or implementation, our experts can help.
-                </p>
+{% block extra_css %}
+<style>
+    /* Reset body styles */
+    body {
+        background-color: transparent !important;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .navbar {
+        margin-bottom: 0 !important;
+        box-shadow: none;
+    }
+    
+    /* Hero section */
+    .experts-hero {
+        position: relative;
+        width: 100%;
+        min-height: 140px;
+        display: flex;
+        align-items: center;
+        background-color: #0d6efd;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .experts-hero-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: url("{{ url_for('static', filename='images/stats-background.png') }}"), linear-gradient(to right, #0950c3, #0d6efd);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.3;
+        z-index: 1;
+    }
+    
+    .experts-hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 2;
+    }
+    
+    .experts-hero-content {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        padding: 2rem 0;
+        color: white;
+    }
+    
+    .experts-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+    
+    .experts-hero h1 {
+        color: white !important;
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin: 0;
+        padding: 0;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Main content container */
+    .experts-container {
+        position: relative;
+        min-height: 70vh;
+        padding-bottom: 2rem;
+        z-index: 1;
+    }
+    
+    /* Description card */
+    .description-card {
+        background: white;
+        border-radius: 0.8rem;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-bottom: 2rem;
+        border: none;
+    }
+    
+    .description-card .card-body {
+        padding: 2rem;
+    }
+    
+    /* Expert cards */
+    .expert-card {
+        background: white;
+        border-radius: 0.8rem;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        height: 100%;
+    }
+    
+    .expert-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .expert-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    /* Avatar styling */
+    .avatar-circle {
+        width: 60px;
+        height: 60px;
+        color: white;
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, #0d6efd, #0950c3) !important;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+    }
+    
+    /* Button styling */
+    .btn-primary {
+        background: linear-gradient(135deg, #0d6efd, #0950c3);
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 2rem;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(13, 110, 253, 0.3);
+    }
+    
+    .btn-outline-primary {
+        border-color: #0d6efd;
+        color: #0d6efd;
+        border-radius: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: #0d6efd;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2);
+    }
+    
+    /* No experts message */
+    .alert-info {
+        background-color: #e1f5fe;
+        border-color: #b3e5fc;
+        color: #0288d1;
+        border-radius: 0.8rem;
+        padding: 1.5rem;
+    }
+    
+    /* Footer adjustment */
+    footer {
+        position: relative;
+        z-index: 1;
+        margin-top: auto;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .experts-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .experts-header .btn {
+            margin-top: 1rem;
+        }
+        
+        .experts-hero h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
 
-                {% if current_user.is_authenticated %}
-                    <div class="mb-4 text-center">
-                        <a href="{{ url_for('expert.request_consultation') }}" class="btn btn-primary">
-                            <i class="bi bi-chat-dots me-1"></i> Request Expert Consultation
-                        </a>
-                    </div>
-                {% else %}
-                    <div class="alert alert-info mb-4">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <a href="{{ url_for('auth.login') }}" class="alert-link">Log in</a> or 
-                        <a href="{{ url_for('auth.register') }}" class="alert-link">register</a> 
-                        to request expert consultations.
-                    </div>
-                {% endif %}
-            </div>
+{% block container_start %}{% endblock %}
+
+{% block content %}
+<!-- Experts Hero Section -->
+<section class="experts-hero">
+    <div class="experts-hero-background"></div>
+    <div class="experts-hero-overlay"></div>
+    <div class="container experts-hero-content">
+        <div class="experts-header">
+            <h1>Statistical Analysis Experts</h1>
+            {% if current_user.is_authenticated and current_user.role != 'expert' %}
+                <a href="{{ url_for('expert.apply_expert') }}" class="btn btn-outline-light">
+                    <i class="bi bi-person-plus me-1"></i> Apply to Become an Expert
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Main Content Container -->
+<div class="container experts-container">
+    <!-- Description Card -->
+    <div class="card description-card mb-4">
+        <div class="card-body">
+            <p class="lead mb-4">
+                Our experts are available to provide personalized guidance and insights on your 
+                statistical analyses. Whether you're unsure about model selection, interpretation,
+                or implementation, our experts can help.
+            </p>
+
+            {% if current_user.is_authenticated %}
+                <div class="text-center">
+                    <a href="{{ url_for('expert.request_consultation') }}" class="btn btn-primary">
+                        <i class="bi bi-chat-dots me-1"></i> Request Expert Consultation
+                    </a>
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <a href="{{ url_for('auth.login') }}" class="alert-link">Log in</a> or 
+                    <a href="{{ url_for('auth.register') }}" class="alert-link">register</a> 
+                    to request expert consultations.
+                </div>
+            {% endif %}
         </div>
     </div>
 
-    {% if experts %}
-        {% for expert in experts %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="avatar-circle bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; color: white; font-size: 1.5rem;">
-                                {{ expert.username[0].upper() }}
+    <!-- Experts List -->
+    <div class="row">
+        {% if experts %}
+            {% for expert in experts %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card expert-card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar-circle rounded-circle d-flex align-items-center justify-content-center me-3">
+                                    {{ expert.username[0].upper() }}
+                                </div>
+                                <div>
+                                    <h5 class="mb-1">{{ expert.username }}</h5>
+                                    {% if expert.institution %}
+                                        <p class="text-muted mb-0 small">{{ expert.institution }}</p>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div>
-                                <h5 class="mb-1">{{ expert.username }}</h5>
-                                {% if expert.institution %}
-                                    <p class="text-muted mb-0 small">{{ expert.institution }}</p>
+                            
+                            <h6 class="card-subtitle mb-2">Expertise:</h6>
+                            <p class="card-text">{{ expert.expertise }}</p>
+                            
+                            <div class="text-end mt-3">
+                                <a href="{{ url_for('expert.expert_profile', expert_id=expert.id) }}" class="btn btn-outline-primary btn-sm">View Profile</a>
+                                {% if current_user.is_authenticated %}
+                                    <a href="{{ url_for('expert.request_consultation', expert_id=expert.id) }}" class="btn btn-outline-secondary btn-sm">
+                                        Request Consultation
+                                    </a>
                                 {% endif %}
                             </div>
                         </div>
-                        
-                        <h6 class="card-subtitle mb-2">Expertise:</h6>
-                        <p class="card-text">{{ expert.expertise }}</p>
-                        
-                        <div class="text-end mt-3">
-                            <a href="{{ url_for('expert.expert_profile', expert_id=expert.id) }}" class="btn btn-outline-primary btn-sm">View Profile</a>
-                            {% if current_user.is_authenticated %}
-                                <a href="{{ url_for('expert.request_consultation', expert_id=expert.id) }}" class="btn btn-outline-secondary btn-sm">
-                                    Request Consultation
-                                </a>
-                            {% endif %}
-                        </div>
                     </div>
                 </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <p class="mb-0">No experts are currently available. Check back soon!</p>
+                </div>
             </div>
-        {% endfor %}
-    {% else %}
-        <div class="col-12">
-            <div class="alert alert-info">
-                <p class="mb-0">No experts are currently available. Check back soon!</p>
-            </div>
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ensure the hero background loads properly
+        const heroBackground = document.querySelector('.experts-hero-background');
+        
+        // Lazy-load the background image
+        const img = new Image();
+        img.src = "{{ url_for('static', filename='images/stats-background.png') }}";
+        img.loading = "lazy";
+        
+        img.onload = function() {
+            console.log('Experts hero background image loaded successfully');
+            heroBackground.style.backgroundImage = `url('${img.src}'), linear-gradient(to right, #0950c3, #0d6efd)`;
+            heroBackground.style.opacity = "0.3";
+        };
+        
+        img.onerror = function(e) {
+            console.error('Background image failed to load:', e);
+            heroBackground.style.background = "linear-gradient(to right, #0950c3, #0d6efd)";
+        };
+    });
+</script>
 {% endblock %} 

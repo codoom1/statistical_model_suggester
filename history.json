@@ -285,5 +285,47 @@
     "data_distribution": "unknown",
     "relationship_type": "unknown",
     "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-06 12:56:46",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "categorical"
+    ],
+    "sample_size": "1",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-06 16:58:10",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "non_parametric",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "categorical"
+    ],
+    "sample_size": "1",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-06 17:46:27",
+    "research_question": "How does inflation affects low income earners ",
+    "analysis_goal": "explore",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "Linear Regression"
   }
 ]

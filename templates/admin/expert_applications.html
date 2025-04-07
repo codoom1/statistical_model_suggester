@@ -2,17 +2,213 @@
 
 {% block title %}Expert Applications - Admin Panel{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-    <h1>Expert Applications</h1>
+{% block extra_css %}
+<style>
+    /* Reset body and navbar styles for admin pages */
+    body {
+        background-color: transparent !important;
+        margin: 0;
+        padding: 0;
+    }
     
-    <div class="card mt-4">
+    .navbar {
+        margin-bottom: 0 !important;
+        box-shadow: none;
+    }
+    
+    /* Admin hero section */
+    .admin-hero {
+        position: relative;
+        width: 100%;
+        min-height: 140px;
+        display: flex;
+        align-items: center;
+        background-color: #1a1a1a;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .admin-hero-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: url("{{ url_for('static', filename='images/admin/admin-background.svg') }}"), linear-gradient(to bottom, #541012, #8b1a1d);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: 1;
+    }
+    
+    .admin-hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2;
+    }
+    
+    .admin-hero-content {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        padding: 2rem 0;
+        color: white;
+    }
+    
+    .admin-hero h1 {
+        color: white !important;
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin: 0;
+        padding: 0;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    .admin-hero h1:after {
+        display: none;
+    }
+    
+    .admin-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .admin-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: 500;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .admin-badge i {
+        margin-right: 0.5rem;
+        font-size: 1.1rem;
+    }
+    
+    /* Main content container */
+    .admin-container {
+        position: relative;
+        min-height: 70vh;
+        padding-bottom: 2rem;
+        z-index: 1;
+    }
+    
+    /* Card styles */
+    .admin-card {
+        background: white;
+        border-radius: 0.8rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        margin-bottom: 2rem;
+    }
+    
+    .admin-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    /* Table styles */
+    .table th {
+        background-color: #8b1a1d;
+        color: white;
+        border-color: #8b1a1d;
+        font-weight: 500;
+        padding: 1rem 0.75rem;
+    }
+    
+    .table th:first-child {
+        border-top-left-radius: 0.5rem;
+    }
+    
+    .table th:last-child {
+        border-top-right-radius: 0.5rem;
+    }
+    
+    .table td {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(139, 26, 29, 0.05);
+    }
+    
+    /* No applications found message */
+    .table td.text-center {
+        padding: 2rem;
+        font-style: italic;
+        color: #6c757d;
+    }
+    
+    /* Button styles */
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #218838);
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .btn-success:hover, .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Footer adjustments */
+    footer {
+        position: relative;
+        z-index: 1;
+        margin-top: auto;
+    }
+</style>
+{% endblock %}
+
+{% block container_start %}{% endblock %}
+
+{% block content %}
+<!-- Admin Hero Section -->
+<section class="admin-hero">
+    <div class="admin-hero-background"></div>
+    <div class="admin-hero-overlay"></div>
+    <div class="container admin-hero-content">
+        <div class="admin-header">
+            <h1>Expert Applications</h1>
+            <span class="admin-badge">
+                <i class="bi bi-shield-lock"></i>
+                Admin Panel
+            </span>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content Container -->
+<div class="container admin-container">
+    <div class="card admin-card">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
                             <th>Applicant</th>
+                            <th>Email</th>
                             <th>Areas of Expertise</th>
                             <th>Institution</th>
                             <th>Bio</th>
@@ -24,6 +220,7 @@
                         {% for application in applications %}
                         <tr>
                             <td>{{ application.user.username }}</td>
+                            <td>{{ application.email }}</td>
                             <td>{{ application.areas_of_expertise }}</td>
                             <td>{{ application.institution }}</td>
                             <td>{{ application.bio }}</td>
@@ -39,7 +236,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6" class="text-center">No pending applications found.</td>
+                            <td colspan="7" class="text-center">No pending applications found.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -48,4 +245,28 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ensure the hero background loads properly
+        const heroBackground = document.querySelector('.admin-hero-background');
+        
+        // Lazy-load the background image
+        const img = new Image();
+        img.src = "{{ url_for('static', filename='images/admin/admin-background.svg') }}";
+        img.loading = "lazy";
+        
+        img.onload = function() {
+            console.log('Admin hero background image loaded successfully');
+            heroBackground.style.backgroundImage = `url('${img.src}'), linear-gradient(to bottom, #541012, #8b1a1d)`;
+        };
+        
+        img.onerror = function(e) {
+            console.error('Background image failed to load:', e);
+            heroBackground.style.background = "linear-gradient(to bottom, #541012, #8b1a1d)";
+        };
+    });
+</script>
 {% endblock %} 

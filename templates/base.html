@@ -22,7 +22,7 @@
         }
 
         .navbar {
-            background-color: #007bff;
+            background-color: #8b1a1d;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             margin-bottom: 2rem;
         }
@@ -48,7 +48,7 @@
         }
 
         .card-header {
-            background-color: #007bff;
+            background-color: blue;
             color: white;
             font-weight: 500;
             border-bottom: none;
@@ -80,7 +80,7 @@
         }
 
         .bg-primary {
-            background-color: #007bff !important;
+            background-color: #8b1a1d!important;
         }
 
         .bg-success {
@@ -117,9 +117,9 @@
         }
 
         footer {
-            background-color: #f8f9fa;
+            background-color: #6d2e30;
             border-top: 1px solid #e9ecef;
-            color: #6c757d;
+            color: white;
             padding: 1.5rem 0;
             margin-top: auto;
         }
@@ -234,6 +234,9 @@
                             {% if current_user.is_admin %}
                             <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Admin Dashboard</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('admin.expert_applications') }}"><i class="bi bi-person-badge me-2"></i>Expert Applications</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.manage_experts') }}"><i class="bi bi-people-fill me-2"></i>Manage Experts</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.email_templates') }}"><i class="bi bi-envelope me-2"></i>Email Templates</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.users_list') }}"><i class="bi bi-person-lines-fill me-2"></i>Manage Users</a></li>
                             {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
