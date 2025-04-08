@@ -248,28 +248,36 @@ document.addEventListener('DOMContentLoaded', function() {
     <section class="consultation-section">
         <h2 class="text-center mb-5">Our Services</h2>
         <div class="row g-4">
-            <div class="col-md-6 col-lg-4">
+            <div class="col-md-6 col-lg-3">
                 <div class="consultation-card">
-                    <i class="bi bi-cpu consultation-icon"></i>
+                    <i class="bi bi-cpu consultation-icon" style="color: #6f42c1;"></i>
                     <h3 class="consultation-title">Model Selection</h3>
                     <p class="consultation-description">Get personalized recommendations for the most appropriate statistical models based on your data characteristics and research goals.</p>
-                    <a href="{{ url_for('main.analysis_form') }}" class="btn btn-primary">Get Started</a>
+                    <a href="{{ url_for('main.analysis_form') }}" class="btn btn-purple">Get Started</a>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-4">
+            <div class="col-md-6 col-lg-3">
                 <div class="consultation-card">
-                    <i class="bi bi-people consultation-icon"></i>
+                    <i class="bi bi-people consultation-icon" style="color: #6f42c1;"></i>
                     <h3 class="consultation-title">Expert Consultation</h3>
                     <p class="consultation-description">Connect with qualified statisticians for personalized guidance and validation of your analysis approach.</p>
-                    <a href="{{ url_for('expert.experts_list') }}" class="btn btn-primary">Find Experts</a>
+                    <a href="{{ url_for('expert.experts_list') }}" class="btn btn-purple">Find Experts</a>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-4">
+            <div class="col-md-6 col-lg-3">
                 <div class="consultation-card">
-                    <i class="bi bi-book consultation-icon"></i>
+                    <i class="bi bi-book consultation-icon" style="color: #6f42c1;"></i>
                     <h3 class="consultation-title">Educational Resources</h3>
                     <p class="consultation-description">Access comprehensive documentation, tutorials, and examples for each statistical model in our database.</p>
-                    <a href="{{ url_for('main.models_list') }}" class="btn btn-primary">Learn More</a>
+                    <a href="{{ url_for('main.models_list') }}" class="btn btn-purple">Learn More</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="consultation-card">
+                    <i class="bi bi-clipboard-check consultation-icon" style="color: #6f42c1;"></i>
+                    <h3 class="consultation-title">Questionnaire Designer</h3>
+                    <p class="consultation-description">Create professional research questionnaires tailored to your specific needs with our AI-powered questionnaire generator.</p>
+                    <a href="{{ url_for('questionnaire.index') }}" class="btn btn-purple">Create Now</a>
                 </div>
             </div>
         </div>
@@ -279,20 +287,29 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="row">
             <div class="col-md-4">
                 <div class="stat-item">
+                    <div class="mb-3">
+                        <i class="bi bi-bar-chart-line-fill" style="font-size: 3rem; color: #007bff;"></i>
+                    </div>
                     <div class="stat-number">{{ stats.models_count }}</div>
                     <div class="stat-label">Statistical Models</div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="stat-item">
+                    <div class="mb-3">
+                        <i class="bi bi-clock-history" style="font-size: 3rem; color: #007bff;"></i>
+                    </div>
                     <div class="stat-number">{{ stats.access_hours }}</div>
-                    <div class="stat-label">Model Access</div>
+                    <div class="stat-label">Hours of Model Access</div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="stat-item">
+                    <div class="mb-3">
+                        <i class="bi bi-patch-check-fill" style="font-size: 3rem; color: #007bff;"></i>
+                    </div>
                     <div class="stat-number">{{ stats.verification_rate }}</div>
-                    <div class="stat-label">Expert Verified</div>
+                    <div class="stat-label">Expert Verified Rate</div>
                 </div>
             </div>
         </div>

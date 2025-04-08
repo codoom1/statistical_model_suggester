@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Questionnaire - Statistical Model Suggester{% endblock %}
+
+{% block extra_css %}
+<style>
+    .questionnaire-editor {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .section-editor {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .section-header {
+        background-color: #f8f9fa;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        border-left: 5px solid #6f42c1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .question-editor {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        position: relative;
+    }
+    
+    .question-editor:hover {
+        border-color: #6f42c1;
+    }
+    
+    .options-container {
+        margin-top: 1rem;
+    }
+    
+    .option-row {
+        display: flex;
+        margin-bottom: 0.5rem;
+        align-items: center;
+    }
+    
+    .option-actions {
+        margin-left: 0.5rem;
+    }
+    
+    .draggable-handle {
+        cursor: move;
+        color: #6c757d;
+        margin-right: 0.5rem;
+    }
+    
+    .action-bar {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .question-actions {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="action-bar d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="m-0">Edit Your Questionnaire</h3>
+                </div>
+                <div>
+                    <a href="{{ url_for('questionnaire.preview') }}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-eye me-2"></i>Preview
+                    </a>
+                    <button type="button" class="btn btn-purple" id="saveChangesBtn">
+                        <i class="bi bi-save me-2"></i>Save Changes
+                    </button>
+                </div>
+            </div>
+            
+            <form id="editQuestionnaireForm" action="{{ url_for('questionnaire.edit') }}" method="POST">
+                <div class="questionnaire-editor">
+                    <div class="questionnaire-metadata mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label for="research_topic" class="form-label">Research Topic</label>
+                                <input type="text" class="form-control" id="research_topic" name="research_topic" value="{{ research_topic }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="target_audience" class="form-label">Target Audience</label>
+                                <input type="text" class="form-control" id="target_audience" name="target_audience" value="{{ target_audience }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="questionnaire_purpose" class="form-label">Questionnaire Purpose</label>
+                                <input type="text" class="form-control" id="questionnaire_purpose" name="questionnaire_purpose" value="{{ questionnaire_purpose }}">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="research_description" class="form-label">Research Description</label>
+                                <textarea class="form-control" id="research_description" name="research_description" rows="3">{{ research_description }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="sectionsContainer">
+                        {% for section_index in range(questionnaire|length) %}
+                        {% set section = questionnaire[section_index] %}
+                        <div class="section-editor" data-section-index="{{ section_index }}">
+                            <div class="section-header">
+                                <input type="text" class="form-control" name="sections[{{ section_index }}][title]" value="{{ section.title }}" placeholder="Section Title">
+                                <div class="section-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-section-btn">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Section Description</label>
+                                <textarea class="form-control" name="sections[{{ section_index }}][description]" rows="2" placeholder="Section Description (optional)">{{ section.description }}</textarea>
+                            </div>
+                            
+                            <div class="questions-container">
+                                {% for question_index in range(section.questions|length) %}
+                                {% set question = section.questions[question_index] %}
+                                <div class="question-editor" data-question-index="{{ question_index }}">
+                                    <div class="question-actions">
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-question-btn">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-8">
+                                            <label class="form-label">Question Text</label>
+                                            <input type="text" class="form-control" name="sections[{{ section_index }}][questions][{{ question_index }}][text]" value="{{ question.text }}" placeholder="Enter question text">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Question Type</label>
+                                            <select class="form-select question-type-select" name="sections[{{ section_index }}][questions][{{ question_index }}][type]">
+                                                <option value="Multiple Choice" {% if question.type == 'Multiple Choice' %}selected{% endif %}>Multiple Choice</option>
+                                                <option value="Checkbox" {% if question.type == 'Checkbox' %}selected{% endif %}>Checkbox</option>
+                                                <option value="Likert Scale" {% if question.type == 'Likert Scale' %}selected{% endif %}>Likert Scale</option>
+                                                <option value="Open-Ended" {% if question.type == 'Open-Ended' %}selected{% endif %}>Open-Ended</option>
+                                                <option value="Rating" {% if question.type == 'Rating' %}selected{% endif %}>Rating</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="options-container" {% if question.type == 'Likert Scale' or question.type == 'Open-Ended' or question.type == 'Rating' %}style="display: none;"{% endif %}>
+                                        <label class="form-label">Options</label>
+                                        
+                                        <div class="options-list">
+                                            {% if question.options %}
+                                            {% for option_index in range(question.options|length) %}
+                                            {% set option = question.options[option_index] %}
+                                            <div class="option-row">
+                                                <span class="draggable-handle"><i class="bi bi-grip-vertical"></i></span>
+                                                <input type="text" class="form-control option-input" name="sections[{{ section_index }}][questions][{{ question_index }}][options][{{ option_index }}]" value="{{ option }}" placeholder="Option text">
+                                                <div class="option-actions">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger remove-option-btn">
+                                                        <i class="bi bi-dash-circle"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <button type="button" class="btn btn-sm btn-outline-purple mt-2 add-option-btn">
+                                            <i class="bi bi-plus-circle me-1"></i> Add Option
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <button type="button" class="btn btn-outline-purple mt-3 add-question-btn">
+                                <i class="bi bi-plus-circle me-2"></i>Add Question
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="button" id="addSectionBtn" class="btn btn-outline-purple">
+                            <i class="bi bi-folder-plus me-2"></i>Add Section
+                        </button>
+                    </div>
+                    
+                    <div class="text-end mt-4 pt-3 border-top">
+                        <a href="{{ url_for('questionnaire.index') }}" class="btn btn-outline-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-purple">Save Questionnaire</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add this hidden input field to store the section count -->
+<input type="hidden" id="questionnaireSectionCount" value="{{ questionnaire|length }}">
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Section Counter - get from the hidden input to avoid Jinja syntax in JS
+    let sectionCounter = parseInt(document.getElementById('questionnaireSectionCount').value) || 0;
+    
+    // Handle Save Changes button click
+    document.getElementById('saveChangesBtn').addEventListener('click', function() {
+        document.getElementById('editQuestionnaireForm').submit();
+    });
+    
+    // Question Type Change Handler
+    document.querySelectorAll('.question-type-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const optionsContainer = this.closest('.question-editor').querySelector('.options-container');
+            if (this.value === 'Multiple Choice' || this.value === 'Checkbox') {
+                optionsContainer.style.display = 'block';
+            } else {
+                optionsContainer.style.display = 'none';
+            }
+        });
+    });
+    
+    // Add Section Handler
+    document.getElementById('addSectionBtn').addEventListener('click', function() {
+        const sectionsContainer = document.getElementById('sectionsContainer');
+        const sectionIndex = sectionCounter++;
+        
+        const sectionHtml = `
+        <div class="section-editor" data-section-index="${sectionIndex}">
+            <div class="section-header">
+                <input type="text" class="form-control" name="sections[${sectionIndex}][title]" placeholder="Section Title">
+                <div class="section-actions">
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-section-btn">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Section Description</label>
+                <textarea class="form-control" name="sections[${sectionIndex}][description]" rows="2" placeholder="Section Description (optional)"></textarea>
+            </div>
+            
+            <div class="questions-container">
+            </div>
+            
+            <button type="button" class="btn btn-outline-purple mt-3 add-question-btn">
+                <i class="bi bi-plus-circle me-2"></i>Add Question
+            </button>
+        </div>
+        `;
+        
+        sectionsContainer.insertAdjacentHTML('beforeend', sectionHtml);
+        attachEventListeners();
+    });
+    
+    // Add Question Handler
+    function handleAddQuestion() {
+        const sectionEditor = this.closest('.section-editor');
+        const sectionIndex = sectionEditor.dataset.sectionIndex;
+        const questionsContainer = sectionEditor.querySelector('.questions-container');
+        let questionIndex = questionsContainer.children.length;
+        
+        const questionHtml = `
+        <div class="question-editor" data-question-index="${questionIndex}">
+            <div class="question-actions">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-question-btn">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label class="form-label">Question Text</label>
+                    <input type="text" class="form-control" name="sections[${sectionIndex}][questions][${questionIndex}][text]" placeholder="Enter question text">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Question Type</label>
+                    <select class="form-select question-type-select" name="sections[${sectionIndex}][questions][${questionIndex}][type]">
+                        <option value="Multiple Choice">Multiple Choice</option>
+                        <option value="Checkbox">Checkbox</option>
+                        <option value="Likert Scale">Likert Scale</option>
+                        <option value="Open-Ended">Open-Ended</option>
+                        <option value="Rating">Rating</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="options-container">
+                <label class="form-label">Options</label>
+                
+                <div class="options-list">
+                    <div class="option-row">
+                        <span class="draggable-handle"><i class="bi bi-grip-vertical"></i></span>
+                        <input type="text" class="form-control option-input" name="sections[${sectionIndex}][questions][${questionIndex}][options][0]" placeholder="Option text">
+                        <div class="option-actions">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-option-btn">
+                                <i class="bi bi-dash-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn btn-sm btn-outline-purple mt-2 add-option-btn">
+                    <i class="bi bi-plus-circle me-1"></i> Add Option
+                </button>
+            </div>
+        </div>
+        `;
+        
+        questionsContainer.insertAdjacentHTML('beforeend', questionHtml);
+        attachEventListeners();
+    }
+    
+    // Remove Question Handler
+    function handleRemoveQuestion() {
+        const questionEditor = this.closest('.question-editor');
+        const questionsContainer = questionEditor.parentNode;
+        questionsContainer.removeChild(questionEditor);
+        
+        // Update question indices
+        updateQuestionIndices(questionsContainer);
+    }
+    
+    // Add Option Handler
+    function handleAddOption() {
+        const optionsContainer = this.closest('.options-container');
+        const optionsList = optionsContainer.querySelector('.options-list');
+        const questionEditor = this.closest('.question-editor');
+        const sectionIndex = questionEditor.closest('.section-editor').dataset.sectionIndex;
+        const questionIndex = questionEditor.dataset.questionIndex;
+        
+        let optionIndex = optionsList.children.length;
+        
+        const optionHtml = `
+        <div class="option-row">
+            <span class="draggable-handle"><i class="bi bi-grip-vertical"></i></span>
+            <input type="text" class="form-control option-input" name="sections[${sectionIndex}][questions][${questionIndex}][options][${optionIndex}]" placeholder="Option text">
+            <div class="option-actions">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-option-btn">
+                    <i class="bi bi-dash-circle"></i>
+                </button>
+            </div>
+        </div>
+        `;
+        
+        optionsList.insertAdjacentHTML('beforeend', optionHtml);
+        attachEventListeners();
+    }
+    
+    // Remove Option Handler
+    function handleRemoveOption() {
+        const optionRow = this.closest('.option-row');
+        const optionsList = optionRow.parentNode;
+        
+        // Don't remove if it's the last option
+        if (optionsList.children.length > 1) {
+            optionsList.removeChild(optionRow);
+            
+            // Update option indices
+            const questionEditor = optionRow.closest('.question-editor');
+            const sectionIndex = questionEditor.closest('.section-editor').dataset.sectionIndex;
+            const questionIndex = questionEditor.dataset.questionIndex;
+            updateOptionIndices(optionsList, sectionIndex, questionIndex);
+        } else {
+            alert('You must have at least one option.');
+        }
+    }
+    
+    // Remove Section Handler
+    function handleRemoveSection() {
+        const sectionEditor = this.closest('.section-editor');
+        const sectionsContainer = sectionEditor.parentNode;
+        
+        // Don't remove if it's the last section
+        if (sectionsContainer.children.length > 1) {
+            sectionsContainer.removeChild(sectionEditor);
+            
+            // Update section indices
+            updateSectionIndices();
+        } else {
+            alert('You must have at least one section.');
+        }
+    }
+    
+    // Update Question Indices
+    function updateQuestionIndices(questionsContainer) {
+        Array.from(questionsContainer.children).forEach((questionEditor, newIndex) => {
+            questionEditor.dataset.questionIndex = newIndex;
+            
+            const questionText = questionEditor.querySelector('input[name*="[text]"]');
+            const questionType = questionEditor.querySelector('select[name*="[type]"]');
+            const sectionIndex = questionEditor.closest('.section-editor').dataset.sectionIndex;
+            
+            questionText.name = `sections[${sectionIndex}][questions][${newIndex}][text]`;
+            questionType.name = `sections[${sectionIndex}][questions][${newIndex}][type]`;
+            
+            // Update option indices
+            const optionsList = questionEditor.querySelector('.options-list');
+            if (optionsList) {
+                updateOptionIndices(optionsList, sectionIndex, newIndex);
+            }
+        });
+    }
+    
+    // Update Option Indices
+    function updateOptionIndices(optionsList, sIndex, qIndex) {
+        const secIndex = sIndex || optionsList.closest('.question-editor').closest('.section-editor').dataset.sectionIndex;
+        const quesIndex = qIndex || optionsList.closest('.question-editor').dataset.questionIndex;
+        
+        Array.from(optionsList.children).forEach((optionRow, newIndex) => {
+            const optionInput = optionRow.querySelector('.option-input');
+            optionInput.name = `sections[${secIndex}][questions][${quesIndex}][options][${newIndex}]`;
+        });
+    }
+    
+    // Update Section Indices
+    function updateSectionIndices() {
+        const sectionsContainer = document.getElementById('sectionsContainer');
+        Array.from(sectionsContainer.children).forEach((sectionEditor, newIndex) => {
+            sectionEditor.dataset.sectionIndex = newIndex;
+            
+            const sectionTitle = sectionEditor.querySelector('input[name*="[title]"]');
+            const sectionDescription = sectionEditor.querySelector('textarea[name*="[description]"]');
+            
+            sectionTitle.name = `sections[${newIndex}][title]`;
+            sectionDescription.name = `sections[${newIndex}][description]`;
+            
+            // Update question indices
+            const questionsContainer = sectionEditor.querySelector('.questions-container');
+            Array.from(questionsContainer.children).forEach((questionEditor, questionIndex) => {
+                questionEditor.dataset.questionIndex = questionIndex;
+                
+                const questionText = questionEditor.querySelector('input[name*="[text]"]');
+                const questionType = questionEditor.querySelector('select[name*="[type]"]');
+                
+                questionText.name = `sections[${newIndex}][questions][${questionIndex}][text]`;
+                questionType.name = `sections[${newIndex}][questions][${questionIndex}][type]`;
+                
+                // Update option indices
+                const optionsList = questionEditor.querySelector('.options-list');
+                if (optionsList) {
+                    updateOptionIndices(optionsList, newIndex, questionIndex);
+                }
+            });
+        });
+    }
+    
+    // Question Type Change Handler
+    function questionTypeChangeHandler() {
+        const optionsContainer = this.closest('.question-editor').querySelector('.options-container');
+        if (this.value === 'Multiple Choice' || this.value === 'Checkbox') {
+            optionsContainer.style.display = 'block';
+        } else {
+            optionsContainer.style.display = 'none';
+        }
+    }
+    
+    // Attach Event Listeners
+    function attachEventListeners() {
+        // Question Type Change
+        document.querySelectorAll('.question-type-select').forEach(select => {
+            select.removeEventListener('change', questionTypeChangeHandler);
+            select.addEventListener('change', questionTypeChangeHandler);
+        });
+        
+        // Add Question
+        document.querySelectorAll('.add-question-btn').forEach(btn => {
+            btn.removeEventListener('click', handleAddQuestion);
+            btn.addEventListener('click', handleAddQuestion);
+        });
+        
+        // Remove Question
+        document.querySelectorAll('.remove-question-btn').forEach(btn => {
+            btn.removeEventListener('click', handleRemoveQuestion);
+            btn.addEventListener('click', handleRemoveQuestion);
+        });
+        
+        // Add Option
+        document.querySelectorAll('.add-option-btn').forEach(btn => {
+            btn.removeEventListener('click', handleAddOption);
+            btn.addEventListener('click', handleAddOption);
+        });
+        
+        // Remove Option
+        document.querySelectorAll('.remove-option-btn').forEach(btn => {
+            btn.removeEventListener('click', handleRemoveOption);
+            btn.addEventListener('click', handleRemoveOption);
+        });
+        
+        // Remove Section
+        document.querySelectorAll('.remove-section-btn').forEach(btn => {
+            btn.removeEventListener('click', handleRemoveSection);
+            btn.addEventListener('click', handleRemoveSection);
+        });
+    }
+    
+    // Initial event listener attachment
+    attachEventListeners();
+});
+</script>
+{% endblock %} 

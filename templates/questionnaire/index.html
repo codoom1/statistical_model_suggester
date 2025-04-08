@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Questionnaire Designer - Statistical Model Suggester{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background-color: #6f42c1;
+        color: white;
+        padding: 4rem 0;
+        border-radius: 10px;
+        margin-bottom: 3rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .feature-card {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        padding: 1.5rem;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .feature-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        background-color: #6f42c1;
+        color: white;
+        border-radius: 50%;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+    }
+    
+    .step-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        background-color: #6f42c1;
+        color: white;
+        border-radius: 50%;
+        margin-right: 1rem;
+        font-weight: bold;
+    }
+    
+    .step-card {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+    
+    .step-content {
+        flex: 1;
+    }
+    
+    .benefits-list {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    
+    .benefits-list li {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .benefits-list i {
+        color: #6f42c1;
+        margin-right: 0.75rem;
+        font-size: 1.25rem;
+        margin-top: 0.125rem;
+    }
+    
+    .sample-section {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .cta-button {
+        background-color: #6f42c1;
+        color: white;
+        font-weight: 500;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+    }
+    
+    .cta-button:hover {
+        background-color: #5a32a3;
+        color: white;
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 mb-4">Create Professional Questionnaires in Minutes</h1>
+        <p class="lead mb-5">Generate well-structured questionnaires for research, feedback, or surveys based on your research description.</p>
+        <a href="{{ url_for('questionnaire.design') }}" class="btn btn-light btn-lg cta-button">
+            <i class="bi bi-magic me-2"></i>Create Your Questionnaire
+        </a>
+    </div>
+</div>
+
+<div class="container">
+    <section class="mb-5">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4 class="mb-2">Describe Your Research</h4>
+                        <p class="text-muted">Enter your research topic and a detailed description of what you're trying to understand or measure.</p>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4 class="mb-2">Generate Questionnaire</h4>
+                        <p class="text-muted">Our system analyzes your description and creates relevant sections and questions tailored to your research needs.</p>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4 class="mb-2">Customize and Export</h4>
+                        <p class="text-muted">Review the generated questionnaire, make any adjustments, and export it for your research or survey.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="mb-5">
+        <h2 class="text-center mb-5">Why Use Our Questionnaire Designer</h2>
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-lightning-charge"></i>
+                    </div>
+                    <h4 class="mb-3">Save Time</h4>
+                    <p class="text-muted">Create comprehensive questionnaires in minutes instead of hours. No need to start from scratch.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-layers"></i>
+                    </div>
+                    <h4 class="mb-3">Professional Structure</h4>
+                    <p class="text-muted">Get questionnaires organized into logical sections with a variety of question types.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-pencil-square"></i>
+                    </div>
+                    <h4 class="mb-3">Fully Customizable</h4>
+                    <p class="text-muted">Edit, add, or remove any section or question to perfectly match your research needs.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="mb-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="mb-4">Benefits of Professional Questionnaire Design</h2>
+                <ul class="benefits-list">
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <h5 class="mb-1">Higher Response Rates</h5>
+                            <p class="text-muted mb-0">Well-designed questionnaires keep participants engaged and reduce dropout rates.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <h5 class="mb-1">Better Data Quality</h5>
+                            <p class="text-muted mb-0">Properly structured questions lead to more accurate and reliable responses.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <h5 class="mb-1">Comprehensive Insights</h5>
+                            <p class="text-muted mb-0">Our system ensures you don't miss important aspects of your research topic.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <h5 class="mb-1">Reduced Bias</h5>
+                            <p class="text-muted mb-0">Standardized question formats minimize question-wording bias in your research.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="sample-section">
+                    <h4 class="mb-4">Sample Questionnaire Structure</h4>
+                    
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">Demographics</h5>
+                        <p class="text-muted small mb-2">• Age group</p>
+                        <p class="text-muted small mb-2">• Gender</p>
+                        <p class="text-muted small mb-2">• Education level</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">Experience & Background</h5>
+                        <p class="text-muted small mb-2">• Level of experience</p>
+                        <p class="text-muted small mb-2">• Duration of involvement</p>
+                        <p class="text-muted small mb-2">• Frequency of engagement</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">Preferences & Opinions</h5>
+                        <p class="text-muted small mb-2">• Satisfaction ratings</p>
+                        <p class="text-muted small mb-2">• Value assessments</p>
+                        <p class="text-muted small mb-2">• Preference selections</p>
+                    </div>
+                    
+                    <div>
+                        <h5 class="border-bottom pb-2 mb-3">Feedback & Suggestions</h5>
+                        <p class="text-muted small mb-2">• Improvement areas</p>
+                        <p class="text-muted small mb-2">• Challenges faced</p>
+                        <p class="text-muted small mb-2">• Additional comments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <div class="text-center my-5 py-3">
+        <h2 class="mb-4">Ready to Create Your Questionnaire?</h2>
+        <a href="{{ url_for('questionnaire.design') }}" class="btn btn-lg cta-button">
+            <i class="bi bi-magic me-2"></i>Get Started Now
+        </a>
+    </div>
+</div>
+{% endblock %} 

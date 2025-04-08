@@ -65,12 +65,14 @@ def create_app():
     from routes.user_routes import user
     from routes.expert_routes import expert
     from routes.admin_routes import admin
+    from routes.questionnaire_routes import questionnaire_bp
     
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(main, url_prefix='/')
     app.register_blueprint(user, url_prefix='/user')
     app.register_blueprint(expert, url_prefix='/expert')
     app.register_blueprint(admin, url_prefix='/admin')
+    app.register_blueprint(questionnaire_bp, url_prefix='/questionnaire')
 
     # Define error handler
     @app.errorhandler(404)

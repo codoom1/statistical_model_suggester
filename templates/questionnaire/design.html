@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Design Your Questionnaire - Statistical Model Suggester{% endblock %}
+
+{% block extra_css %}
+<style>
+    .design-form {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .form-section {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 1.5rem;
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    
+    .design-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .design-header h2 {
+        color: #6f42c1;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-tips {
+        background-color: #f8f9fa;
+        border-left: 4px solid #6f42c1;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0 0.25rem 0.25rem 0;
+    }
+    
+    .form-tips h5 {
+        color: #6f42c1;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-tips ul {
+        margin-bottom: 0;
+        padding-left: 1.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="design-header">
+                <h2>Design Your Questionnaire</h2>
+                <p class="text-muted">Enter your research details to automatically generate a customized questionnaire</p>
+            </div>
+            
+            <div class="design-form">
+                <form action="{{ url_for('questionnaire.design') }}" method="POST">
+                    <div class="form-section">
+                        <h4 class="mb-3">Basic Information</h4>
+                        
+                        <div class="mb-3">
+                            <label for="research_topic" class="form-label">Research Topic/Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="research_topic" name="research_topic" placeholder="e.g., Consumer Preferences for Sustainable Products" required>
+                            <div class="form-text">A clear, concise title for your research questionnaire.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="target_audience" class="form-label">Target Audience <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="target_audience" name="target_audience" placeholder="e.g., Adults aged 25-45 who regularly shop online" required>
+                            <div class="form-text">Describe who will be responding to your questionnaire.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="questionnaire_purpose" class="form-label">Questionnaire Purpose <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="questionnaire_purpose" name="questionnaire_purpose" placeholder="e.g., Market Research Survey, Academic Study, Customer Feedback" required>
+                            <div class="form-text">The primary purpose of your questionnaire.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4 class="mb-3">Research Description</h4>
+                        
+                        <div class="form-tips">
+                            <h5>Tips for a Better Questionnaire</h5>
+                            <ul>
+                                <li>Include key topics you want to investigate</li>
+                                <li>Mention specific behaviors, preferences, or experiences you're interested in</li>
+                                <li>Be specific about what information you need to collect</li>
+                                <li>Include relevant keywords for your research area</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="research_description" class="form-label">Detailed Research Description <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="research_description" name="research_description" rows="5" placeholder="Describe your research in detail. What are you trying to learn? What specific aspects are you interested in? What do you hope to achieve with this questionnaire?" required></textarea>
+                            <div class="form-text">The more details you provide, the more tailored your questionnaire will be.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('questionnaire.index') }}" class="btn btn-outline-secondary me-2">
+                            <i class="bi bi-arrow-left me-2"></i>Back
+                        </a>
+                        <button type="submit" class="btn btn-purple">
+                            <i class="bi bi-magic me-2"></i>Generate Questionnaire
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
