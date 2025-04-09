@@ -119,12 +119,14 @@ def create_app():
 
     return app
 
+# Create the app instance at the module level for Gunicorn
+app = create_app()
+
 if __name__ == '__main__':
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Run the Statistical Model Suggester application')
     parser.add_argument('--port', type=int, default=8084, help='Port to run the application on')
     args = parser.parse_args()
     
-    app = create_app()
     print(f"Starting application on port {args.port}")
     app.run(debug=True, port=args.port) 
