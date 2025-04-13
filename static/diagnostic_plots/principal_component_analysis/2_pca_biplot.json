@@ -1,0 +1,4 @@
+{
+  "title": "PCA Biplot",
+  "interpretation": "Visualizes both samples (points) and variables (arrows) in the PCA space. Variables pointing in similar directions are positively correlated."
+}

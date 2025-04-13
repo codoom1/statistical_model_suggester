@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}My Questionnaires - Statistical Model Suggester{% endblock %}
+
+{% block extra_css %}
+<style>
+    .questionnaire-card {
+        transition: transform 0.2s;
+        height: 100%;
+    }
+    
+    .questionnaire-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .text-purple {
+        color: #6f42c1;
+    }
+    
+    .badge-purple {
+        background-color: #6f42c1;
+        color: white;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+    
+    .empty-state .bi {
+        font-size: 3rem;
+        color: #adb5bd;
+        margin-bottom: 1rem;
+    }
+    
+    .date-info {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .action-buttons .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">My Questionnaires</h1>
+        <a href="{{ url_for('questionnaire.design') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Create New Questionnaire
+        </a>
+    </div>
+    
+    {% if questionnaires %}
+        <div class="row g-4">
+            {% for questionnaire in questionnaires %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card questionnaire-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title text-purple mb-0">{{ questionnaire.title }}</h5>
+                            {% if questionnaire.is_ai_enhanced %}
+                                <span class="badge badge-purple rounded-pill">AI Enhanced</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                {% if questionnaire.description %}
+                                    {{ questionnaire.description|truncate(100) }}
+                                {% else %}
+                                    <em class="text-muted">No description provided</em>
+                                {% endif %}
+                            </p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="date-info">
+                                    Created: {{ questionnaire.created_at.strftime('%b %d, %Y') }}
+                                    {% if questionnaire.updated_at and questionnaire.updated_at != questionnaire.created_at %}
+                                        <br>Updated: {{ questionnaire.updated_at.strftime('%b %d, %Y') }}
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="action-buttons">
+                                    <a href="{{ url_for('questionnaire.load_questionnaire', questionnaire_id=questionnaire.id) }}" class="btn btn-outline-primary">
+                                        <i class="bi bi-box-arrow-up-right"></i>
+                                    </a>
+                                    
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ questionnaire.id }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Delete Confirmation Modal -->
+                    <div class="modal fade" id="deleteModal{{ questionnaire.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirm Delete</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure you want to delete the questionnaire <strong>"{{ questionnaire.title }}"</strong>?</p>
+                                    <p class="text-danger">This action cannot be undone.</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form action="{{ url_for('questionnaire.delete_questionnaire', questionnaire_id=questionnaire.id) }}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-clipboard-x"></i>
+            <h3>No Questionnaires Found</h3>
+            <p class="text-muted">You haven't created any questionnaires yet.</p>
+            <a href="{{ url_for('questionnaire.design') }}" class="btn btn-primary mt-3">
+                <i class="bi bi-plus-circle me-2"></i>Create Your First Questionnaire
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

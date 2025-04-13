@@ -1,0 +1,4 @@
+{
+  "title": "Prediction Probability Distribution",
+  "interpretation": "Shows the distribution of predicted probabilities for each category. Well-separated distributions indicate the model can distinguish categories effectively."
+}

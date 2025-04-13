@@ -1,0 +1,4 @@
+{
+  "title": "Feature Coefficients",
+  "interpretation": "Shows the importance and direction of each feature. Positive coefficients increase the prediction value; negative coefficients decrease it. The magnitude indicates importance."
+}

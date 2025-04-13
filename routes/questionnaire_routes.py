@@ -5,12 +5,17 @@ This module provides routes for the questionnaire design service,
 allowing users to create, preview, and edit questionnaires.
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, send_file, jsonify
+from flask_login import login_required, current_user
 from utils.questionnaire_generator import generate_questionnaire
 from utils.export_utils import export_to_word, export_to_pdf
+from models import db, Questionnaire
 import json
 import os
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 questionnaire_bp = Blueprint('questionnaire', __name__, url_prefix='/questionnaire')
 
@@ -31,12 +36,16 @@ def design():
         target_audience = request.form.get('target_audience', '')
         questionnaire_purpose = request.form.get('questionnaire_purpose', '')
         
+        # Check if AI enhancement was requested
+        use_ai = request.form.get('use_ai_enhancement', 'off') == 'on'
+        
         # Generate questionnaire based on research description
         questionnaire = generate_questionnaire(
             research_description,
             research_topic,
             target_audience,
-            questionnaire_purpose
+            questionnaire_purpose,
+            use_ai_enhancement=use_ai
         )
         
         # Store questionnaire data in session
@@ -45,6 +54,7 @@ def design():
         session['research_description'] = research_description
         session['target_audience'] = target_audience
         session['questionnaire_purpose'] = questionnaire_purpose
+        session['used_ai_enhancement'] = use_ai
         
         return redirect(url_for('questionnaire.preview'))
     
@@ -142,6 +152,20 @@ def edit():
                         if option_text:
                             options.append(option_text)
                 
+                # Preserve AI flags if they exist
+                ai_enhanced = False
+                ai_created = False
+                
+                # Check if this question was in the original questionnaire
+                original_questionnaire = session.get('questionnaire', [])
+                if int(section_index) < len(original_questionnaire):
+                    original_section = original_questionnaire[int(section_index)]
+                    original_questions = original_section.get('questions', [])
+                    if int(question_index) < len(original_questions):
+                        original_question = original_questions[int(question_index)]
+                        ai_enhanced = original_question.get('ai_enhanced', False)
+                        ai_created = original_question.get('ai_created', False)
+                
                 question_data = {
                     'text': question_text,
                     'type': question_type
@@ -149,6 +173,12 @@ def edit():
                 
                 if options:
                     question_data['options'] = options
+                
+                if ai_enhanced:
+                    question_data['ai_enhanced'] = True
+                
+                if ai_created:
+                    question_data['ai_created'] = True
                 
                 if question_text:  # Only add non-empty questions
                     questions.append(question_data)
@@ -178,6 +208,125 @@ def edit():
         target_audience=session.get('target_audience', ''),
         questionnaire_purpose=session.get('questionnaire_purpose', '')
     )
+
+@questionnaire_bp.route('/save', methods=['POST'])
+@login_required
+def save_questionnaire():
+    """Save the current questionnaire to the database."""
+    # Check if questionnaire data exists in session
+    if 'questionnaire' not in session:
+        flash('Please design a questionnaire first.', 'error')
+        return redirect(url_for('questionnaire.design'))
+    
+    # Get questionnaire data from session
+    questionnaire_data = session['questionnaire']
+    research_topic = session.get('research_topic', 'Untitled Questionnaire')
+    research_description = session.get('research_description', '')
+    target_audience = session.get('target_audience', '')
+    questionnaire_purpose = session.get('questionnaire_purpose', '')
+    is_ai_enhanced = session.get('used_ai_enhancement', False)
+    
+    try:
+        # Check if we're updating an existing questionnaire
+        questionnaire_id = request.form.get('questionnaire_id')
+        
+        if questionnaire_id:
+            # Find the existing questionnaire
+            questionnaire = Questionnaire.query.filter_by(
+                id=questionnaire_id, 
+                user_id=current_user.id
+            ).first()
+            
+            if not questionnaire:
+                flash('Questionnaire not found or you do not have permission to edit it.', 'error')
+                return redirect(url_for('questionnaire.preview'))
+            
+            # Update the existing questionnaire
+            questionnaire.title = research_topic
+            questionnaire.topic = research_topic
+            questionnaire.description = research_description
+            questionnaire.target_audience = target_audience
+            questionnaire.purpose = questionnaire_purpose
+            questionnaire.content = questionnaire_data
+            questionnaire.is_ai_enhanced = is_ai_enhanced
+            questionnaire.updated_at = datetime.utcnow()
+            
+        else:
+            # Create a new questionnaire
+            questionnaire = Questionnaire(
+                user_id=current_user.id,
+                title=research_topic,
+                topic=research_topic,
+                description=research_description,
+                target_audience=target_audience,
+                purpose=questionnaire_purpose,
+                content=questionnaire_data,
+                is_ai_enhanced=is_ai_enhanced
+            )
+            db.session.add(questionnaire)
+        
+        db.session.commit()
+        flash('Questionnaire saved successfully!', 'success')
+        
+        # Store the questionnaire ID in the session
+        session['saved_questionnaire_id'] = questionnaire.id
+        
+        return redirect(url_for('questionnaire.preview'))
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error saving questionnaire: {e}")
+        flash(f'Error saving questionnaire: {str(e)}', 'error')
+        return redirect(url_for('questionnaire.preview'))
+
+@questionnaire_bp.route('/my-questionnaires')
+@login_required
+def my_questionnaires():
+    """List all questionnaires created by the current user."""
+    questionnaires = Questionnaire.query.filter_by(user_id=current_user.id).order_by(Questionnaire.created_at.desc()).all()
+    return render_template('questionnaire/my_questionnaires.html', questionnaires=questionnaires)
+
+@questionnaire_bp.route('/load/<int:questionnaire_id>')
+@login_required
+def load_questionnaire(questionnaire_id):
+    """Load a saved questionnaire from the database."""
+    questionnaire = Questionnaire.query.filter_by(id=questionnaire_id, user_id=current_user.id).first()
+    
+    if not questionnaire:
+        flash('Questionnaire not found or you do not have permission to view it.', 'error')
+        return redirect(url_for('questionnaire.my_questionnaires'))
+    
+    # Store questionnaire data in session
+    session['questionnaire'] = questionnaire.content
+    session['research_topic'] = questionnaire.title
+    session['research_description'] = questionnaire.description
+    session['target_audience'] = questionnaire.target_audience
+    session['questionnaire_purpose'] = questionnaire.purpose
+    session['used_ai_enhancement'] = questionnaire.is_ai_enhanced
+    session['saved_questionnaire_id'] = questionnaire.id
+    
+    return redirect(url_for('questionnaire.preview'))
+
+@questionnaire_bp.route('/delete/<int:questionnaire_id>', methods=['POST'])
+@login_required
+def delete_questionnaire(questionnaire_id):
+    """Delete a saved questionnaire."""
+    questionnaire = Questionnaire.query.filter_by(id=questionnaire_id, user_id=current_user.id).first()
+    
+    if not questionnaire:
+        flash('Questionnaire not found or you do not have permission to delete it.', 'error')
+        return redirect(url_for('questionnaire.my_questionnaires'))
+    
+    try:
+        db.session.delete(questionnaire)
+        db.session.commit()
+        flash('Questionnaire deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error deleting questionnaire: {e}")
+        flash(f'Error deleting questionnaire: {str(e)}', 'error')
+    
+    return redirect(url_for('questionnaire.my_questionnaires'))
 
 @questionnaire_bp.route('/export/word')
 def export_word():

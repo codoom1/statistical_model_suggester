@@ -1,0 +1,4 @@
+{
+  "title": "Training History",
+  "interpretation": "Shows how the model's performance evolves during training across iterations. This helps identify potential overfitting (when validation score worsens while training score improves) and determine the optimal number of iterations."
+}

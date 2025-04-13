@@ -1,0 +1,4 @@
+{
+  "title": "Confusion Matrix",
+  "interpretation": "Shows the count of actual vs. predicted categories. Diagonal elements represent correct predictions."
+}

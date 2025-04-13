@@ -1,0 +1,4 @@
+{
+  "title": "Precision-Recall Curve",
+  "interpretation": "Shows the trade-off between precision (positive predictive value) and recall (sensitivity) at different classification thresholds. This is particularly useful for imbalanced datasets where ROC curves might be overly optimistic."
+}

@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}AI Integration Settings - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>AI Integration Settings</h2>
+            <p class="lead">Configure AI integration settings for enhanced questionnaire generation.</p>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header bg-purple text-white">
+            <h3 class="mb-0">Hugging Face API Configuration</h3>
+        </div>
+        <div class="card-body">
+            {% if success_message %}
+            <div class="alert alert-success">
+                {{ success_message }}
+            </div>
+            {% endif %}
+            
+            {% if error_message %}
+            <div class="alert alert-danger">
+                {{ error_message }}
+            </div>
+            {% endif %}
+            
+            {% if api_status.credit_warning %}
+            <div class="alert alert-danger mb-4" role="alert">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <h4 class="alert-heading">API Credit Limit Reached</h4>
+                        <p>The Hugging Face API credits have been exceeded for the current billing period. AI-powered features will be limited until the subscription is upgraded or the next billing cycle begins.</p>
+                        <hr>
+                        <p class="mb-0">Consider upgrading to a Hugging Face PRO subscription for increased monthly credits, or explore alternative API providers.</p>
+                        <a href="https://huggingface.co/pricing" target="_blank" class="btn btn-outline-danger mt-2">
+                            <i class="bi bi-arrow-up-right-circle me-2"></i>Upgrade Subscription
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="form-group mb-4">
+                <label class="form-label">API Connection Status</label>
+                <div class="d-flex align-items-center">
+                    {% if api_status.status == 'ok' %}
+                        <span class="badge bg-success me-2">Connected</span>
+                        <span class="text-success">API is functioning correctly</span>
+                    {% elif api_status.status == 'credit_limit_reached' %}
+                        <span class="badge bg-danger me-2">Credits Exceeded</span>
+                        <span class="text-danger">{{ api_status.last_error }}</span>
+                    {% elif api_status.status == 'error' %}
+                        <span class="badge bg-warning me-2">Error</span>
+                        <span class="text-warning">{{ api_status.last_error }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary me-2">Unknown</span>
+                        <span class="text-muted">Status unknown. Try saving settings to test connection.</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <form method="POST">
+                <div class="mb-4">
+                    <label for="huggingface_api_key" class="form-label">Hugging Face API Key</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="huggingface_api_key" name="huggingface_api_key" 
+                               value="{{ current_settings.api_key }}" placeholder="hf_...">
+                        <button class="btn btn-outline-secondary" type="button" id="toggleVisibility">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        This API key will be used for AI-enhanced questionnaire generation. You can get an API key from <a href="https://huggingface.co/settings/tokens" target="_blank">Hugging Face's website</a>. The key is optional - without it, the service will use public model access which may have rate limits.
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="model" class="form-label">AI Model</label>
+                    <select class="form-select" id="model" name="model">
+                        <option value="mistralai/Mistral-7B-Instruct-v0.2" {% if current_settings.model == 'mistralai/Mistral-7B-Instruct-v0.2' %}selected{% endif %}>Mistral 7B Instruct (Recommended)</option>
+                        <option value="meta-llama/Llama-2-7b-chat-hf" {% if current_settings.model == 'meta-llama/Llama-2-7b-chat-hf' %}selected{% endif %}>Llama 2 7B Chat</option>
+                        <option value="google/flan-t5-base" {% if current_settings.model == 'google/flan-t5-base' %}selected{% endif %}>Google Flan T5 Base</option>
+                        <option value="facebook/bart-large-cnn" {% if current_settings.model == 'facebook/bart-large-cnn' %}selected{% endif %}>Facebook BART Large CNN</option>
+                        <option value="microsoft/Phi-2" {% if current_settings.model == 'microsoft/Phi-2' %}selected{% endif %}>Microsoft Phi-2</option>
+                        <option value="google/gemma-7b-it" {% if current_settings.model == 'google/gemma-7b-it' %}selected{% endif %}>Google Gemma 7B Instruct</option>
+                    </select>
+                    <div class="form-text">
+                        Select the Hugging Face model to use for generating questionnaire content.
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="enabled" name="enabled" 
+                               {% if current_settings.enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="enabled">
+                            Enable AI Enhancement by Default
+                        </label>
+                    </div>
+                    <div class="form-text">
+                        When enabled, the questionnaire generator will use AI to enhance question relevance by default.
+                        Users can still toggle this option when creating questionnaires.
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="test_prompt" class="form-label">Test the Integration</label>
+                    <textarea class="form-control mb-2" id="test_prompt" name="test_prompt" 
+                              placeholder="Enter a sample question to enhance..." rows="3">How do you use our product?</textarea>
+                    <button type="button" id="testButton" class="btn btn-outline-purple">
+                        <i class="bi bi-lightning me-2"></i>Test Integration
+                    </button>
+                    <div class="mt-3" id="testResult" style="display: none;"></div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                    <button type="submit" class="btn btn-purple">
+                        <i class="bi bi-save me-2"></i>Save Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card shadow">
+        <div class="card-header bg-light">
+            <h4 class="mb-0">AI Usage Statistics</h4>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">AI-Enhanced Questionnaires</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Questions Enhanced</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-number">N/A</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <p class="text-muted small">Statistics tracking coming soon</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle API key visibility
+    const toggleVisibilityBtn = document.getElementById('toggleVisibility');
+    const apiKeyInput = document.getElementById('huggingface_api_key');
+    
+    toggleVisibilityBtn.addEventListener('click', function() {
+        if (apiKeyInput.type === 'password') {
+            apiKeyInput.type = 'text';
+            toggleVisibilityBtn.innerHTML = '<i class="bi bi-eye-slash"></i>';
+        } else {
+            apiKeyInput.type = 'password';
+            toggleVisibilityBtn.innerHTML = '<i class="bi bi-eye"></i>';
+        }
+    });
+    
+    // Test API integration
+    const testButton = document.getElementById('testButton');
+    const testPrompt = document.getElementById('test_prompt');
+    const testResult = document.getElementById('testResult');
+    
+    testButton.addEventListener('click', function() {
+        const prompt = testPrompt.value.trim();
+        const apiKey = apiKeyInput.value.trim();
+        const model = document.getElementById('model').value;
+        
+        if (!prompt) {
+            testResult.innerHTML = '<div class="alert alert-warning">Please enter a question to enhance.</div>';
+            testResult.style.display = 'block';
+            return;
+        }
+        
+        // Show loading state
+        testButton.disabled = true;
+        testButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Testing...';
+        testResult.innerHTML = '<div class="alert alert-info">Testing AI integration, please wait...</div>';
+        testResult.style.display = 'block';
+        
+        // Make a test request to the backend
+        fetch('{{ url_for("admin.test_ai_integration") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                prompt: prompt,
+                api_key: apiKey,
+                model: model
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                testResult.innerHTML = `
+                    <div class="alert alert-success">
+                        <h5>Integration successful!</h5>
+                        <p><strong>Original:</strong> ${data.original}</p>
+                        <p><strong>AI Enhanced:</strong> ${data.enhanced}</p>
+                    </div>
+                `;
+            } else {
+                testResult.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5>Integration test failed</h5>
+                        <p>${data.error}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            testResult.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5>Error testing integration</h5>
+                    <p>An unexpected error occurred: ${error.message}</p>
+                </div>
+            `;
+        })
+        .finally(() => {
+            testButton.disabled = false;
+            testButton.innerHTML = '<i class="bi bi-lightning me-2"></i>Test Integration';
+        });
+    });
+});
+</script>
+{% endblock %} 

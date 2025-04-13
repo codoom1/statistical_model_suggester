@@ -1,0 +1,4 @@
+{
+  "title": "Sample Tree Structure",
+  "interpretation": "Visualizes a single tree from the forest, showing how decisions are made. Each node shows the splitting criterion, samples, and class distribution or mean value. This helps understand the decision-making process."
+}

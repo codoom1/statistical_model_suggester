@@ -1,0 +1,4 @@
+{
+  "title": "Model Performance",
+  "interpretation": "Compares the model's performance on training and test sets. The difference between training MSE (0.046) and test MSE (1.008) indicates the degree of overfitting. Similarly, the difference between training R\u00b2 (0.970) and test R\u00b2 (0.498) reflects the model's generalization ability."
+}

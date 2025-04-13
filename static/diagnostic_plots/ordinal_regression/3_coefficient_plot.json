@@ -1,0 +1,4 @@
+{
+  "title": "Coefficient Plot",
+  "interpretation": "Shows the impact of each feature on the probability of each category. Positive values increase the probability, negative values decrease it."
+}

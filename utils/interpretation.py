@@ -1,7 +1,9 @@
 """Utilities for generating model interpretations."""
 import base64
 import io
+import os
 from typing import Dict, Any, List
+import numpy as np
 
 def generate_interpretation_data(model_name: str, model_details: Dict[str, Any]) -> Dict[str, Any]:
     """Generate interpretation data for a statistical model.
@@ -22,7 +24,7 @@ def generate_interpretation_data(model_name: str, model_details: Dict[str, Any])
         "coefficient_explanation": get_coefficient_explanation(model_name),
         "coefficient_table": get_coefficient_table(model_name, model_details),
         "diagnostic_intro": get_diagnostic_intro(model_name),
-        "diagnostic_plots": get_diagnostic_plots(model_name, model_details),
+        "diagnostic_plots": get_diagnostic_plots(model_name, model_details, check_static_files=True),
         "diagnostic_warning": get_diagnostic_warning(model_name),
         "assumptions": get_model_assumptions(model_name),
         "assumptions_tip": get_assumptions_tip(model_name),
@@ -157,14 +159,125 @@ def get_diagnostic_intro(model_name: str) -> str:
     else:
         return "Diagnostic plots are visual tools that help assess whether the model's assumptions are met and identify potential issues with the model fit."
 
-def get_diagnostic_plots(model_name: str, model_details: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Get diagnostic plots for a model."""
-    # Use any existing plots from synthetic data if available
-    plots = []
-    existing_plots = model_details.get("synthetic_data", {}).get("results", {}).get("plots", [])
+def get_diagnostic_plots(model_name: str, model_details: Dict[str, Any], check_static_files: bool = True) -> List[Dict[str, Any]]:
+    """Get diagnostic plots."""
+    model_name_lower = model_name.lower()
     
-    # Linear regression standard plots
-    if "linear regression" in model_name.lower():
+    # Extract existing plots if available
+    existing_plots = []
+    synthetic_data = model_details.get("synthetic_data", {})
+    if synthetic_data and "diagnostic_plots" in synthetic_data:
+        existing_plots = synthetic_data["diagnostic_plots"]
+    
+    # Check if static files exist
+    if check_static_files:
+        static_dir = os.path.join('static', 'diagnostic_plots', model_name.replace(" ", "_").lower())
+        has_static_files = os.path.exists(static_dir) and len(os.listdir(static_dir)) > 0
+        
+        if has_static_files:
+            print(f"Found static diagnostic plot files for {model_name} in {static_dir}")
+            
+            # Get titles from JSON files
+            plot_files = [f for f in os.listdir(static_dir) if f.endswith('.json')]
+            plots = []
+            
+            for plot_file in sorted(plot_files):
+                # Get the plot file path and title
+                plot_path = os.path.join(static_dir, plot_file)
+                
+                try:
+                    with open(plot_path, 'r') as f:
+                        import json
+                        plot_data = json.load(f)
+                        plots.append({
+                            "title": plot_data.get("title", "Diagnostic Plot"),
+                            "img_data": "static_file",  # Special marker to indicate static file
+                            "interpretation": plot_data.get("interpretation", "No interpretation available.")
+                        })
+                except Exception as e:
+                    print(f"Error reading plot data from {plot_path}: {e}")
+            
+            if plots:
+                print(f"Using {len(plots)} static diagnostic plot files for {model_name}")
+                return plots
+    
+    # Try to generate plots using utilities
+    try:
+        # Import diagnostic plots utilities based on model type
+        if "linear regression" in model_name_lower:
+            from utils.diagnostic_plots.linear_regression import generate_linear_regression_plots
+            try:
+                # Attempt to extract data and generate plots
+                if synthetic_data and "data" in synthetic_data:
+                    # Extract X and y from synthetic data
+                    data = synthetic_data["data"]
+                    # This is a simplified version - in real implementation, we would need more robust data extraction
+                    X = np.array([row[:-1] for row in data["data"]])
+                    y = np.array([row[-1] for row in data["data"]])
+                    return generate_linear_regression_plots(X, y)
+            except Exception as e:
+                print(f"Error generating linear regression plots: {e}")
+                
+        elif "logistic regression" in model_name_lower:
+            from utils.diagnostic_plots.logistic_regression import generate_logistic_regression_plots
+            try:
+                # Attempt to extract data and generate plots
+                if synthetic_data and "data" in synthetic_data:
+                    # Extract X and y from synthetic data
+                    data = synthetic_data["data"]
+                    # This is a simplified version - in real implementation, we would need more robust data extraction
+                    X = np.array([row[:-1] for row in data["data"]])
+                    y = np.array([row[-1] for row in data["data"]])
+                    return generate_logistic_regression_plots(X, y)
+            except Exception as e:
+                print(f"Error generating logistic regression plots: {e}")
+                
+        elif "analysis of variance" in model_name_lower or "anova" in model_name_lower:
+            from utils.diagnostic_plots.anova import generate_anova_plots
+            try:
+                # Attempt to extract data and generate plots
+                if synthetic_data and "data" in synthetic_data:
+                    # Extract data from synthetic data
+                    data = synthetic_data["data"]
+                    return generate_anova_plots(data, 'value', 'group')
+            except Exception as e:
+                print(f"Error generating ANOVA plots: {e}")
+                
+        elif "random forest" in model_name_lower:
+            from utils.diagnostic_plots.random_forest import generate_random_forest_plots
+            try:
+                # Attempt to extract data and generate plots
+                if synthetic_data and "data" in synthetic_data:
+                    # Extract X and y from synthetic data
+                    data = synthetic_data["data"]
+                    # This is a simplified version - in real implementation, we would need more robust data extraction
+                    X = np.array([row[:-1] for row in data["data"]])
+                    y = np.array([row[-1] for row in data["data"]])
+                    feature_names = data.get("feature_names", [f"Feature {i+1}" for i in range(X.shape[1])])
+                    is_classification = 'class' in model_name_lower
+                    return generate_random_forest_plots(X, y, feature_names, is_classification)
+            except Exception as e:
+                print(f"Error generating Random Forest plots: {e}")
+                
+        elif "principal component analysis" in model_name_lower or "pca" in model_name_lower:
+            from utils.diagnostic_plots.pca import generate_pca_plots
+            try:
+                # Attempt to extract data and generate plots
+                if synthetic_data and "data" in synthetic_data:
+                    # Extract data from synthetic data
+                    data = synthetic_data["data"]
+                    # This is a simplified version - in real implementation, we would need more robust data extraction
+                    X = np.array([row[:-1] for row in data["data"]])
+                    feature_names = data.get("feature_names", [f"Feature {i+1}" for i in range(X.shape[1])])
+                    return generate_pca_plots(X, feature_names)
+            except Exception as e:
+                print(f"Error generating PCA plots: {e}")
+    except NameError:
+        # If utilities weren't imported successfully, continue with default behavior
+        pass
+    
+    # Linear regression standard plots (fallback)
+    if "linear regression" in model_name_lower:
         plots = [
             {
                 "title": "Residuals vs Fitted",
@@ -187,9 +300,10 @@ def get_diagnostic_plots(model_name: str, model_details: Dict[str, Any]) -> List
                 "interpretation": "This plot helps identify influential observations. Points outside the dashed lines (Cook's distance) have high influence on the model and should be examined."
             }
         ]
+        return plots
     
-    # Logistic regression plots
-    elif "logistic regression" in model_name.lower():
+    # Logistic regression plots (fallback)
+    elif "logistic regression" in model_name_lower:
         plots = [
             {
                 "title": "ROC Curve",
@@ -202,16 +316,16 @@ def get_diagnostic_plots(model_name: str, model_details: Dict[str, Any]) -> List
                 "interpretation": "This plot shows residuals versus fitted values. Look for random scatter around zero. Patterns may indicate non-linearity or other model issues."
             }
         ]
+        return plots
     
     # Default plots if nothing specific
-    if not plots:
-        plots = [
-            {
-                "title": "Model Diagnostics",
-                "img_data": "",
-                "interpretation": "Diagnostic plots for this model type help assess model fit, check assumptions, and identify potential issues."
-            }
-        ]
+    plots = [
+        {
+            "title": "Model Diagnostics",
+            "img_data": "",
+            "interpretation": "Diagnostic plots for this model type help assess model fit, check assumptions, and identify potential issues."
+        }
+    ]
     
     return plots
 

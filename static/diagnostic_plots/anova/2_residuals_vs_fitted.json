@@ -1,0 +1,4 @@
+{
+  "title": "Residuals vs Fitted",
+  "interpretation": "Checks for homogeneity of variance and linearity."
+}

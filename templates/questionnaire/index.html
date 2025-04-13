@@ -184,6 +184,145 @@
     </section>
     
     <section class="mb-5">
+        <h2 class="text-center mb-5">Try Our Pre-Made Examples</h2>
+        <p class="text-center mb-4">Not sure where to start? Click on any of these example topics to generate a sample questionnaire.</p>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Customer Satisfaction</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Evaluate customer satisfaction with your product or service, identify pain points, and gather improvement suggestions.</p>
+                                <form action="{{ url_for('questionnaire.design') }}" method="post">
+                                    <input type="hidden" name="research_topic" value="Customer Satisfaction Survey">
+                                    <input type="hidden" name="research_description" value="We are conducting research to understand customer satisfaction with our mobile app interface. We want to identify navigation pain points, feature preferences, and gather suggestions for improving the user experience. We're particularly interested in understanding how different user segments interact with the app and what frustrations they experience.">
+                                    <input type="hidden" name="target_audience" value="customers">
+                                    <input type="hidden" name="questionnaire_purpose" value="improve product">
+                                    <input type="hidden" name="ai_enhancement" value="on">
+                                    <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>Try This Example
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-success">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">Educational Research</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Investigate teaching methods, learning experiences, and educational outcomes for students in various learning environments.</p>
+                                <form action="{{ url_for('questionnaire.design') }}" method="post">
+                                    <input type="hidden" name="research_topic" value="Online Learning Experience">
+                                    <input type="hidden" name="research_description" value="This research aims to evaluate student experiences with online learning platforms. We want to understand the effectiveness of different teaching methods, student engagement levels, challenges faced during remote learning, and preferences for various educational tools and formats. We'll use this data to improve course design and delivery.">
+                                    <input type="hidden" name="target_audience" value="students">
+                                    <input type="hidden" name="questionnaire_purpose" value="academic research">
+                                    <input type="hidden" name="ai_enhancement" value="on">
+                                    <button type="submit" class="btn btn-outline-success btn-sm w-100">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>Try This Example
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-warning">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0">Health & Wellness</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Assess health behaviors, wellness practices, and factors affecting physical and mental wellbeing among participants.</p>
+                                <form action="{{ url_for('questionnaire.design') }}" method="post">
+                                    <input type="hidden" name="research_topic" value="Workplace Wellness Program">
+                                    <input type="hidden" name="research_description" value="We are conducting a study on workplace wellness programs and their impact on employee health behaviors. We want to understand current exercise habits, stress management techniques, nutritional practices, and barriers to adopting healthier lifestyles. This research will help design more effective wellness initiatives that meet employee needs.">
+                                    <input type="hidden" name="target_audience" value="employees">
+                                    <input type="hidden" name="questionnaire_purpose" value="program development">
+                                    <input type="hidden" name="ai_enhancement" value="on">
+                                    <button type="submit" class="btn btn-outline-warning btn-sm w-100">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>Try This Example
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="mb-0">Market Research</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Explore consumer preferences, purchasing behaviors, and market trends for product development or marketing strategies.</p>
+                                <form action="{{ url_for('questionnaire.design') }}" method="post">
+                                    <input type="hidden" name="research_topic" value="Smart Home Device Preferences">
+                                    <input type="hidden" name="research_description" value="This market research study aims to understand consumer preferences and behaviors regarding smart home devices. We want to identify key purchasing factors, usage patterns, feature priorities, and barriers to adoption. The findings will inform our product development roadmap and marketing strategy for new smart home products.">
+                                    <input type="hidden" name="target_audience" value="consumers">
+                                    <input type="hidden" name="questionnaire_purpose" value="market analysis">
+                                    <input type="hidden" name="ai_enhancement" value="on">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>Try This Example
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-info">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">User Experience</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Evaluate the usability, accessibility, and overall experience of websites, applications, or digital products.</p>
+                                <form action="{{ url_for('questionnaire.design') }}" method="post">
+                                    <input type="hidden" name="research_topic" value="Website Usability Study">
+                                    <input type="hidden" name="research_description" value="We are conducting a usability study of our company website to evaluate the user experience. We want to identify navigation issues, assess content clarity, measure task completion success, and gather feedback on visual design and functionality. The goal is to improve website usability and increase conversion rates.">
+                                    <input type="hidden" name="target_audience" value="website visitors">
+                                    <input type="hidden" name="questionnaire_purpose" value="usability improvement">
+                                    <input type="hidden" name="ai_enhancement" value="on">
+                                    <button type="submit" class="btn btn-outline-info btn-sm w-100">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>Try This Example
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-secondary">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Employee Engagement</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Measure workplace satisfaction, organizational culture, and factors affecting employee engagement and retention.</p>
+                                <form action="{{ url_for('questionnaire.design') }}" method="post">
+                                    <input type="hidden" name="research_topic" value="Remote Work Satisfaction">
+                                    <input type="hidden" name="research_description" value="This survey aims to assess employee satisfaction and engagement in remote work environments. We want to understand work-life balance challenges, communication effectiveness, productivity factors, and preferences for hybrid work models. The results will help shape our company's future workplace policies and support programs.">
+                                    <input type="hidden" name="target_audience" value="remote employees">
+                                    <input type="hidden" name="questionnaire_purpose" value="policy development">
+                                    <input type="hidden" name="ai_enhancement" value="on">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>Try This Example
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="mb-5">
         <div class="row align-items-center">
             <div class="col-lg-6">
                 <h2 class="mb-4">Benefits of Professional Questionnaire Design</h2>

@@ -1,0 +1,4 @@
+{
+  "title": "Feature Sparsity",
+  "interpretation": "Shows the sparsity induced by Lasso regularization. Out of 10 features, Lasso has selected 9 features by setting their coefficients to non-zero values, while 1 features have been eliminated (coefficients = 0)."
+}

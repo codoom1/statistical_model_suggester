@@ -1,0 +1,4 @@
+{
+  "title": "Training History",
+  "interpretation": "Shows the cross-validation mean squared error as a function of the regularization parameter \u03b1. The optimal \u03b1 value of 0.0091 minimizes the cross-validation error. This helps balance between underfitting (high \u03b1) and overfitting (low \u03b1)."
+}

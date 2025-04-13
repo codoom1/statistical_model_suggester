@@ -1,0 +1,4 @@
+{
+  "title": "Residuals vs Fitted",
+  "interpretation": "Check for linearity. Residuals should be randomly scattered around the horizontal line at zero with no patterns. Curved patterns indicate non-linearity in the relationship."
+}

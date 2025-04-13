@@ -1,0 +1,4 @@
+{
+  "title": "OOB Error",
+  "interpretation": "Shows how error rate changes with the number of trees. The curve should plateau, indicating an optimal number of trees. If it continues to decrease, more trees might improve performance."
+}

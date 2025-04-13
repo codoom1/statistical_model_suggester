@@ -1,0 +1,4 @@
+{
+  "title": "Proportional Odds Assumption Check",
+  "interpretation": "Checks the proportional odds assumption. If coefficients for each predictor are similar across cutpoints, the assumption is valid. Large differences suggest a violation."
+}

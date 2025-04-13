@@ -1,0 +1,4 @@
+{
+  "title": "Partial Dependence Plots",
+  "interpretation": "Shows how the model's predictions change as a function of each feature, while holding all other features constant. This helps understand the relationship between each feature and the target variable, revealing whether it's linear, non-linear, or more complex."
+}

@@ -62,6 +62,53 @@
             </div>
         </div>
     </div>
+    
+    <!-- Admin Controls -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Admin Controls</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-3">
+                            <a href="{{ url_for('admin.users_list') }}" class="text-decoration-none">
+                                <div class="p-3 rounded bg-light">
+                                    <i class="bi bi-people-fill fs-1 text-primary"></i>
+                                    <h5 class="mt-2">Manage Users</h5>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <a href="{{ url_for('admin.expert_applications') }}" class="text-decoration-none">
+                                <div class="p-3 rounded bg-light">
+                                    <i class="bi bi-person-badge fs-1 text-success"></i>
+                                    <h5 class="mt-2">Expert Applications</h5>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <a href="{{ url_for('admin.manage_experts') }}" class="text-decoration-none">
+                                <div class="p-3 rounded bg-light">
+                                    <i class="bi bi-award fs-1 text-warning"></i>
+                                    <h5 class="mt-2">Manage Experts</h5>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <a href="{{ url_for('admin.ai_settings') }}" class="text-decoration-none">
+                                <div class="p-3 rounded bg-light">
+                                    <i class="bi bi-robot fs-1 text-purple"></i>
+                                    <h5 class="mt-2">AI Integration</h5>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Charts Row -->
     <div class="row mb-4">

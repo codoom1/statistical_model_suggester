@@ -1,0 +1,4 @@
+{
+  "title": "Scale-Location Plot",
+  "interpretation": "Check for homoscedasticity. Points should be randomly scattered with a constant spread. A funnel shape indicates heteroscedasticity (non-constant variance)."
+}

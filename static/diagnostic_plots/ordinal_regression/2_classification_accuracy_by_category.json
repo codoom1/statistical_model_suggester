@@ -1,0 +1,4 @@
+{
+  "title": "Classification Accuracy by Category",
+  "interpretation": "Shows how well the model predicts each category. Lower accuracy for specific categories suggests they are harder to predict."
+}

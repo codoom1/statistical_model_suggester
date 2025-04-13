@@ -1,0 +1,4 @@
+{
+  "title": "Residual Plot",
+  "interpretation": "Shows the difference between actual and predicted values. Ideally, residuals should be randomly distributed around zero. Patterns in residuals can indicate model deficiencies like non-linearity or heteroscedasticity."
+}

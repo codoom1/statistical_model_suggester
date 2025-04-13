@@ -1,6 +1,5 @@
 import json
 import os
-from flask import current_app
 import logging
 
 logger = logging.getLogger(__name__)
@@ -11,6 +10,9 @@ def get_statistics():
     Returns a dictionary containing various statistics
     """
     try:
+        # Import Flask inside the function to avoid circular imports
+        from flask import current_app
+        
         # Get the path to model_database.json
         model_db_path = os.path.join(current_app.root_path, 'model_database.json')
         

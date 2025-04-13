@@ -1,0 +1,4 @@
+{
+  "title": "Residual Distribution",
+  "interpretation": "Shows the distribution of prediction errors (residuals). Ideally, residuals should follow a normal distribution centered at zero, which would indicate that the model's errors are random and not systematic."
+}

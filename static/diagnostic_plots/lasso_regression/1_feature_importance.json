@@ -1,0 +1,4 @@
+{
+  "title": "Feature Importance",
+  "interpretation": "Shows the coefficients (weights) assigned to each feature by the Lasso regression model. Lasso performs feature selection by shrinking some coefficients exactly to zero. Non-zero coefficients represent selected features, with larger magnitudes indicating more important features."
+}

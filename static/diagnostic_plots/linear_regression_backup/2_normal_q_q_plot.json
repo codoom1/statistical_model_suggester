@@ -1,0 +1,4 @@
+{
+    "title": "Normal Q-Q Plot",
+    "interpretation": "This plot checks if residuals follow a normal distribution. Points should fall along the diagonal line. Deviations suggest non-normality."
+}

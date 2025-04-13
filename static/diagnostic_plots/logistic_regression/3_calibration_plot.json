@@ -1,0 +1,4 @@
+{
+  "title": "Calibration Plot",
+  "interpretation": "Assesses how well predicted probabilities match observed frequencies. A well-calibrated model follows the diagonal line. Curves above the line indicate underestimation, while curves below indicate overestimation of probabilities."
+}

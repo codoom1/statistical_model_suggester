@@ -1,0 +1,4 @@
+{
+  "title": "Error Distribution",
+  "interpretation": "Shows the distribution of prediction errors (residuals). Ideally, errors should be normally distributed around zero. Skewness or multiple peaks may indicate systematic bias or separate regimes in the data."
+}

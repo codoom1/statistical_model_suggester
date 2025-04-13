@@ -1,0 +1,4 @@
+{
+  "title": "Residual Plot",
+  "interpretation": "Shows the difference between actual and predicted values plotted against predicted values. Ideally, residuals should be randomly distributed around zero with no pattern. Systematic patterns may indicate model inadequacy or violation of regression assumptions."
+}

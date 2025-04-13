@@ -7,6 +7,107 @@ questionnaire sections and questions based on the content.
 
 import re
 from collections import defaultdict
+import os
+import logging
+import requests
+import json
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Set up Hugging Face client
+def get_huggingface_client():
+    """Get the Hugging Face client with proper API key configuration"""
+    api_key = os.environ.get('HUGGINGFACE_API_KEY')
+    logger.info(f"HUGGINGFACE_API_KEY found: {'Yes' if api_key else 'No'}")
+    if not api_key:
+        logger.warning("No HUGGINGFACE_API_KEY environment variable set. Will use public model access.")
+        api_key = ""  # Empty string for anonymous access
+    
+    # We're using a function to return a callable with API key in closure
+    # This makes it easier to use throughout the code
+    def hf_client(prompt, model="mistralai/Mistral-7B-Instruct-v0.2"):
+        """
+        Call Hugging Face Inference API
+        
+        Args:
+            prompt (str): The prompt to send to the model
+            model (str): The model to use from Hugging Face
+            
+        Returns:
+            str: The generated text response
+        """
+        headers = {
+            "Authorization": f"Bearer {api_key}" if api_key else None,
+            "Content-Type": "application/json"
+        }
+        
+        # Remove None values from headers
+        headers = {k: v for k, v in headers.items() if v is not None}
+        
+        api_url = f"https://api-inference.huggingface.co/models/{model}"
+        
+        logger.info(f"Making request to Hugging Face API: {api_url}")
+        logger.info(f"Using model: {model}")
+        logger.info(f"Headers set: {list(headers.keys())}")
+        
+        payload = {
+            "inputs": prompt,
+            "parameters": {
+                "max_new_tokens": 250,  # Increased for more comprehensive responses
+                "temperature": 0.7,
+                "top_p": 0.95,
+                "return_full_text": False
+            }
+        }
+        
+        try:
+            response = requests.post(api_url, headers=headers, json=payload, timeout=30)  # Added timeout
+            
+            if response.status_code != 200:
+                logger.error(f"Hugging Face API error: {response.status_code} - {response.text}")
+                
+                # Special handling for credit limit errors
+                if response.status_code == 402:
+                    logger.critical("URGENT: Hugging Face API credits exceeded - Administrator action required")
+                    return "Error: API credit limit exceeded. Please contact the administrator to upgrade the subscription or wait until the next billing cycle."
+                
+                return f"Error: Received status code {response.status_code} from API."
+                
+            # Try to parse JSON response
+            try:
+                result = response.json()
+                logger.info(f"Got response from Hugging Face API: {type(result)}")
+                
+                # Extract the generated text
+                if isinstance(result, list) and len(result) > 0:
+                    if isinstance(result[0], dict) and "generated_text" in result[0]:
+                        return result[0]["generated_text"].strip()
+                    elif isinstance(result[0], str):
+                        return result[0].strip()
+                
+                # If we get here, we have an unexpected format
+                logger.warning(f"Unexpected response format from Hugging Face API: {result}")
+                return "I'm sorry, I received an unexpected response format from the AI service."
+                
+            except ValueError as e:
+                logger.error(f"JSON parsing error: {e}")
+                logger.error(f"Response content: {response.text}")
+                return "I'm sorry, I received an invalid response from the AI service."
+            
+        except requests.exceptions.Timeout:
+            logger.error("Hugging Face API request timed out")
+            return "I'm sorry, the request to the AI service timed out. Please try again later."
+            
+        except requests.exceptions.ConnectionError:
+            logger.error("Connection error when calling Hugging Face API")
+            return "I'm sorry, there was a connection error when calling the AI service."
+            
+        except Exception as e:
+            logger.error(f"Error calling Hugging Face API: {e}")
+            return f"I'm sorry, an error occurred: {str(e)}"
+    
+    return hf_client
 
 # Research domains and their associated intent keywords
 RESEARCH_DOMAINS = {
@@ -129,6 +230,21 @@ DEMOGRAPHICS_QUESTIONS = [
         'text': 'What is your current employment status?',
         **MULTIPLE_CHOICE_TEMPLATE,
         'options': ['Employed full-time', 'Employed part-time', 'Self-employed', 'Student', 'Retired', 'Unemployed']
+    },
+    {
+        'text': 'What is your household income range?',
+        **MULTIPLE_CHOICE_TEMPLATE,
+        'options': ['Less than $25,000', '$25,000-$49,999', '$50,000-$74,999', '$75,000-$99,999', '$100,000-$149,999', '$150,000 or more', 'Prefer not to say']
+    },
+    {
+        'text': 'What is your marital status?',
+        **MULTIPLE_CHOICE_TEMPLATE,
+        'options': ['Single', 'Married', 'Domestic partnership', 'Divorced', 'Widowed', 'Separated', 'Prefer not to say']
+    },
+    {
+        'text': 'In what type of area do you live?',
+        **MULTIPLE_CHOICE_TEMPLATE,
+        'options': ['Urban', 'Suburban', 'Rural', 'Small town']
     }
 ]
 
@@ -149,6 +265,24 @@ EXPERIENCE_QUESTIONS = [
     },
     {
         'text': 'What specific aspects of [TOPIC] are you most familiar with?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'How did you initially learn about [TOPIC]?',
+        **MULTIPLE_CHOICE_TEMPLATE,
+        'options': ['Formal education', 'Self-taught', 'Professional training', 'From colleagues', 'Online resources', 'Other']
+    },
+    {
+        'text': 'In what contexts do you typically use or encounter [TOPIC]?',
+        **CHECKBOX_TEMPLATE,
+        'options': ['Work', 'School', 'Personal projects', 'Hobbies', 'Daily life', 'Other']
+    },
+    {
+        'text': 'What resources have been most helpful in developing your knowledge of [TOPIC]?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'How has your approach to [TOPIC] evolved over time?',
         **OPEN_ENDED_TEMPLATE
     }
 ]
@@ -171,6 +305,27 @@ PREFERENCE_QUESTIONS = [
     {
         'text': 'How important is [TOPIC] to you?',
         **LIKERT_TEMPLATE
+    },
+    {
+        'text': 'What alternatives to [TOPIC] have you tried, and how do they compare?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'Which specific features of [TOPIC] do you find most useful?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'If you could change one thing about [TOPIC], what would it be?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'How likely are you to recommend [TOPIC] to others?',
+        **RATING_TEMPLATE
+    },
+    {
+        'text': 'What factors influence your preference for [TOPIC]?',
+        **CHECKBOX_TEMPLATE,
+        'options': ['Price', 'Quality', 'Convenience', 'Reliability', 'Brand reputation', 'Recommendations', 'Other']
     }
 ]
 
@@ -193,6 +348,27 @@ BEHAVIOR_QUESTIONS = [
         'text': 'In what context do you typically engage with [TOPIC]?',
         **MULTIPLE_CHOICE_TEMPLATE,
         'options': ['Home', 'Work', 'School', 'Social settings', 'Other']
+    },
+    {
+        'text': 'What time of day do you most frequently use [TOPIC]?',
+        **MULTIPLE_CHOICE_TEMPLATE,
+        'options': ['Morning', 'Afternoon', 'Evening', 'Late night', 'Throughout the day']
+    },
+    {
+        'text': 'What other activities do you typically combine with [TOPIC]?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'How do you prepare before engaging with [TOPIC]?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'What triggers your decision to use [TOPIC]?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'How do you adjust your use of [TOPIC] based on different situations?',
+        **OPEN_ENDED_TEMPLATE
     }
 ]
 
@@ -212,6 +388,31 @@ FEEDBACK_QUESTIONS = [
     {
         'text': 'What additional features or aspects would you like to see in [TOPIC]?',
         **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'What specific aspects of [TOPIC] need the most improvement?',
+        **CHECKBOX_TEMPLATE,
+        'options': ['Usability', 'Performance', 'Features', 'Cost', 'Support', 'Documentation', 'Other']
+    },
+    {
+        'text': 'How well does [TOPIC] meet your expectations?',
+        **LIKERT_TEMPLATE
+    },
+    {
+        'text': 'What is your most significant frustration with [TOPIC]?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'What do you appreciate most about [TOPIC]?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'How responsive has the team been to your previous feedback about [TOPIC]?',
+        **LIKERT_TEMPLATE
+    },
+    {
+        'text': 'If you were in charge of [TOPIC], what would be your top three priorities for improvement?',
+        **OPEN_ENDED_TEMPLATE
     }
 ]
 
@@ -228,6 +429,27 @@ MOTIVATION_QUESTIONS = [
     {
         'text': 'What would encourage you to engage more with [TOPIC]?',
         **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'What initially sparked your interest in [TOPIC]?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'What keeps you coming back to [TOPIC]?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'What benefits do you hope to gain from using [TOPIC]?',
+        **CHECKBOX_TEMPLATE,
+        'options': ['Increased knowledge', 'Improved skills', 'Better outcomes', 'Time savings', 'Cost savings', 'Enjoyment', 'Other']
+    },
+    {
+        'text': 'How does [TOPIC] align with your personal or professional values?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'What specific outcome are you hoping to achieve through [TOPIC]?',
+        **OPEN_ENDED_TEMPLATE
     }
 ]
 
@@ -243,6 +465,27 @@ SATISFACTION_QUESTIONS = [
     {
         'text': 'What would make your experience with [TOPIC] more satisfying?',
         **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'How has [TOPIC] met or exceeded your expectations?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'Which aspects of [TOPIC] do you find most disappointing?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'How does your satisfaction with [TOPIC] compare to similar alternatives?',
+        **LIKERT_TEMPLATE
+    },
+    {
+        'text': 'What specific experiences with [TOPIC] have influenced your overall satisfaction?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'How has your satisfaction with [TOPIC] changed over time?',
+        **MULTIPLE_CHOICE_TEMPLATE,
+        'options': ['Significantly improved', 'Somewhat improved', 'Stayed the same', 'Somewhat decreased', 'Significantly decreased']
     }
 ]
 
@@ -258,6 +501,28 @@ PAIN_POINT_QUESTIONS = [
     },
     {
         'text': 'How do you currently overcome challenges related to [TOPIC]?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'What specific tasks related to [TOPIC] cause you the most frustration?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'What barriers prevent you from getting the most out of [TOPIC]?',
+        **CHECKBOX_TEMPLATE,
+        'options': ['Knowledge gaps', 'Time constraints', 'Resource limitations', 'Technical limitations', 'Organizational policies', 'Other']
+    },
+    {
+        'text': 'What problems does [TOPIC] solve for you, and what new problems does it create?',
+        **OPEN_ENDED_TEMPLATE
+    },
+    {
+        'text': 'How much time do you spend troubleshooting issues with [TOPIC]?',
+        **MULTIPLE_CHOICE_TEMPLATE,
+        'options': ['None', 'A few minutes occasionally', 'Several hours monthly', 'Several hours weekly', 'Daily']
+    },
+    {
+        'text': 'What would eliminate your biggest pain point with [TOPIC]?',
         **OPEN_ENDED_TEMPLATE
     }
 ]
@@ -374,7 +639,7 @@ INTENT_QUESTIONS = {
     'prescriptive': PRESCRIPTIVE_QUESTIONS
 }
 
-def analyze_research_description(description, topic):
+def analyze_research_description(description, topic, use_ai=False):
     """
     Analyze the research description to identify relevant categories
     and generate appropriate questions.
@@ -382,6 +647,7 @@ def analyze_research_description(description, topic):
     Args:
         description (str): The research description provided by the user
         topic (str): The main research topic
+        use_ai (bool): Whether to use AI enhancement for questions
         
     Returns:
         list: Structured sections and questions for the questionnaire
@@ -433,68 +699,109 @@ def analyze_research_description(description, topic):
         if keyword in description_lower:
             category_scores['pain_points'] += 1
     
-    # Always include demographics unless explicitly not needed
-    if 'demographics' not in category_scores and not any(word in description_lower for word in ['no demographics', 'without demographics', 'skip demographics']):
-        category_scores['demographics'] = 1
-    
-    # Detect research domain
-    domain_scores = {}
-    for domain, keywords in RESEARCH_DOMAINS.items():
-        score = sum(1 for keyword in keywords if keyword in description_lower)
-        if score > 0:
-            domain_scores[domain] = score
-    
-    # Detect research intent
-    intent_scores = {}
-    for intent, keywords in RESEARCH_INTENTS.items():
-        score = sum(1 for keyword in keywords if keyword in description_lower)
-        if score > 0:
-            intent_scores[intent] = score
-    
-    # Get primary domain and intent (if any)
-    primary_domain = max(domain_scores.items(), key=lambda x: x[1])[0] if domain_scores else None
-    primary_intent = max(intent_scores.items(), key=lambda x: x[1])[0] if intent_scores else None
-    
-    # Generate questionnaire sections based on the analysis
-    sections = []
+    # Get intent analysis
+    intent_analysis = analyze_intent(description)
+    primary_domain = intent_analysis.get('domain')
+    primary_intent = intent_analysis.get('intent')
     
     # Sort categories by their score (highest first)
     sorted_categories = sorted(category_scores.items(), key=lambda x: x[1], reverse=True)
     
     # Generate sections for each category with at least one keyword match
+    sections = []
     for category, score in sorted_categories:
         if score > 0:
-            section = generate_section_for_category(category, topic, description, primary_domain, primary_intent)
+            section = generate_section_for_category(
+                category, 
+                topic, 
+                description, 
+                primary_domain, 
+                primary_intent,
+                use_ai=use_ai
+            )
             sections.append(section)
     
     # If no categories matched, create a general section
     if not sections:
-        sections.append({
-            'title': 'General Questions',
-            'description': f'Questions about {topic}',
-            'questions': [
-                {
-                    'text': f'What is your overall experience with {topic}?',
-                    **OPEN_ENDED_TEMPLATE
-                },
-                {
-                    'text': f'How satisfied are you with {topic}?',
-                    **LIKERT_TEMPLATE
-                },
-                {
-                    'text': f'What aspects of {topic} are most important to you?',
-                    **OPEN_ENDED_TEMPLATE
-                },
-                {
-                    'text': f'How would you improve {topic}?',
-                    **OPEN_ENDED_TEMPLATE
-                }
-            ]
-        })
+        general_questions = [
+            {
+                'text': f'What is your overall experience with {topic}?',
+                **OPEN_ENDED_TEMPLATE
+            },
+            {
+                'text': f'How satisfied are you with {topic}?',
+                **LIKERT_TEMPLATE
+            },
+            {
+                'text': f'What aspects of {topic} are most important to you?',
+                **OPEN_ENDED_TEMPLATE
+            },
+            {
+                'text': f'How would you improve {topic}?',
+                **OPEN_ENDED_TEMPLATE
+            }
+        ]
+        
+        # If AI is enabled, generate an entirely new section
+        if use_ai:
+            # First enhance existing template questions
+            enhanced_questions = enhance_questions_with_ai(
+                general_questions,
+                topic,
+                description,
+                primary_domain,
+                primary_intent,
+                use_ai=True
+            )
+            
+            # Then add AI-generated questions for the general section
+            ai_questions = generate_ai_questions(
+                topic,
+                description,
+                primary_domain,
+                primary_intent,
+                category=None,  # General category
+                num_questions=3  # More questions for general section
+            )
+            
+            # Combine enhanced template questions with AI-generated ones
+            all_questions = enhanced_questions + ai_questions
+            
+            sections.append({
+                'title': 'General Questions',
+                'description': f'Questions about {topic}',
+                'questions': all_questions
+            })
+        else:
+            sections.append({
+                'title': 'General Questions',
+                'description': f'Questions about {topic}',
+                'questions': general_questions
+            })
+    
+    # Add a special AI-only section with completely fresh questions if AI is enabled
+    if use_ai:
+        # Create a comprehensive set of AI-generated questions
+        comprehensive_ai_questions = generate_ai_questions(
+            topic,
+            description,
+            primary_domain,
+            primary_intent,
+            category=None,
+            num_questions=4  # Generate several questions of each type
+        )
+        
+        if comprehensive_ai_questions:
+            # Only add the AI section if we successfully generated questions
+            sections.append({
+                'title': 'Additional Insights',
+                'description': f'Additional questions to gain deeper insights about {topic}',
+                'questions': comprehensive_ai_questions
+            })
     
     return sections
 
-def generate_section_for_category(category, topic, description, domain=None, intent=None):
+def generate_section_for_category(category, topic, description, domain=None, intent=None, use_ai=False):
     """
     Generate a questionnaire section for a specific category.
     
@@ -504,6 +811,7 @@ def generate_section_for_category(category, topic, description, domain=None, int
         description (str): The research description
         domain (str, optional): The primary research domain
         intent (str, optional): The primary research intent
+        use_ai (bool): Whether to use AI enhancement
         
     Returns:
         dict: Section with title, description and questions
@@ -563,6 +871,33 @@ def generate_section_for_category(category, topic, description, domain=None, int
     if intent and intent in INTENT_QUESTIONS:
         intent_specific = customize_questions(INTENT_QUESTIONS[intent].copy(), topic)
         section['questions'].extend(intent_specific)
+    
+    # Generate entirely new AI questions if enabled
+    if use_ai:
+        # First enhance existing template questions
+        section['questions'] = enhance_questions_with_ai(
+            section['questions'], 
+            topic, 
+            description, 
+            domain, 
+            intent, 
+            use_ai=True
+        )
+        
+        # Then add completely AI-generated questions (2 per category)
+        ai_questions = generate_ai_questions(
+            topic,
+            description,
+            domain,
+            intent,
+            category,
+            num_questions=2
+        )
+        
+        if ai_questions:
+            # Add the AI-created questions to the section
+            section['questions'].extend(ai_questions)
+            logger.info(f"Added {len(ai_questions)} AI-created questions to {category} section")
     
     return section
 
@@ -639,7 +974,281 @@ def analyze_intent(description):
         'audience_score': audience_scores.get(primary_audience, 0) if primary_audience else 0
     }
 
-def generate_questionnaire(research_description, research_topic=None, target_audience=None, questionnaire_purpose=None):
+def enhance_questions_with_ai(questions, research_topic, research_description, domain=None, intent=None, use_ai=False):
+    """
+    Enhance questions using AI to make them more relevant to the specific research context.
+    
+    Args:
+        questions (list): List of question dictionaries to enhance
+        research_topic (str): The main research topic
+        research_description (str): Detailed description of the research
+        domain (str, optional): The identified research domain
+        intent (str, optional): The identified research intent
+        use_ai (bool): Whether to use AI enhancement (can be toggled off for testing/fallback)
+        
+    Returns:
+        list: Enhanced questions with more relevant content
+    """
+    # If AI is disabled or not available, return original questions
+    if not use_ai:
+        return questions
+    
+    # Get Hugging Face client
+    client = get_huggingface_client()
+    if client is None:
+        # Fallback to simple rule-based enhancement
+        return fallback_question_enhancement(questions, research_topic, research_description, domain, intent)
+    
+    try:
+        enhanced_questions = []
+        
+        # Loop through each question
+        for question in questions:
+            enhanced_question = question.copy()
+            
+            # Only enhance open-ended questions, which benefit most from AI processing
+            if question.get('type') == 'Open-Ended':
+                # Prepare AI prompt
+                prompt = f"""<s>[INST] You are an expert questionnaire designer. Improve the following open-ended question to make it more specific, relevant, and insightful for the research context described below. Keep the question concise and clear.
+                
+                Research Topic: {research_topic}
+                Research Description: {research_description}
+                Domain: {domain or 'Not specified'}
+                Intent: {intent or 'Not specified'}
+                
+                Original Question: {question.get('text', '')}
+                
+                Provide only the text of the enhanced question with no explanations or additional comments. [/INST]"""
+                
+                try:
+                    # Call Hugging Face API
+                    enhanced_text = client(prompt)
+                    
+                    # Use AI-enhanced text if it's valid, otherwise keep original
+                    if enhanced_text and len(enhanced_text) > 10:  # Basic validation
+                        enhanced_question['text'] = enhanced_text
+                        enhanced_question['ai_enhanced'] = True
+                        logger.info(f"AI enhanced question: Original: '{question.get('text')}' -> Enhanced: '{enhanced_text}'")
+                    else:
+                        logger.warning(f"AI returned invalid response for question: '{question.get('text')}'")
+                
+                except Exception as e:
+                    logger.error(f"Error calling Hugging Face API: {e}")
+                    # Keep original question on API error
+            
+            enhanced_questions.append(enhanced_question)
+        
+        return enhanced_questions
+        
+    except Exception as e:
+        logger.error(f"Error in AI question enhancement: {e}")
+        return fallback_question_enhancement(questions, research_topic, research_description, domain, intent)
+
+def fallback_question_enhancement(questions, research_topic, research_description, domain=None, intent=None):
+    """
+    Fallback method for enhancing questions when AI API is not available.
+    Uses simple rule-based enhancements instead.
+    """
+    enhanced_questions = []
+    
+    for question in questions:
+        enhanced_question = question.copy()
+        
+        if question.get('type') == 'Open-Ended':
+            current_text = question.get('text', '')
+            if '[TOPIC]' in current_text:
+                # Already using the standard template with [TOPIC] placeholder
+                enhanced_text = current_text
+            else:
+                # Add more specificity based on domain and intent
+                domain_context = f" in the context of {domain}" if domain else ""
+                intent_qualifier = ""
+                if intent == "exploratory":
+                    intent_qualifier = " from your perspective"
+                elif intent == "evaluative":
+                    intent_qualifier = " based on your experience"
+                elif intent == "prescriptive":
+                    intent_qualifier = " that could lead to improvements"
+                
+                enhanced_text = f"{current_text}{domain_context}{intent_qualifier}"
+            
+            enhanced_question['text'] = enhanced_text
+            enhanced_question['ai_enhanced'] = True
+        
+        enhanced_questions.append(enhanced_question)
+    
+    return enhanced_questions
+
+def get_dummy_enhanced_questions(questions, research_topic, research_description):
+    """
+    Demonstrates how AI-enhanced questions would look without actually calling an API.
+    This is for demonstration purposes only.
+    
+    Args:
+        questions (list): List of question dictionaries to enhance
+        research_topic (str): The main research topic
+        research_description (str): The research description
+        
+    Returns:
+        list: Questions with simulated AI enhancements
+    """
+    enhanced_questions = []
+    
+    # Example mappings for common question patterns
+    enhancement_map = {
+        "How satisfied are you with": f"On a scale from 1-10, how would you rate your overall satisfaction with the features and functionality of the {research_topic}?",
+        "What aspects of": f"Which specific features or components of the {research_topic} do you find most useful for your daily needs?",
+        "What improvements would you suggest": f"If you could change three things about the {research_topic} to improve your experience, what would they be and why?",
+        "What challenges or difficulties": f"What are the most frustrating obstacles or limitations you've encountered while using the {research_topic}?",
+        "How has your usage": f"How has your pattern of engagement with the {research_topic} evolved since you first started using it?",
+        "What would make your experience": f"What missing features or improvements would significantly enhance your satisfaction with the {research_topic}?",
+        "What frustrations": f"When using the {research_topic}, what specific aspects cause you the most frustration or decrease your productivity?",
+        "How do you currently overcome challenges": f"What workarounds or alternative methods have you developed to address limitations in the {research_topic}?"
+    }
+    
+    for question in questions:
+        enhanced_question = question.copy()
+        
+        if question.get('type') == 'Open-Ended':
+            current_text = question.get('text', '')
+            
+            # Check if the current text matches any of our enhancement patterns
+            enhanced_text = None
+            for pattern, enhanced_version in enhancement_map.items():
+                if pattern in current_text:
+                    enhanced_text = enhanced_version
+                    break
+            
+            # If no specific enhancement found, make a generic improvement
+            if not enhanced_text:
+                # Replace generic topic references with the specific topic
+                if research_topic in current_text:
+                    enhanced_text = current_text
+                else:
+                    enhanced_text = f"{current_text} specifically regarding {research_topic}"
+            
+            enhanced_question['text'] = enhanced_text
+            enhanced_question['ai_enhanced'] = True
+        
+        enhanced_questions.append(enhanced_question)
+    
+    return enhanced_questions
+
+def generate_ai_questions(research_topic, research_description, domain=None, intent=None, category=None, num_questions=3):
+    """
+    Generate entirely new questions using AI based on research context.
+    
+    Args:
+        research_topic (str): The main research topic
+        research_description (str): The research description
+        domain (str, optional): The identified research domain
+        intent (str, optional): The identified research intent
+        category (str, optional): The question category (e.g., 'experience', 'feedback')
+        num_questions (int): Number of questions to generate
+        
+    Returns:
+        list: AI-generated questions
+    """
+    # Get Hugging Face client
+    client = get_huggingface_client()
+    if client is None:
+        logger.warning("No Hugging Face client available for AI question generation")
+        return []
+    
+    ai_questions = []
+    
+    # Define question types to generate
+    question_types = [
+        {"type": "Open-Ended", "name": "open-ended"},
+        {"type": "Multiple Choice", "name": "multiple choice", "options_count": 4},
+        {"type": "Likert Scale", "name": "rating scale"}
+    ]
+    
+    # Create a descriptive category name if provided
+    category_desc = ""
+    if category:
+        if category == 'demographics':
+            category_desc = "demographic information about respondents"
+        elif category == 'experience':
+            category_desc = "experience with and exposure to the topic"
+        elif category == 'preferences':
+            category_desc = "preferences and opinions"
+        elif category == 'behaviors':
+            category_desc = "behaviors and usage patterns"
+        elif category == 'feedback':
+            category_desc = "feedback and suggestions for improvement"
+        elif category == 'motivation':
+            category_desc = "motivation and reasons for usage"
+        elif category == 'satisfaction':
+            category_desc = "satisfaction levels and expectations"
+        elif category == 'pain_points':
+            category_desc = "challenges, pain points, and difficulties"
+    
+    try:
+        # Generate different question types
+        for q_type in question_types:
+            # Prepare AI prompt for generating a question
+            prompt = f"""<s>[INST] You are an expert questionnaire designer. Create {num_questions} high-quality {q_type['name']} questions for a research questionnaire based on the following context.
+
+Research Topic: {research_topic}
+Research Description: {research_description}
+Domain: {domain or 'Not specified'}
+Intent: {intent or 'Not specified'}
+Question Category: {category_desc if category_desc else 'General questions about the topic'}
+
+For each question:
+1. The question should be specific, clear, and directly relevant to the research topic
+2. Avoid leading or biased questions
+3. Make sure questions will generate meaningful data for the research purpose
+4. Focus on aspects that would be most insightful for this kind of research
+
+{f"For multiple choice questions, suggest 4-6 answer options separated by | symbols" if q_type['name'] == 'multiple choice' else ""}
+
+Return ONLY the questions with no explanations or additional text, one question per line.
+{f"For multiple choice questions, include the options on the next line after each question, separated by | symbols" if q_type['name'] == 'multiple choice' else ""}
+[/INST]"""
+            
+            try:
+                # Call Hugging Face API
+                generated_text = client(prompt)
+                
+                if generated_text and len(generated_text) > 10:
+                    # Process the generated questions
+                    lines = [line.strip() for line in generated_text.strip().split('\n') if line.strip()]
+                    
+                    # Handle different question types
+                    if q_type['name'] == 'multiple choice':
+                        for i in range(0, len(lines), 2):
+                            if i+1 < len(lines):  # Make sure we have options line
+                                question_text = lines[i]
+                                options = [opt.strip() for opt in lines[i+1].split('|')]
+                                
+                                ai_questions.append({
+                                    'text': question_text,
+                                    'type': q_type['type'],
+                                    'options': options,
+                                    'ai_created': True
+                                })
+                    else:
+                        for line in lines:
+                            if '?' in line or line.strip().endswith('.'):  # Basic check that it's a question
+                                ai_questions.append({
+                                    'text': line,
+                                    'type': q_type['type'],
+                                    'ai_created': True
+                                })
+                
+                logger.info(f"Generated {len(ai_questions)} AI questions of type: {q_type['name']}")
+                
+            except Exception as e:
+                logger.error(f"Error generating {q_type['name']} questions: {e}")
+    
+    except Exception as e:
+        logger.error(f"Error in AI question generation: {e}")
+    
+    return ai_questions
+
+def generate_questionnaire(research_description, research_topic=None, target_audience=None, questionnaire_purpose=None, use_ai_enhancement=False):
     """
     Generate a questionnaire structure based on a research description.
     
@@ -648,6 +1257,7 @@ def generate_questionnaire(research_description, research_topic=None, target_aud
         research_topic (str, optional): Title of the research
         target_audience (str, optional): Target audience for the questionnaire
         questionnaire_purpose (str, optional): Purpose of the questionnaire
+        use_ai_enhancement (bool, optional): Whether to use AI to enhance question relevance
         
     Returns:
         list: A list of questionnaire sections with questions
@@ -658,213 +1268,36 @@ def generate_questionnaire(research_description, research_topic=None, target_aud
     # Analyze the intent, domain, and target audience
     intent_analysis = analyze_intent(research_description)
     
-    # Default questionnaire structure with common sections
-    questionnaire = []
+    # Generate sections and questions based on the research description
+    sections = analyze_research_description(research_description, research_topic, use_ai=use_ai_enhancement)
     
-    # Add demographics section
-    demographics_section = {
-        'title': 'Demographics',
-        'description': 'Please provide the following demographic information.',
-        'questions': [
-            {
-                'text': 'What is your age range?',
-                'type': 'Multiple Choice',
-                'options': ['Under 18', '18-24', '25-34', '35-44', '45-54', '55-64', '65 or older']
-            },
-            {
-                'text': 'What is your gender?',
-                'type': 'Multiple Choice',
-                'options': ['Male', 'Female', 'Non-binary', 'Prefer not to say', 'Other']
-            },
-            {
-                'text': 'What is your highest level of education?',
-                'type': 'Multiple Choice',
-                'options': ['High School', 'Some College', 'Associate Degree', 'Bachelor\'s Degree', 'Master\'s Degree', 'Doctoral Degree', 'Professional Degree']
-            }
-        ]
-    }
+    # If AI enhancement is requested but API fails, use our dummy enhancement for demo purposes
+    if use_ai_enhancement:
+        for section in sections:
+            try:
+                # First try the actual AI enhancement
+                section['questions'] = enhance_questions_with_ai(
+                    section['questions'], 
+                    research_topic, 
+                    research_description, 
+                    intent_analysis.get('domain'), 
+                    intent_analysis.get('intent'), 
+                    use_ai=True
+                )
+                
+                # If no questions got AI-enhanced, fall back to dummy enhancement
+                if not any(q.get('ai_enhanced', False) for q in section['questions']):
+                    section['questions'] = get_dummy_enhanced_questions(
+                        section['questions'], 
+                        research_topic, 
+                        research_description
+                    )
+            except Exception as e:
+                logger.error(f"Error in AI enhancement, using dummy enhancement: {e}")
+                section['questions'] = get_dummy_enhanced_questions(
+                    section['questions'], 
+                    research_topic, 
+                    research_description
+                )
     
-    # Customize demographics questions based on domain and audience
-    if intent_analysis['domain'] == 'education':
-        demographics_section['questions'].append({
-            'text': 'What is your current role in education?',
-            'type': 'Multiple Choice',
-            'options': ['Student', 'Teacher/Professor', 'Administrator', 'Parent', 'Researcher', 'Other']
-        })
-    elif intent_analysis['domain'] == 'health':
-        demographics_section['questions'].append({
-            'text': 'How would you describe your overall health?',
-            'type': 'Multiple Choice',
-            'options': ['Excellent', 'Very good', 'Good', 'Fair', 'Poor']
-        })
-    elif intent_analysis['domain'] == 'business':
-        demographics_section['questions'].append({
-            'text': 'What is the size of your organization?',
-            'type': 'Multiple Choice',
-            'options': ['Self-employed', '1-10 employees', '11-50 employees', '51-200 employees', '201-1000 employees', 'More than 1000 employees']
-        })
-    
-    questionnaire.append(demographics_section)
-    
-    # Generate additional sections based on research description
-    # (This is a simple implementation - would be enhanced with NLP in a production system)
-    keywords = research_description.lower()
-    
-    # Experience section (if relevant)
-    if any(word in keywords for word in ['experience', 'background', 'history', 'skill', 'expertise', 'professional']):
-        experience_section = {
-            'title': 'Experience & Background',
-            'description': 'Please tell us about your experiences related to this topic.',
-            'questions': [
-                {
-                    'text': 'How many years of experience do you have in this field?',
-                    'type': 'Multiple Choice',
-                    'options': ['None', 'Less than 1 year', '1-3 years', '4-6 years', '7-10 years', 'More than 10 years']
-                },
-                {
-                    'text': 'How would you rate your expertise in this area?',
-                    'type': 'Rating',
-                    'options': []
-                },
-                {
-                    'text': 'Please describe your relevant experience in this field.',
-                    'type': 'Open-Ended',
-                    'options': []
-                }
-            ]
-        }
-        
-        # Add domain-specific experience questions
-        if intent_analysis['domain'] == 'technology':
-            experience_section['questions'].append({
-                'text': f'Which technologies related to {research_topic} have you used?',
-                'type': 'Checkbox',
-                'options': ['Software applications', 'Mobile apps', 'Web platforms', 'Hardware devices', 'APIs or integrations', 'Other']
-            })
-        elif intent_analysis['domain'] == 'education':
-            experience_section['questions'].append({
-                'text': f'In what educational contexts have you encountered {research_topic}?',
-                'type': 'Checkbox',
-                'options': ['K-12 education', 'Higher education', 'Professional training', 'Self-directed learning', 'Online courses', 'Other']
-            })
-        
-        questionnaire.append(experience_section)
-    
-    # Preferences section (if relevant)
-    if any(word in keywords for word in ['preference', 'like', 'dislike', 'favorite', 'opinion', 'interest']):
-        preferences_section = {
-            'title': 'Preferences & Opinions',
-            'description': 'Please share your preferences and opinions.',
-            'questions': [
-                {
-                    'text': 'What aspects of this topic interest you the most? (Select all that apply)',
-                    'type': 'Checkbox',
-                    'options': ['Learning new skills', 'Social connections', 'Career advancement', 'Personal fulfillment', 'Financial benefits', 'Other']
-                },
-                {
-                    'text': 'How strongly do you agree with the statement: "I am passionate about this topic"?',
-                    'type': 'Likert Scale',
-                    'options': []
-                },
-                {
-                    'text': 'Please describe what you like most about this topic or area.',
-                    'type': 'Open-Ended',
-                    'options': []
-                }
-            ]
-        }
-        
-        # Add intent-specific preference questions
-        if intent_analysis['intent'] == 'evaluative':
-            preferences_section['questions'].append({
-                'text': f'What criteria do you use to evaluate {research_topic}?',
-                'type': 'Open-Ended',
-                'options': []
-            })
-        elif intent_analysis['intent'] == 'prescriptive':
-            preferences_section['questions'].append({
-                'text': f'What improvements would make {research_topic} more aligned with your preferences?',
-                'type': 'Open-Ended',
-                'options': []
-            })
-        
-        questionnaire.append(preferences_section)
-    
-    # Usage/Behavior section (if relevant)
-    if any(word in keywords for word in ['use', 'utilize', 'behavior', 'habit', 'frequency', 'practice', 'consume']):
-        usage_section = {
-            'title': 'Usage & Behaviors',
-            'description': 'Please tell us about how you engage with this topic.',
-            'questions': [
-                {
-                    'text': 'How frequently do you engage with this topic?',
-                    'type': 'Multiple Choice',
-                    'options': ['Daily', 'Several times a week', 'Once a week', 'A few times a month', 'Once a month', 'Less than once a month', 'Never']
-                },
-                {
-                    'text': 'When do you typically engage with this topic? (Select all that apply)',
-                    'type': 'Checkbox',
-                    'options': ['Mornings', 'Afternoons', 'Evenings', 'Weekdays', 'Weekends', 'No specific time']
-                },
-                {
-                    'text': 'Describe your typical approach or process related to this topic.',
-                    'type': 'Open-Ended',
-                    'options': []
-                }
-            ]
-        }
-        questionnaire.append(usage_section)
-    
-    # Feedback section (always include)
-    feedback_section = {
-        'title': 'Feedback & Suggestions',
-        'description': 'Please provide your feedback and suggestions.',
-        'questions': [
-            {
-                'text': 'How satisfied are you with your current experience in this area?',
-                'type': 'Rating',
-                'options': []
-            },
-            {
-                'text': 'What challenges or difficulties have you encountered?',
-                'type': 'Open-Ended',
-                'options': []
-            },
-            {
-                'text': 'Do you have any suggestions for improvements?',
-                'type': 'Open-Ended',
-                'options': []
-            }
-        ]
-    }
-    
-    # Add domain-specific feedback questions
-    if intent_analysis['domain']:
-        if intent_analysis['domain'] == 'technology':
-            feedback_section['questions'].append({
-                'text': f'What technical improvements would make {research_topic} more effective?',
-                'type': 'Open-Ended',
-                'options': []
-            })
-        elif intent_analysis['domain'] == 'health':
-            feedback_section['questions'].append({
-                'text': f'How has {research_topic} impacted your health and wellbeing?',
-                'type': 'Open-Ended',
-                'options': []
-            })
-        elif intent_analysis['domain'] == 'education':
-            feedback_section['questions'].append({
-                'text': f'How could {research_topic} be better integrated into educational settings?',
-                'type': 'Open-Ended',
-                'options': []
-            })
-        elif intent_analysis['domain'] == 'business':
-            feedback_section['questions'].append({
-                'text': f'What business value do you get from {research_topic}?',
-                'type': 'Checkbox',
-                'options': ['Cost savings', 'Increased revenue', 'Improved efficiency', 'Better customer satisfaction', 'Competitive advantage', 'Other']
-            })
-    
-    questionnaire.append(feedback_section)
-    
-    return questionnaire 
+    return sections 

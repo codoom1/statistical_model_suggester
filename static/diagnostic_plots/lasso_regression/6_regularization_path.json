@@ -1,0 +1,4 @@
+{
+  "title": "Regularization Path",
+  "interpretation": "Shows how coefficient values change as the regularization parameter \u03b1 increases. Unlike Ridge regression, Lasso can shrink coefficients exactly to zero, performing feature selection. Coefficients that remain non-zero at higher \u03b1 values are more important features."
+}

@@ -1,0 +1,4 @@
+{
+  "title": "Observed vs Predicted Category Counts",
+  "interpretation": "Compares the distribution of observed vs predicted categories. Large differences suggest model bias toward certain categories."
+}

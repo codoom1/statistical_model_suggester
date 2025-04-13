@@ -1,0 +1,4 @@
+{
+  "title": "Feature Importance",
+  "interpretation": "Shows the coefficients (weights) assigned to each feature by the Ridge regression model. The magnitude of a coefficient indicates the importance of the feature. Ridge regression shrinks coefficients toward zero to reduce overfitting, with more regularization leading to smaller coefficients."
+}

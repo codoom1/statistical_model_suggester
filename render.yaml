@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: statistical-model-suggester
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: 0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: statistical-model-suggester-db
+          property: connectionString
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: MAIL_SERVER
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+      - key: HUGGINGFACE_MODEL
+        sync: false
+      - key: AI_ENHANCEMENT_ENABLED
+        value: "false"
+
+databases:
+  - name: statistical-model-suggester-db
+    databaseName: statistical_model_suggester
+    user: statistical_model_suggester 

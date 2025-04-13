@@ -1,0 +1,4 @@
+{
+  "title": "Actual vs Predicted Values",
+  "interpretation": "Compares actual values against model predictions. Points should ideally fall along the diagonal red line. The test R\u00b2 score of 0.900 indicates the proportion of variance in the dependent variable that is predictable from the independent variables."
+}

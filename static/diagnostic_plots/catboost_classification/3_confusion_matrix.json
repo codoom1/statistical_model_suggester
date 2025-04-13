@@ -1,0 +1,4 @@
+{
+  "title": "Confusion Matrix",
+  "interpretation": "Shows the count of true positive, false positive, true negative, and false negative predictions. The diagonal represents correct predictions, while off-diagonal elements are errors. This helps assess the types of misclassifications the model makes."
+}

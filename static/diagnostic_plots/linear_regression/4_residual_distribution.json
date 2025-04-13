@@ -1,0 +1,4 @@
+{
+  "title": "Residual Distribution",
+  "interpretation": "Shows the distribution of residuals. In a good model, residuals should be normally distributed around zero, indicating the errors are random and not systematic."
+}

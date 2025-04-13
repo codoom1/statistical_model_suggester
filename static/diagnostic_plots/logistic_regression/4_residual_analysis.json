@@ -1,0 +1,4 @@
+{
+  "title": "Residual Analysis",
+  "interpretation": "Helps identify poorly fit observations. Large residuals suggest observations that are not well explained by the model. Patterns may indicate missing predictors or non-linear relationships."
+}

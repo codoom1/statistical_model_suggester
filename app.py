@@ -3,16 +3,32 @@ import sys
 from flask import Flask, render_template, send_from_directory, request
 from flask_login import LoginManager
 from flask_mail import Mail
-from models import db, User, get_model_details
+from models import db, User, get_model_details, initialize_postgres_extensions
 import json
 import argparse
 import logging
-from utils.email import init_mail
+from utils.email_service import init_mail
+from dotenv import load_dotenv
+import datetime
+
+# Load environment variables from .env file
+load_dotenv()
+print("Environment variables loaded:")
+print(f"HUGGINGFACE_API_KEY: {'Set' if os.environ.get('HUGGINGFACE_API_KEY') else 'Not set'}")
+print(f"HUGGINGFACE_MODEL: {'Set' if os.environ.get('HUGGINGFACE_MODEL') else 'Not set'}")
+print(f"AI_ENHANCEMENT_ENABLED: {'Set' if os.environ.get('AI_ENHANCEMENT_ENABLED') else 'Not set'}")
 
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-dev-key-change-in-production')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+    
+    # Configure database - prefer PostgreSQL for production, fallback to SQLite for development
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url and database_url.startswith('postgres://'):
+        # Heroku-style PostgreSQL URL needs to be updated for SQLAlchemy 1.4+
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///users.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Configure Flask-Mail
@@ -29,6 +45,11 @@ def create_app():
     
     # Initialize database
     db.init_app(app)
+    
+    # Initialize PostgreSQL extensions if using PostgreSQL
+    if database_url and ('postgresql://' in database_url or 'postgres://' in database_url):
+        logger.info("PostgreSQL database detected, initializing extensions...")
+        initialize_postgres_extensions(app)
     
     # Initialize mail
     init_mail(app)
@@ -55,8 +76,36 @@ def create_app():
         try:
             db.create_all()
             logger.debug("Database tables created successfully")
+            
+            # Create admin user if it doesn't exist
+            admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
+            admin_email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
+            admin_password = os.environ.get('ADMIN_PASSWORD')
+            
+            # Check if admin credentials are properly configured
+            if not admin_password:
+                logger.warning("ADMIN_PASSWORD environment variable not set. Using default password for admin account.")
+                logger.warning("This is insecure. Please set ADMIN_PASSWORD in your environment variables.")
+                admin_password = 'admin123'  # Default password, should be changed
+            
+            # Check if admin user exists
+            admin_user = User.query.filter_by(username=admin_username).first()
+            if not admin_user:
+                logger.info(f"Creating admin user '{admin_username}'")
+                admin_user = User(
+                    username=admin_username,
+                    email=admin_email,
+                    _is_admin=True
+                )
+                admin_user.set_password(admin_password)
+                db.session.add(admin_user)
+                db.session.commit()
+                logger.info("Admin user created successfully")
+            else:
+                logger.info(f"Admin user '{admin_username}' already exists")
+                
         except Exception as e:
-            logger.error(f"Error creating database tables: {e}")
+            logger.error(f"Error creating database tables or admin user: {e}")
             raise
 
     # Register blueprints
@@ -66,6 +115,7 @@ def create_app():
     from routes.expert_routes import expert
     from routes.admin_routes import admin
     from routes.questionnaire_routes import questionnaire_bp
+    from routes.chatbot_routes import chatbot_bp
     
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(main, url_prefix='/')
@@ -73,6 +123,7 @@ def create_app():
     app.register_blueprint(expert, url_prefix='/expert')
     app.register_blueprint(admin, url_prefix='/admin')
     app.register_blueprint(questionnaire_bp, url_prefix='/questionnaire')
+    app.register_blueprint(chatbot_bp, url_prefix='/chatbot')
 
     # Define error handler
     @app.errorhandler(404)
@@ -84,6 +135,39 @@ def create_app():
     def internal_server_error(e):
         logger.error(f"500 error: {e}")
         return render_template('error.html', error=str(e)), 500
+        
+    # Diagnostic route to check database connection
+    @app.route('/system/check-db')
+    def check_db_connection():
+        try:
+            # Try to query the database
+            user_count = User.query.count()
+            db_uri = app.config['SQLALCHEMY_DATABASE_URI']
+            # Hide password in logs/output
+            if 'postgresql://' in db_uri:
+                # Mask the password in the connection string
+                masked_uri = db_uri.replace('://', '://').split('@')
+                credentials = masked_uri[0].split(':')
+                if len(credentials) > 2:
+                    masked_uri[0] = f"{credentials[0]}:{credentials[1]}:****"
+                db_uri = '@'.join(masked_uri)
+            else:
+                db_uri = 'sqlite:///users.db' if 'sqlite:///users.db' in db_uri else 'custom-sqlite-path'
+                
+            return {
+                'status': 'ok',
+                'database_type': 'PostgreSQL' if 'postgresql://' in app.config['SQLALCHEMY_DATABASE_URI'] else 'SQLite', 
+                'connection': db_uri,
+                'user_count': user_count,
+                'timestamp': datetime.datetime.now().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Database connection error: {e}")
+            return {
+                'status': 'error',
+                'error': str(e),
+                'database_url': app.config['SQLALCHEMY_DATABASE_URI'].split('@')[0].split(':')[0] + '://****' 
+            }, 500
 
     # Load model database
     try:
@@ -91,7 +175,10 @@ def create_app():
         logger.debug(f"Loading model database from {model_db_path}")
         
         if not os.path.exists(model_db_path):
-            logger.error(f"model_database.json file not found at {model_db_path}")
+            logger.warning(f"model_database.json file not found at {model_db_path}, creating a default empty database")
+            # Create a default empty database file
+            with open(model_db_path, 'w') as f:
+                json.dump({}, f)
             app.config['MODEL_DATABASE'] = {}
         else:
             with open(model_db_path, 'r') as f:
@@ -125,8 +212,8 @@ app = create_app()
 if __name__ == '__main__':
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Run the Statistical Model Suggester application')
-    parser.add_argument('--port', type=int, default=8084, help='Port to run the application on')
+    parser.add_argument('--port', type=int, default=int(os.environ.get('PORT', 8084)), help='Port to run the application on')
     args = parser.parse_args()
     
     print(f"Starting application on port {args.port}")
-    app.run(debug=True, port=args.port) 
+    app.run(host='0.0.0.0', debug=os.environ.get('FLASK_DEBUG', 'True').lower() == 'true', port=args.port) 

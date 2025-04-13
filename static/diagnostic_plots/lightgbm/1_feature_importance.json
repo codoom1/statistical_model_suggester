@@ -1,0 +1,4 @@
+{
+  "title": "Feature Importance",
+  "interpretation": "Shows the relative importance of each feature in the model. Features with higher importance scores have more influence on the model's predictions. LightGBM's feature importance represents how much each feature contributes to reducing the loss function across all trees."
+}

@@ -1,10 +1,13 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
 from flask_login import login_required, current_user
 from models import db, User, Analysis, Consultation, ExpertApplication
 from functools import wraps
 from datetime import datetime, timedelta
 from sqlalchemy import func
-from utils.email import send_expert_approved_email, send_expert_rejected_email
+from utils.email_service import send_expert_approved_email, send_expert_rejected_email
+import os
+import json
+from utils.questionnaire_generator import get_huggingface_client
 
 admin = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -268,4 +271,154 @@ def assign_consultation(consultation_id):
     db.session.commit()
     
     flash(f'Consultation assigned to {expert.username}.', 'success')
-    return redirect(url_for('admin.consultations_list')) 
+    return redirect(url_for('admin.consultations_list'))
+
+@admin.route('/ai_settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def ai_settings():
+    """AI Integration Settings"""
+    if request.method == 'POST':
+        # Get form data
+        api_key = request.form.get('huggingface_api_key')
+        model = request.form.get('model')
+        enabled = request.form.get('enabled') == 'on'
+        
+        # Validate model selection
+        valid_models = [
+            'mistralai/Mistral-7B-Instruct-v0.2',
+            'meta-llama/Llama-2-7b-chat-hf',
+            'google/flan-t5-base',
+            'facebook/bart-large-cnn',
+            'microsoft/Phi-2',
+            'google/gemma-7b-it'
+        ]
+        
+        if model not in valid_models:
+            flash('Invalid model selection.', 'danger')
+            return redirect(url_for('admin.ai_settings'))
+        
+        # Update environment variables
+        if api_key:
+            os.environ['HUGGINGFACE_API_KEY'] = api_key
+        elif 'HUGGINGFACE_API_KEY' in os.environ:
+            os.environ.pop('HUGGINGFACE_API_KEY')
+        
+        os.environ['HUGGINGFACE_MODEL'] = model
+        os.environ['AI_ENHANCEMENT_ENABLED'] = str(enabled).lower()
+        
+        # Save settings to config file for persistence
+        try:
+            config_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'instance')
+            os.makedirs(config_dir, exist_ok=True)
+            
+            config_file = os.path.join(config_dir, 'ai_config.json')
+            config_data = {
+                'huggingface_api_key': api_key if api_key else current_settings['api_key'],
+                'model': model,
+                'enabled': enabled
+            }
+            
+            with open(config_file, 'w') as f:
+                json.dump(config_data, f)
+            
+            flash('AI settings updated successfully.', 'success')
+        except Exception as e:
+            flash(f'Error saving AI settings: {e}', 'danger')
+        
+        return redirect(url_for('admin.ai_settings'))
+    
+    # Get current settings
+    current_settings = {
+        'api_key': os.environ.get('HUGGINGFACE_API_KEY', ''),
+        'model': os.environ.get('HUGGINGFACE_MODEL', 'mistralai/Mistral-7B-Instruct-v0.2'),
+        'enabled': os.environ.get('AI_ENHANCEMENT_ENABLED', 'false').lower() == 'true'
+    }
+    
+    # Check for API status and credit issues
+    api_status = {
+        'status': 'unknown',
+        'last_error': None,
+        'credit_warning': False
+    }
+    
+    try:
+        # Test API connection
+        client = get_huggingface_client()
+        if client:
+            # Simple test call
+            test_response = client("Hello", model=current_settings['model'])
+            if 'Error: API credit limit exceeded' in test_response or 'exceeded your monthly' in test_response:
+                api_status['status'] = 'credit_limit_reached'
+                api_status['credit_warning'] = True
+                api_status['last_error'] = "Monthly API credits exceeded. Please upgrade to continue using AI features."
+                flash('WARNING: Hugging Face API credits exceeded. AI features will be limited until subscription is upgraded.', 'warning')
+            elif 'Error' in test_response:
+                api_status['status'] = 'error'
+                api_status['last_error'] = test_response
+            else:
+                api_status['status'] = 'ok'
+    except Exception as e:
+        api_status['status'] = 'error'
+        api_status['last_error'] = str(e)
+    
+    return render_template(
+        'admin/ai_settings.html',
+        current_settings=current_settings,
+        api_status=api_status
+    )
+
+@admin.route('/test-ai-integration', methods=['POST'])
+@login_required
+@admin_required
+def test_ai_integration():
+    """API endpoint to test the Hugging Face integration"""
+    test_prompt = request.json.get('prompt', '')
+    api_key = request.json.get('api_key', '')
+    model = request.json.get('model', 'mistralai/Mistral-7B-Instruct-v0.2')
+    
+    if not test_prompt:
+        return jsonify({
+            'success': False,
+            'error': 'Please provide a test prompt'
+        })
+    
+    # Temporarily set environment variables for the test
+    original_key = os.environ.get('HUGGINGFACE_API_KEY')
+    os.environ['HUGGINGFACE_API_KEY'] = api_key
+    
+    try:
+        # Get Hugging Face client
+        client = get_huggingface_client()
+        if not client:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to initialize Hugging Face client'
+            })
+        
+        # Format the prompt
+        formatted_prompt = f"""<s>[INST] You are an expert questionnaire designer. Create an improved version of the following question:
+        
+        {test_prompt}
+        
+        Make it more specific, insightful, and relevant. Respond with only the improved question text. [/INST]"""
+        
+        # Call Hugging Face API
+        response = client(formatted_prompt, model=model)
+        
+        return jsonify({
+            'success': True,
+            'original': test_prompt,
+            'enhanced': response
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+    finally:
+        # Restore original environment variables
+        if original_key:
+            os.environ['HUGGINGFACE_API_KEY'] = original_key
+        else:
+            os.environ.pop('HUGGINGFACE_API_KEY', None) 

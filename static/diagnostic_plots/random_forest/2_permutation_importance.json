@@ -1,0 +1,4 @@
+{
+  "title": "Permutation Importance",
+  "interpretation": "Measures importance by randomly shuffling feature values and observing the decrease in model performance. Less prone to bias than standard importance for correlated features. Box plots show variation over multiple permutations."
+}

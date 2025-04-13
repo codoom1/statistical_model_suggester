@@ -1,0 +1,4 @@
+{
+  "title": "Actual vs Predicted Values",
+  "interpretation": "Compares actual values to model predictions. Points closer to the diagonal line indicate more accurate predictions. The plot includes key regression metrics: RMSE (Root Mean Squared Error: 1.2153), MAE (Mean Absolute Error: 0.9503), and R\u00b2 (Coefficient of Determination: 0.2421)."
+}

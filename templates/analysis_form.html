@@ -152,6 +152,25 @@
             <h2 class="form-title">Statistical Model Finder</h2>
             <p class="form-subtitle">Answer a few simple questions about your research, and we'll help you find the most appropriate statistical model. Don't worry if you're not sure about some answers - we'll guide you through each step!</p>
             
+            <!-- Example buttons -->
+            <div class="text-center mb-4">
+                <button type="button" id="mixed-effects-example" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-lightning-fill me-1"></i>Try Mixed Effects Model Example
+                </button>
+                <button type="button" id="elastic-net-example" class="btn btn-outline-success me-2">
+                    <i class="bi bi-lightning-fill me-1"></i>Try Elastic Net Example
+                </button>
+                <button type="button" id="linear-regression-example" class="btn btn-outline-info me-2">
+                    <i class="bi bi-lightning-fill me-1"></i>Try Linear Regression Example
+                </button>
+                <button type="button" id="cluster-analysis-example" class="btn btn-outline-warning me-2">
+                    <i class="bi bi-lightning-fill me-1"></i>Try Cluster Analysis Example
+                </button>
+                <div class="help-text mt-2">
+                    <i class="bi bi-info-circle me-1"></i>Click to auto-fill the form with inputs that would recommend different models
+                </div>
+            </div>
+            
             <form method="POST" action="{{ url_for('main.results') }}">
                 <div class="form-group">
                     <label for="research_question" class="form-label required-field">What are you trying to find out?</label>
@@ -169,11 +188,12 @@
 
                 <div class="form-group">
                     <label for="analysis_goal" class="form-label required-field">What do you want to do with your data?</label>
-                    <select class="form-select" id="analysis_goal" name="analysis_goal" required>
+                    <select class="form-select" id="analysis_goal" name="analysis_goal" required onchange="handleAnalysisGoalChange()">
                         <option value="">Choose what you want to do...</option>
                         <option value="predict">Make predictions about future outcomes</option>
                         <option value="classify">Sort items into categories</option>
                         <option value="explore">Understand relationships between variables</option>
+                        <option value="cluster">Group similar data points together</option>
                         <option value="hypothesis_test">Test a specific theory or hypothesis</option>
                         <option value="non_parametric">Compare groups without assuming normal distribution</option>
                         <option value="predict">Predict numbers or counts</option>
@@ -185,7 +205,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="dependent_variable_type" class="form-label required-field">What type of outcome are you measuring?</label>
+                    <label for="dependent_variable_type" class="form-label" id="dependent_variable_label">
+                        What type of outcome are you measuring?
+                        <span class="required-field" id="dependent_variable_required">*</span>
+                        <span class="optional-badge d-none" id="dependent_variable_optional">Optional for clustering</span>
+                    </label>
                     <select class="form-select" id="dependent_variable_type" name="dependent_variable_type" required>
                         <option value="">Select the type of your main measurement...</option>
                         <option value="continuous">Numbers that can take any value (e.g., height, weight, temperature)</option>
@@ -194,15 +218,25 @@
                         <option value="count">Whole numbers only (e.g., number of customers, incidents)</option>
                         <option value="time_series">Measurements taken over time (e.g., daily temperature, monthly sales)</option>
                     </select>
-                    <div class="help-text">
+                    <div class="help-text" id="dependent_variable_help_default">
                         <i class="bi bi-graph-up me-2"></i>This is what you're trying to understand or predict in your study.
+                    </div>
+                    <div class="help-text d-none" id="dependent_variable_help_cluster">
+                        <i class="bi bi-info-circle me-2"></i>For clustering, this field is optional since clustering algorithms don't always need a dependent variable.
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label required-field">What types of information do you have to help explain your outcome?</label>
-                    <div class="help-text mb-3">
+                    <label class="form-label" id="independent_variables_label">
+                        What types of information do you have to help explain your outcome?
+                        <span class="required-field" id="independent_variables_required">*</span>
+                        <span class="optional-badge d-none" id="independent_variables_optional">Optional for clustering</span>
+                    </label>
+                    <div class="help-text mb-3" id="independent_variables_help_default">
                         <i class="bi bi-list-check me-2"></i>Select all types of data you're using to explain or predict your outcome.
+                    </div>
+                    <div class="help-text mb-3 d-none" id="independent_variables_help_cluster">
+                        <i class="bi bi-list-check me-2"></i>Select all types of data you want to use for clustering.
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="independent_variables" value="continuous" id="continuous_var">
@@ -220,6 +254,34 @@
                         <input class="form-check-input" type="checkbox" name="independent_variables" value="binary" id="binary_var">
                         <label class="form-check-label" for="binary_var">
                             Yes/No variables (e.g., smoker/non-smoker, employed/unemployed)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        Are your independent variables correlated with each other?
+                        <span class="optional-badge">Optional</span>
+                    </label>
+                    <div class="help-text mb-3">
+                        <i class="bi bi-diagram-3 me-2"></i>Correlated variables move together (e.g., as height increases, weight tends to increase too).
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="variables_correlated" id="correlated_yes" value="yes">
+                        <label class="form-check-label" for="correlated_yes">
+                            Yes, my variables are likely correlated with each other
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="variables_correlated" id="correlated_no" value="no">
+                        <label class="form-check-label" for="correlated_no">
+                            No, my variables are likely independent from each other
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="variables_correlated" id="correlated_unknown" value="unknown" checked>
+                        <label class="form-check-label" for="correlated_unknown">
+                            I'm not sure
                         </label>
                     </div>
                 </div>
@@ -274,6 +336,7 @@
                         <option value="unknown">I'm not sure</option>
                         <option value="linear">Straight line relationship (as one increases, the other increases/decreases steadily)</option>
                         <option value="non_linear">Curved or complex relationship</option>
+                        <option value="hierarchical">Hierarchical or nested data (e.g., students within classrooms, measurements over time within individuals)</option>
                     </select>
                     <div class="help-text">
                         <i class="bi bi-graph-up-arrow me-2"></i>If you're not sure, that's okay! We'll consider all possibilities.
@@ -296,8 +359,194 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form');
     const independentVariablesCheckboxes = document.querySelectorAll('input[name="independent_variables"]');
     
+    // Initialize the form based on the current analysis goal selection
+    handleAnalysisGoalChange();
+    
+    // Mixed Effects Model Example Button
+    const mixedEffectsButton = document.getElementById('mixed-effects-example');
+    if (mixedEffectsButton) {
+        mixedEffectsButton.addEventListener('click', function() {
+            // Fill research question
+            document.getElementById('research_question').value = 
+                "How do classroom characteristics and student factors affect test scores over multiple time points?";
+            
+            // Set analysis goal to predict
+            document.getElementById('analysis_goal').value = "predict";
+            
+            // Set dependent variable to continuous
+            document.getElementById('dependent_variable_type').value = "continuous";
+            
+            // Check both continuous and categorical independent variables
+            document.querySelectorAll('input[name="independent_variables"]').forEach(checkbox => {
+                if (checkbox.value === 'continuous' || checkbox.value === 'categorical') {
+                    checkbox.checked = true;
+                } else {
+                    checkbox.checked = false;
+                }
+            });
+            
+            // Set sample size to 150 (large)
+            document.getElementById('sample_size').value = "150";
+            
+            // Set missing data to moderate
+            document.getElementById('missing_data').value = "moderate";
+            
+            // Set data distribution to normal
+            document.getElementById('data_distribution').value = "normal";
+            
+            // Set relationship type to hierarchical (if available) or non_linear
+            const relationshipField = document.getElementById('relationship_type');
+            
+            // Add hierarchical option if it doesn't exist
+            if (!Array.from(relationshipField.options).some(option => option.value === 'hierarchical')) {
+                const hierarchicalOption = document.createElement('option');
+                hierarchicalOption.value = 'hierarchical';
+                hierarchicalOption.text = 'Hierarchical or nested data (e.g., students within classrooms)';
+                relationshipField.add(hierarchicalOption);
+            }
+            
+            relationshipField.value = 'hierarchical';
+            
+            // Smooth scroll to the submit button
+            document.querySelector('.btn-primary.btn-lg').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    }
+    
+    // Elastic Net Example Button
+    const elasticNetButton = document.getElementById('elastic-net-example');
+    if (elasticNetButton) {
+        elasticNetButton.addEventListener('click', function() {
+            // Fill research question
+            document.getElementById('research_question').value = 
+                "How do multiple correlated predictors influence housing prices in different markets?";
+            
+            // Set analysis goal to predict
+            document.getElementById('analysis_goal').value = "predict";
+            
+            // Set dependent variable to continuous
+            document.getElementById('dependent_variable_type').value = "continuous";
+            
+            // Check continuous independent variables
+            document.querySelectorAll('input[name="independent_variables"]').forEach(checkbox => {
+                if (checkbox.value === 'continuous') {
+                    checkbox.checked = true;
+                } else {
+                    checkbox.checked = false;
+                }
+            });
+            
+            // Set variables_correlated to yes
+            document.getElementById('correlated_yes').checked = true;
+            
+            // Set sample size to 120 (large)
+            document.getElementById('sample_size').value = "120";
+            
+            // Set missing data to little
+            document.getElementById('missing_data').value = "little";
+            
+            // Set data distribution to normal
+            document.getElementById('data_distribution').value = "normal";
+            
+            // Set relationship type to linear
+            document.getElementById('relationship_type').value = 'linear';
+            
+            // Smooth scroll to the submit button
+            document.querySelector('.btn-primary.btn-lg').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    }
+    
+    // Linear Regression Example Button
+    const linearRegressionButton = document.getElementById('linear-regression-example');
+    if (linearRegressionButton) {
+        linearRegressionButton.addEventListener('click', function() {
+            // Fill research question
+            document.getElementById('research_question').value = 
+                "What factors affect student test scores and by how much?";
+            
+            // Set analysis goal to predict
+            document.getElementById('analysis_goal').value = "predict";
+            
+            // Set dependent variable to continuous
+            document.getElementById('dependent_variable_type').value = "continuous";
+            
+            // Check continuous and categorical independent variables
+            document.querySelectorAll('input[name="independent_variables"]').forEach(checkbox => {
+                if (checkbox.value === 'continuous' || checkbox.value === 'categorical') {
+                    checkbox.checked = true;
+                } else {
+                    checkbox.checked = false;
+                }
+            });
+            
+            // Set variables_correlated to no
+            document.getElementById('correlated_no').checked = true;
+            
+            // Set sample size to 80 (medium)
+            document.getElementById('sample_size').value = "80";
+            
+            // Set missing data to none
+            document.getElementById('missing_data').value = "none";
+            
+            // Set data distribution to normal
+            document.getElementById('data_distribution').value = "normal";
+            
+            // Set relationship type to linear
+            document.getElementById('relationship_type').value = 'linear';
+            
+            // Smooth scroll to the submit button
+            document.querySelector('.btn-primary.btn-lg').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    }
+    
+    // Cluster Analysis Example Button
+    const clusterAnalysisButton = document.getElementById('cluster-analysis-example');
+    if (clusterAnalysisButton) {
+        clusterAnalysisButton.addEventListener('click', function() {
+            // Fill research question
+            document.getElementById('research_question').value = 
+                "How can customers be grouped based on their purchasing behaviors and demographics?";
+            
+            // Set analysis goal to cluster (was explore before)
+            document.getElementById('analysis_goal').value = "cluster";
+            
+            // Set dependent variable to a value that makes sense for clustering
+            document.getElementById('dependent_variable_type').value = "continuous";
+            
+            // Check continuous and categorical independent variables
+            document.querySelectorAll('input[name="independent_variables"]').forEach(checkbox => {
+                if (checkbox.value === 'continuous' || checkbox.value === 'categorical') {
+                    checkbox.checked = true;
+                } else {
+                    checkbox.checked = false;
+                }
+            });
+            
+            // Set variables_correlated to unknown
+            document.getElementById('correlated_unknown').checked = true;
+            
+            // Set sample size to 200 (large)
+            document.getElementById('sample_size').value = "200";
+            
+            // Set missing data to little
+            document.getElementById('missing_data').value = "little";
+            
+            // Set data distribution to non_normal
+            document.getElementById('data_distribution').value = "non_normal";
+            
+            // Set relationship type to non_linear (cluster structure)
+            document.getElementById('relationship_type').value = 'non_linear';
+            
+            // Smooth scroll to the submit button
+            document.querySelector('.btn-primary.btn-lg').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    }
+    
     form.addEventListener('submit', function(event) {
+        const analysisGoal = document.getElementById('analysis_goal').value;
+        const isClusteringGoal = analysisGoal === 'cluster' || analysisGoal === 'explore';
+        
         // Check if at least one independent variable checkbox is selected
+        // Skip this validation for clustering goals if no checkboxes are selected
         let atLeastOneChecked = false;
         independentVariablesCheckboxes.forEach(checkbox => {
             if (checkbox.checked) {
@@ -305,7 +554,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        if (!atLeastOneChecked) {
+        if (!isClusteringGoal && !atLeastOneChecked) {
             event.preventDefault();
             alert('Please select at least one type of information (independent variable) to help explain your outcome.');
             
@@ -321,5 +570,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+function handleAnalysisGoalChange() {
+    const analysisGoal = document.getElementById('analysis_goal').value;
+    const isClusteringGoal = analysisGoal === 'cluster';
+    
+    // Get references to all the elements we need to modify
+    const dependentVarField = document.getElementById('dependent_variable_type');
+    const dependentVarRequired = document.getElementById('dependent_variable_required');
+    const dependentVarOptional = document.getElementById('dependent_variable_optional');
+    const dependentVarHelpDefault = document.getElementById('dependent_variable_help_default');
+    const dependentVarHelpCluster = document.getElementById('dependent_variable_help_cluster');
+    
+    const independentVarsRequired = document.getElementById('independent_variables_required');
+    const independentVarsOptional = document.getElementById('independent_variables_optional');
+    const independentVarsHelpDefault = document.getElementById('independent_variables_help_default');
+    const independentVarsHelpCluster = document.getElementById('independent_variables_help_cluster');
+    
+    if (isClusteringGoal) {
+        // For clustering: make dependent variable optional
+        dependentVarField.removeAttribute('required');
+        dependentVarRequired.classList.add('d-none');
+        dependentVarOptional.classList.remove('d-none');
+        dependentVarHelpDefault.classList.add('d-none');
+        dependentVarHelpCluster.classList.remove('d-none');
+        
+        // For clustering: adjust independent variables labels
+        independentVarsRequired.classList.add('d-none');
+        independentVarsOptional.classList.remove('d-none');
+        independentVarsHelpDefault.classList.add('d-none');
+        independentVarsHelpCluster.classList.remove('d-none');
+    } else {
+        // For non-clustering: make dependent variable required
+        dependentVarField.setAttribute('required', 'required');
+        dependentVarRequired.classList.remove('d-none');
+        dependentVarOptional.classList.add('d-none');
+        dependentVarHelpDefault.classList.remove('d-none');
+        dependentVarHelpCluster.classList.add('d-none');
+        
+        // For non-clustering: adjust independent variables labels
+        independentVarsRequired.classList.remove('d-none');
+        independentVarsOptional.classList.add('d-none');
+        independentVarsHelpDefault.classList.remove('d-none');
+        independentVarsHelpCluster.classList.add('d-none');
+    }
+}
 </script>
 {% endblock %} 

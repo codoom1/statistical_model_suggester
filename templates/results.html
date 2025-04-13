@@ -27,11 +27,13 @@
                             <a href="{{ url_for('main.model_details', model_name=recommended_model) }}" class="btn btn-primary">
                                 <i class="bi bi-info-circle me-1"></i> View Model Details
                             </a>
-                            {% if MODEL_DATABASE[recommended_model].synthetic_data %}
+                            
+                            {% if recommended_model in MODEL_DATABASE and MODEL_DATABASE[recommended_model] is defined and MODEL_DATABASE[recommended_model].synthetic_data is defined %}
                             <a href="{{ url_for('main.model_details', model_name=recommended_model) }}#synthetic-data" class="btn btn-success">
                                 <i class="bi bi-file-code me-1"></i> See Synthetic Data Example
                             </a>
                             {% endif %}
+                            
                             <a href="{{ url_for('main.model_interpretation', model_name=recommended_model) }}" class="btn btn-warning">
                                 <i class="bi bi-book me-1"></i> Interpretation Guide
                             </a>
@@ -45,11 +47,53 @@
                         </div>
                         <div class="card-body">
                             <div class="row">
+                                {% if alternative_models %}
+                                    {% for model_name in alternative_models %}
+                                        {% if model_name in MODEL_DATABASE %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card h-100 border-primary">
+                                                    <div class="card-header bg-light">
+                                                        <span class="badge bg-info float-end">Recommended Alternative</span>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <h6>{{ model_name }}</h6>
+                                                        <p class="small">{{ MODEL_DATABASE[model_name].description }}</p>
+                                                        <div class="mt-auto">
+                                                            <a href="{{ url_for('main.model_details', model_name=model_name) }}" class="btn btn-sm btn-outline-primary">
+                                                                View Details
+                                                            </a>
+                                                            
+                                                            {% if model_name in MODEL_DATABASE and MODEL_DATABASE[model_name] is defined and MODEL_DATABASE[model_name].synthetic_data is defined %}
+                                                            <a href="{{ url_for('main.model_details', model_name=model_name) }}#synthetic-data" class="btn btn-sm btn-outline-success ms-1">
+                                                                Sample Code
+                                                            </a>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            No specific alternative models were found for your analysis requirements. The recommended model is the best fit.
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            {% if alternative_models|length < 2 %}
+                            <hr class="mt-4 mb-4">
+                            <h6 class="mb-3">Other Models to Consider</h6>
+                            <div class="row">
                                 {% set count = namespace(value=0) %}
                                 {% for model_name, model_info in MODEL_DATABASE.items() %}
                                     {% if model_name != recommended_model and 
+                                       model_name not in alternative_models and
                                        (analysis_goal in model_info.analysis_goals) and
-                                       (dependent_variable_type in model_info.dependent_variable) %}
+                                       (dependent_variable_type in model_info.dependent_variable) and
+                                       count.value < 2 %}
                                         <div class="col-md-6 mb-3">
                                             <div class="card h-100">
                                                 <div class="card-body">
@@ -64,15 +108,8 @@
                                         {% set count.value = count.value + 1 %}
                                     {% endif %}
                                 {% endfor %}
-                                
-                                {% if count.value == 0 %}
-                                    <div class="col-12">
-                                        <div class="alert alert-info">
-                                            No alternative models found for your specific analysis requirements. The recommended model is the best fit.
-                                        </div>
-                                    </div>
-                                {% endif %}
                             </div>
+                            {% endif %}
                         </div>
                     </div>
 

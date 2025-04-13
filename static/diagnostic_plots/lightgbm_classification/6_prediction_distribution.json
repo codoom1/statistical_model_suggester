@@ -1,0 +1,4 @@
+{
+  "title": "Prediction Distribution",
+  "interpretation": "Shows how confident the model is in its predictions across different classes. It displays the distribution of predicted probabilities separated by the actual class. Ideally, the distributions should be well-separated, indicating the model can distinguish between classes effectively."
+}

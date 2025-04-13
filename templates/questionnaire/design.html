@@ -96,13 +96,47 @@
                                 <li>Mention specific behaviors, preferences, or experiences you're interested in</li>
                                 <li>Be specific about what information you need to collect</li>
                                 <li>Include relevant keywords for your research area</li>
+                                <li><strong>Provide rich context for better AI-generated questions</strong></li>
                             </ul>
                         </div>
                         
                         <div class="mb-3">
                             <label for="research_description" class="form-label">Detailed Research Description <span class="text-danger">*</span></label>
                             <textarea class="form-control" id="research_description" name="research_description" rows="5" placeholder="Describe your research in detail. What are you trying to learn? What specific aspects are you interested in? What do you hope to achieve with this questionnaire?" required></textarea>
-                            <div class="form-text">The more details you provide, the more tailored your questionnaire will be.</div>
+                            <div class="form-text">The more details you provide, the more tailored your questionnaire will be. A thorough description enables our AI to generate more relevant and insightful questions.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4 class="mb-3">Advanced Options</h4>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="use_ai_enhancement" name="use_ai_enhancement">
+                            <label class="form-check-label" for="use_ai_enhancement">
+                                <strong>Enable AI-Powered Question Generation</strong>
+                            </label>
+                            <div class="form-text">
+                                When enabled, our AI will:
+                                <ul class="mt-2">
+                                    <li>Enhance existing template questions to be more specific to your research</li>
+                                    <li>Generate entirely new questions based on your research description</li>
+                                    <li>Create a mix of open-ended, multiple choice, and rating scale questions</li>
+                                    <li>Add an "Additional Insights" section with unique AI-crafted questions</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Note about editing after generation -->
+                        <div class="alert alert-warning" role="alert">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="alert-heading">Please Note</h5>
+                                    <p class="mb-0">While our system will generate a questionnaire based on your inputs, you should expect to review and edit the generated questions to ensure they perfectly match your research goals. The generated questionnaire serves as a starting point that you can customize to your specific needs.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     

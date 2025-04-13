@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from models import db, User, Analysis, Consultation, ExpertApplication
 from datetime import datetime
 from functools import wraps
-from utils.email import send_expert_approved_email, send_expert_rejected_email
+from utils.email_service import send_expert_approved_email, send_expert_rejected_email
 
 expert = Blueprint('expert', __name__)
 

@@ -1,0 +1,4 @@
+{
+  "title": "Error in Ordinal Regression Diagnostics",
+  "interpretation": "An error occurred while generating the plots: This solver needs samples of at least 2 classes in the data, but the data contains only one class: 2"
+}

@@ -1,0 +1,4 @@
+{
+  "title": "Regularization Path",
+  "interpretation": "Shows how coefficient values change as the regularization parameter \u03b1 increases. Ridge regression shrinks coefficients toward zero but rarely sets them exactly to zero, preserving most features in the model."
+}

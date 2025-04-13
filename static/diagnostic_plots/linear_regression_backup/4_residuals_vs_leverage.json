@@ -1,0 +1,4 @@
+{
+  "title": "Residuals vs Leverage",
+  "interpretation": "Identify influential observations. Points with high leverage and large residuals may disproportionately influence the model. Points outside the dashed lines (Cook's distance) require examination."
+}

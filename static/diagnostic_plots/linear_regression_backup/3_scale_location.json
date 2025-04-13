@@ -1,0 +1,4 @@
+{
+    "title": "Scale-Location",
+    "interpretation": "This plot checks the homoscedasticity assumption. Look for random scatter with constant spread. A funnel shape indicates heteroscedasticity."
+}

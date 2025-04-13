@@ -1,0 +1,4 @@
+{
+  "title": "Feature Importance",
+  "interpretation": "Shows the importance of each feature in the Random Forest model. Features with higher values have more influence on predictions. Random Forest feature importance is based on how much each feature contributes to decreasing impurity across all trees."
+}

@@ -1,0 +1,1 @@
+{"title": "Overdispersion Check", "interpretation": "Dispersion parameter = 1.2737. Values substantially greater than 1 indicate overdispersion, suggesting negative binomial may be more appropriate than Poisson regression."}

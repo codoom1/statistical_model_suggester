@@ -1,0 +1,4 @@
+{
+  "title": "ROC Curve",
+  "interpretation": "Displays the trade-off between true positive rate (sensitivity) and false positive rate (1-specificity) at various thresholds. The area under the curve (AUC) quantifies model performance, with values closer to 1 indicating better performance."
+}

@@ -1,0 +1,4 @@
+{
+  "title": "Scale-Location Plot",
+  "interpretation": "Helps assess if residuals have constant variance (homoscedasticity). A horizontal line with randomly spread points suggests residuals have constant variance."
+}

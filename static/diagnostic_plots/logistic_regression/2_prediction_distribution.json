@@ -1,0 +1,4 @@
+{
+  "title": "Prediction Distribution",
+  "interpretation": "Shows how well the model separates classes. Ideally, the distributions should have minimal overlap, indicating good discrimination. Higher separation means better classification performance."
+}

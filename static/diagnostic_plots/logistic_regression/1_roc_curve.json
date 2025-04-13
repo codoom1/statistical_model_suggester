@@ -1,0 +1,4 @@
+{
+  "title": "ROC Curve",
+  "interpretation": "Shows the model's ability to discriminate between classes at different threshold settings. The AUC (Area Under Curve) of 0.93 indicates the overall model performance. AUC ranges from 0.5 (no discrimination) to 1.0 (perfect discrimination)."
+}

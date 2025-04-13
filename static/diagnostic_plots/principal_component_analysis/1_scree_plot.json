@@ -1,0 +1,4 @@
+{
+  "title": "Scree Plot",
+  "interpretation": "Shows the proportion of variance explained by each principal component. The cumulative line helps determine how many components to retain."
+}
