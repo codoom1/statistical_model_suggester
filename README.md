@@ -78,6 +78,62 @@ statistical-model-suggester/
 - tensorflow
 - lifelines
 - python-dotenv
+- gunicorn (for production deployment)
+- psycopg2-binary (for PostgreSQL support)
+
+## Deployment on Render
+
+### Setting Up on Render
+
+1. Create a new Web Service on Render
+2. Connect your GitHub repository
+3. Use the following settings:
+   - **Name**: statistical-model-suggester (or your preferred name)
+   - **Environment**: Python
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn app:app`
+
+### Environment Variables
+
+Set the following environment variables in Render:
+
+```
+FLASK_ENV=production
+FLASK_DEBUG=0
+SECRET_KEY=<your-secure-random-key>
+ADMIN_USERNAME=<your-admin-username>
+ADMIN_EMAIL=<your-admin-email>
+ADMIN_PASSWORD=<your-secure-admin-password>
+```
+
+For email functionality:
+```
+MAIL_SERVER=<your-smtp-server>
+MAIL_PORT=<your-smtp-port>
+MAIL_USE_TLS=True
+MAIL_USERNAME=<your-email-username>
+MAIL_PASSWORD=<your-email-password>
+MAIL_DEFAULT_SENDER=<your-default-sender-email>
+```
+
+For AI features (optional):
+```
+HUGGINGFACE_API_KEY=<your-huggingface-api-key>
+HUGGINGFACE_MODEL=<your-preferred-model>
+AI_ENHANCEMENT_ENABLED=true
+```
+
+### Database Setup
+
+1. Create a PostgreSQL database on Render
+2. Render will automatically add the `DATABASE_URL` environment variable to your web service
+
+### Troubleshooting Deployment
+
+- Check application logs in Render dashboard
+- Verify all environment variables are set correctly
+- Ensure model_database.json exists and is valid JSON
+- Check for any Python dependencies that might be missing from requirements.txt
 
 ## Contributing
 

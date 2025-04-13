@@ -327,5 +327,635 @@
     "data_distribution": "unknown",
     "relationship_type": "unknown",
     "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-13 15:16:22",
+    "research_question": "Are there difference between male and female affect peoples opinion?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "categorical"
+    ],
+    "sample_size": "",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-13 15:32:31",
+    "research_question": "Are there difference between male and female affect peoples opinion?",
+    "analysis_goal": "explore",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "",
+    "missing_data": "little",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-13 15:38:34",
+    "research_question": "How do repeated measurements affect student performance across different classrooms?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "MAR",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "recommended_model": "Neural Networks"
+  },
+  {
+    "timestamp": "2025-04-13 15:39:31",
+    "research_question": "Are there difference between male and female affect peoples opinion?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "categorical"
+    ],
+    "sample_size": "",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-13 15:41:25",
+    "research_question": "Are there difference between male and female affect peoples opinion?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "categorical"
+    ],
+    "sample_size": "",
+    "missing_data": "none",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-13 15:42:12",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "categorical"
+    ],
+    "sample_size": "",
+    "missing_data": "little",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "T-Test"
+  },
+  {
+    "timestamp": "2025-04-13 15:44:11",
+    "research_question": "Are there difference between male and female blood presure?",
+    "analysis_goal": "hypothesis_test",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "categorical"
+    ],
+    "sample_size": "",
+    "missing_data": "little",
+    "data_distribution": "unknown",
+    "relationship_type": "unknown",
+    "recommended_model": "T_test"
+  },
+  {
+    "timestamp": "2025-04-13 15:47:46",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-13 15:48:52",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-13 15:52:17",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-13 15:52:25",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-13 15:53:56",
+    "research_question": "How do multiple correlated predictors influence housing prices in different markets?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "120",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "recommended_model": "Ridge Regression"
+  },
+  {
+    "timestamp": "2025-04-13 15:59:10",
+    "research_question": "How do multiple correlated predictors influence housing prices in different markets?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "120",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Elastic Net Regression"
+  },
+  {
+    "timestamp": "2025-04-13 15:59:34",
+    "research_question": "How do multiple correlated predictors influence housing prices in different markets?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "120",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "yes",
+    "recommended_model": "Elastic Net Regression"
+  },
+  {
+    "timestamp": "2025-04-13 15:59:57",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "variables_correlated": "unknown",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-13 16:01:24",
+    "research_question": "How do multiple correlated predictors influence housing prices in different markets?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "120",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "yes",
+    "recommended_model": "Elastic Net Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:03:48",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "explore",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:04:25",
+    "research_question": "What factors affect student test scores and by how much?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "80",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Elastic Net Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:04:37",
+    "research_question": "How do multiple correlated predictors influence housing prices in different markets?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "120",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "yes",
+    "recommended_model": "Elastic Net Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:04:49",
+    "research_question": "What factors affect student test scores and by how much?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "80",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Elastic Net Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:05:32",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "explore",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:05:45",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "variables_correlated": "unknown",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-13 16:05:51",
+    "research_question": "How do multiple correlated predictors influence housing prices in different markets?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "120",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "yes",
+    "recommended_model": "Elastic Net Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:05:57",
+    "research_question": "What factors affect student test scores and by how much?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "80",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Elastic Net Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:06:44",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "explore",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:08:37",
+    "research_question": "What factors affect student test scores and by how much?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "80",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:08:46",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "explore",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:09:04",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "variables_correlated": "unknown",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-13 16:10:59",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "explore",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:11:18",
+    "research_question": "What factors affect student test scores and by how much?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "80",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:11:26",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "variables_correlated": "unknown",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-13 16:11:35",
+    "research_question": "How do multiple correlated predictors influence housing prices in different markets?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "120",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "yes",
+    "recommended_model": "Elastic Net Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:15:16",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "explore",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-04-13 16:16:04",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "cluster",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Neural Networks"
+  },
+  {
+    "timestamp": "2025-04-13 16:18:38",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "cluster",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Neural Networks"
+  },
+  {
+    "timestamp": "2025-04-13 16:19:05",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "variables_correlated": "unknown",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-13 16:21:45",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "cluster",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Cluster Analysis"
+  },
+  {
+    "timestamp": "2025-04-13 16:23:42",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "variables_correlated": "unknown",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-13 16:29:08",
+    "research_question": "How can I cluster my customer data?",
+    "analysis_goal": "cluster",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "150",
+    "missing_data": "none",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Cluster Analysis"
+  },
+  {
+    "timestamp": "2025-04-13 16:32:54",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "cluster",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Cluster Analysis"
+  },
+  {
+    "timestamp": "2025-04-13 16:33:03",
+    "research_question": "What factors affect student test scores and by how much?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "80",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
   }
 ]
