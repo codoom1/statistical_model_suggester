@@ -1,0 +1,36 @@
+Analysis of Covariance (ANCOVA)
+Analysis of Variance (ANOVA)
+ARIMA
+Bayesian Additive Regression Trees
+Bayesian Hierarchical Regression
+Bayesian Model Averaging
+Bayesian Quantile Regression
+Canonical Correlation
+Chi_Square_Test
+Cluster Analysis
+Cox Proportional Hazards
+Decision Trees
+Discriminant_Analysis
+Factor Analysis
+Gradient Boosting
+K-Nearest Neighbors
+Kaplan Meier
+Kernel_Regression
+Kruskal_Wallis_Test
+Linear Regression
+Logistic Regression
+Mann_Whitney_U_Test
+Mixed Effects Model
+Multidimensional Scaling
+Multinomial Regression
+Multivariate Analysis of Covariance (MANCOVA)
+Multivariate Analysis of Variance (MANOVA)
+Naive Bayes
+Neural Networks
+Ordinal Regression
+Path Analysis
+Poisson Regression
+Random Forest
+Repeated Measures ANOVA
+Structural Equation Modeling
+T_test
