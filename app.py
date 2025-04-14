@@ -3,6 +3,7 @@ import sys
 from flask import Flask, render_template, send_from_directory, request
 from flask_login import LoginManager
 from flask_mail import Mail
+from flask_migrate import Migrate
 from models import db, User, get_model_details, initialize_postgres_extensions
 import json
 import argparse
@@ -45,6 +46,9 @@ def create_app():
     
     # Initialize database
     db.init_app(app)
+    
+    # Initialize Flask-Migrate
+    migrate = Migrate(app, db)
     
     # Initialize PostgreSQL extensions if using PostgreSQL
     if database_url and ('postgresql://' in database_url or 'postgres://' in database_url):
@@ -124,6 +128,13 @@ def create_app():
     app.register_blueprint(admin, url_prefix='/admin')
     app.register_blueprint(questionnaire_bp, url_prefix='/questionnaire')
     app.register_blueprint(chatbot_bp, url_prefix='/chatbot')
+
+    # Add Jinja2 custom filters
+    @app.template_filter('nl2br')
+    def nl2br_filter(s):
+        if s is None:
+            return ""
+        return s.replace('\n', '<br>')
 
     # Define error handler
     @app.errorhandler(404)

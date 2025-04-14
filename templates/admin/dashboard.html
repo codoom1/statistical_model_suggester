@@ -162,9 +162,9 @@
                                     <td>{{ user.username }}</td>
                                     <td>{{ user.email }}</td>
                                     <td>
-                                        {% if user.is_admin %}
+                                        {% if user._is_admin %}
                                             <span class="badge bg-danger">Admin</span>
-                                        {% elif user.is_expert %}
+                                        {% elif user._is_expert %}
                                             <span class="badge bg-success">Expert</span>
                                         {% else %}
                                             <span class="badge bg-primary">User</span>

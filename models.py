@@ -56,7 +56,9 @@ class ExpertApplication(db.Model):
     areas_of_expertise = db.Column(db.Text, nullable=False)
     institution = db.Column(db.String(200))
     bio = db.Column(db.Text)
-    status = db.Column(db.String(20), default='pending', index=True)  # pending, approved, rejected
+    resume_url = db.Column(db.String(500))  # URL or path to uploaded resume file
+    admin_notes = db.Column(db.Text)  # Notes from admin during review
+    status = db.Column(db.String(20), default='pending', index=True)  # pending, needs_info, approved, rejected
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

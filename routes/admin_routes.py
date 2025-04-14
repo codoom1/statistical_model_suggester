@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
 from flask_login import login_required, current_user
-from models import db, User, Analysis, Consultation, ExpertApplication
+from models import db, User, ExpertApplication, Analysis, Consultation
 from functools import wraps
 from datetime import datetime, timedelta
 from sqlalchemy import func
@@ -8,6 +8,8 @@ from utils.email_service import send_expert_approved_email, send_expert_rejected
 import os
 import json
 from utils.questionnaire_generator import get_huggingface_client
+import logging
+import re
 
 admin = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -37,13 +39,15 @@ def dashboard():
     admin_users_count = User.query.filter_by(_is_admin=True).count()
     experts_count = User.query.filter_by(_is_expert=True, is_approved_expert=True).count()
     regular_users_count = User.query.filter_by(_is_admin=False, _is_expert=False).count()
-    active_consultations_count = Consultation.query.filter_by(status='active').count()
+    active_consultations_count = Consultation.query.filter_by(status='in_progress').count()
     
     # Get recent users
     recent_users = User.query.order_by(User.created_at.desc()).limit(10).all()
     
-    # Get pending expert applications
-    pending_applications = ExpertApplication.query.filter_by(status='pending').all()
+    # Get pending expert applications (including those needing more info)
+    pending_applications = ExpertApplication.query.filter(
+        ExpertApplication.status.in_(['pending', 'needs_info'])
+    ).all()
     
     # User growth over time (last 6 months)
     end_date = datetime.utcnow()
@@ -161,8 +165,9 @@ def delete_user(user_id):
 @login_required
 @admin_required
 def expert_applications():
-    """List pending expert applications"""
-    applications = ExpertApplication.query.filter_by(status='pending').all()
+    """List expert applications"""
+    # Get all applications, not just pending ones
+    applications = ExpertApplication.query.all()
     return render_template('admin/expert_applications.html', applications=applications)
 
 @admin.route('/approve-expert/<int:user_id>', methods=['POST'])
@@ -170,7 +175,8 @@ def expert_applications():
 @admin_required
 def approve_expert(user_id):
     """Approve an expert application"""
-    application = ExpertApplication.query.filter_by(user_id=user_id, status='pending').first_or_404()
+    # Find application regardless of status
+    application = ExpertApplication.query.filter_by(user_id=user_id).first_or_404()
     user = application.user
     
     user._is_expert = True
@@ -193,7 +199,8 @@ def approve_expert(user_id):
 @admin_required
 def reject_expert(user_id):
     """Reject an expert application"""
-    application = ExpertApplication.query.filter_by(user_id=user_id, status='pending').first_or_404()
+    # Find application regardless of status
+    application = ExpertApplication.query.filter_by(user_id=user_id).first_or_404()
     user = application.user
     
     user._is_expert = False
@@ -421,4 +428,161 @@ def test_ai_integration():
         if original_key:
             os.environ['HUGGINGFACE_API_KEY'] = original_key
         else:
-            os.environ.pop('HUGGINGFACE_API_KEY', None) 
+            os.environ.pop('HUGGINGFACE_API_KEY', None)
+
+@admin.route('/update-application-notes/<int:application_id>', methods=['POST'])
+@login_required
+@admin_required
+def update_application_notes(application_id):
+    """Update admin notes for an expert application"""
+    application = ExpertApplication.query.get_or_404(application_id)
+    
+    admin_notes = request.form.get('admin_notes', '')
+    application.admin_notes = admin_notes
+    db.session.commit()
+    
+    flash('Application notes updated successfully.', 'success')
+    return redirect(url_for('admin.expert_applications'))
+
+@admin.route('/request-resume/<int:application_id>', methods=['POST'])
+@login_required
+@admin_required
+def request_resume(application_id):
+    """Request resume from expert applicant"""
+    application = ExpertApplication.query.get_or_404(application_id)
+    
+    application.status = 'needs_info'
+    if not application.admin_notes:
+        application.admin_notes = "Please upload your resume/CV to continue the evaluation process."
+    else:
+        application.admin_notes += "\n\nPlease upload your resume/CV to continue the evaluation process."
+    
+    db.session.commit()
+    
+    flash('Resume requested from applicant.', 'success')
+    return redirect(url_for('admin.expert_applications'))
+
+@admin.route('/request-additional-info/<int:application_id>', methods=['POST'])
+@login_required
+@admin_required
+def request_additional_info(application_id):
+    """Request additional information from expert applicant"""
+    application = ExpertApplication.query.get_or_404(application_id)
+    user = application.user
+    
+    # Set status to needs_info
+    application.status = 'needs_info'
+    
+    # Ensure user's expert status is properly set
+    if user.is_approved_expert:
+        # If they were previously approved, revoke their expert status until info is provided
+        user.is_approved_expert = False
+    
+    # If no admin notes are present, add a default message
+    if not application.admin_notes:
+        application.admin_notes = "The review committee needs additional information to process your application. Please provide the requested details."
+    
+    # Add timestamp to the notes
+    current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    application.admin_notes = f"{application.admin_notes}\n\n--- Admin Request ({current_time}) ---\nPlease provide more information about your expertise and experience."
+    
+    db.session.commit()
+    
+    # Optional: Send email notification to the applicant
+    # send_application_update_email(application.user, "Additional Information Requested", 
+    #    "The review committee has requested additional information for your expert application. Please log in to view details.")
+    
+    flash('Additional information requested from applicant.', 'success')
+    return redirect(url_for('admin.expert_applications'))
+
+@admin.route('/process-additional-info/<int:application_id>', methods=['POST'])
+@login_required
+@admin_required
+def process_additional_info(application_id):
+    """Process additional information from an expert applicant"""
+    application = ExpertApplication.query.get_or_404(application_id)
+    action = request.form.get('action', '')
+    
+    if action == 'approve':
+        # Approve the expert
+        user = application.user
+        user._is_expert = True
+        user.is_approved_expert = True
+        user.areas_of_expertise = application.areas_of_expertise
+        user.institution = application.institution
+        user.bio = application.bio
+        
+        application.status = 'approved'
+        db.session.commit()
+        
+        # Send approval email
+        send_expert_approved_email(user, application.email)
+        
+        flash(f'Expert {user.username} has been approved.', 'success')
+    elif action == 'request_more_info':
+        # Redirect to request more info page
+        return redirect(url_for('admin.request_additional_info', application_id=application_id))
+    elif action == 'reject':
+        # Reject the expert
+        user = application.user
+        user._is_expert = False
+        user.is_approved_expert = False
+        
+        application.status = 'rejected'
+        db.session.commit()
+        
+        # Send rejection email
+        send_expert_rejected_email(user, application.email)
+        
+        flash(f'Expert application for {user.username} has been rejected.', 'success')
+    
+    return redirect(url_for('admin.expert_applications'))
+
+@admin.route('/application-details/<int:application_id>')
+@login_required
+@admin_required
+def application_details(application_id):
+    """View detailed expert application with communication history"""
+    application = ExpertApplication.query.get_or_404(application_id)
+    
+    # Parse and format the communication history
+    conversation_history = []
+    
+    if application.admin_notes:
+        # Split the notes by the markers
+        notes_content = application.admin_notes
+        admin_pattern = r'---\s*Admin\s*Request\s*\(([^)]+)\)\s*---\s*([^-]*)'
+        expert_pattern = r'---\s*Expert\s*Response\s*\(([^)]+)\)\s*---\s*([^-]*)'
+        
+        # Extract admin requests
+        admin_requests = re.finditer(admin_pattern, notes_content, re.DOTALL)
+        for match in admin_requests:
+            timestamp = match.group(1)
+            message = match.group(2).strip()
+            if message:  # Only add if there's actual content
+                conversation_history.append({
+                    'role': 'admin',
+                    'author': 'Admin',
+                    'timestamp': timestamp,
+                    'message': message
+                })
+        
+        # Extract expert responses
+        expert_responses = re.finditer(expert_pattern, notes_content, re.DOTALL)
+        for match in expert_responses:
+            timestamp = match.group(1)
+            message = match.group(2).strip()
+            if message:  # Only add if there's actual content
+                conversation_history.append({
+                    'role': 'expert',
+                    'author': application.user.username,
+                    'timestamp': timestamp,
+                    'message': message
+                })
+        
+        # Sort the conversation by timestamp
+        conversation_history.sort(key=lambda x: datetime.strptime(x['timestamp'], '%Y-%m-%d %H:%M:%S'))
+    
+    return render_template('admin/application_details.html', 
+                          application=application, 
+                          conversation_history=conversation_history) 

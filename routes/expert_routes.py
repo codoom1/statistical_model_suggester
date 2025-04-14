@@ -4,6 +4,7 @@ from models import db, User, Analysis, Consultation, ExpertApplication
 from datetime import datetime
 from functools import wraps
 from utils.email_service import send_expert_approved_email, send_expert_rejected_email
+import re
 
 expert = Blueprint('expert', __name__)
 
@@ -304,4 +305,218 @@ def assign_consultation(consultation_id):
     db.session.commit()
     
     flash('You have been assigned to this consultation.', 'success')
-    return redirect(url_for('expert.view_consultation', consultation_id=consultation.id)) 
+    return redirect(url_for('expert.view_consultation', consultation_id=consultation.id))
+
+@expert.route('/application-status')
+@login_required
+def application_status():
+    """View expert application status"""
+    # If user is already an approved expert, redirect to their expert profile
+    if current_user.is_expert:
+        flash('You are already an approved expert.', 'info')
+        return redirect(url_for('expert.my_profile'))
+    
+    # Find the most recent application for this user
+    application = ExpertApplication.query.filter_by(user_id=current_user.id).order_by(
+        ExpertApplication.created_at.desc()).first()
+    
+    if not application:
+        flash('No expert applications found.', 'info')
+        return redirect(url_for('main.profile'))
+    
+    # Redirect to the application details page
+    return redirect(url_for('expert.application_details', application_id=application.id))
+
+@expert.route('/application-details/<int:application_id>')
+@login_required
+def application_details(application_id):
+    """View expert application details with communication history"""
+    application = ExpertApplication.query.get_or_404(application_id)
+    
+    # Security check - ensure users can only view their own applications
+    if application.user_id != current_user.id and not current_user.is_admin:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    # Parse and format the communication history
+    conversation_history = []
+    
+    if application.admin_notes:
+        # Split the notes by the markers
+        notes_content = application.admin_notes
+        admin_pattern = r'---\s*Admin\s*Request\s*\(([^)]+)\)\s*---\s*([^-]*)'
+        expert_pattern = r'---\s*Expert\s*Response\s*\(([^)]+)\)\s*---\s*([^-]*)'
+        
+        # Extract admin requests
+        admin_requests = re.finditer(admin_pattern, notes_content, re.DOTALL)
+        for match in admin_requests:
+            timestamp = match.group(1)
+            message = match.group(2).strip()
+            if message:  # Only add if there's actual content
+                conversation_history.append({
+                    'role': 'admin',
+                    'author': 'Admin',
+                    'timestamp': timestamp,
+                    'message': message
+                })
+        
+        # Extract expert responses
+        expert_responses = re.finditer(expert_pattern, notes_content, re.DOTALL)
+        for match in expert_responses:
+            timestamp = match.group(1)
+            message = match.group(2).strip()
+            if message:  # Only add if there's actual content
+                conversation_history.append({
+                    'role': 'expert',
+                    'author': application.user.username,
+                    'timestamp': timestamp,
+                    'message': message
+                })
+        
+        # Sort the conversation by timestamp
+        conversation_history.sort(key=lambda x: datetime.strptime(x['timestamp'], '%Y-%m-%d %H:%M:%S'))
+    
+    return render_template('expert/application_details.html', 
+                          application=application, 
+                          conversation_history=conversation_history)
+
+@expert.route('/upload-resume', methods=['POST'])
+@login_required
+def upload_resume():
+    """Upload resume for expert application"""
+    application_id = request.form.get('application_id')
+    if not application_id:
+        flash('Invalid application.', 'danger')
+        return redirect(url_for('expert.application_status'))
+    
+    application = ExpertApplication.query.get_or_404(application_id)
+    
+    # Security check - ensure users can only upload to their own applications
+    if application.user_id != current_user.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    # Check if a file was uploaded
+    if 'resume' not in request.files:
+        flash('No file selected.', 'danger')
+        return redirect(url_for('expert.application_status'))
+    
+    resume_file = request.files['resume']
+    
+    # Check if the file has a name (browser might submit an empty file)
+    if resume_file.filename == '':
+        flash('No file selected.', 'danger')
+        return redirect(url_for('expert.application_status'))
+    
+    # Check if the file has an allowed extension
+    allowed_extensions = {'pdf', 'doc', 'docx'}
+    file_extension = resume_file.filename.rsplit('.', 1)[1].lower() if '.' in resume_file.filename else ''
+    
+    if file_extension not in allowed_extensions:
+        flash('Invalid file type. Please upload a PDF, DOC, or DOCX file.', 'danger')
+        return redirect(url_for('expert.application_status'))
+    
+    try:
+        # Create a unique filename
+        import os
+        from datetime import datetime
+        from werkzeug.utils import secure_filename
+        
+        filename = secure_filename(resume_file.filename)
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        unique_filename = f"{current_user.id}_{timestamp}_{filename}"
+        
+        # Ensure the upload directory exists
+        upload_dir = os.path.join(current_app.static_folder, 'uploads', 'resumes')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Save the file
+        file_path = os.path.join(upload_dir, unique_filename)
+        resume_file.save(file_path)
+        
+        # Update the application with the resume URL
+        resume_url = url_for('static', filename=f'uploads/resumes/{unique_filename}')
+        application.resume_url = resume_url
+        
+        # Update status from "needs_info" to "pending_review" if it was previously in "needs_info" state
+        if application.status == 'needs_info':
+            application.status = 'pending_review'
+        
+        db.session.commit()
+        
+        flash('Resume uploaded successfully. Your application is under review.', 'success')
+    except Exception as e:
+        current_app.logger.error(f"Resume upload error: {str(e)}")
+        flash(f'Error uploading resume: {str(e)}', 'danger')
+    
+    return redirect(url_for('expert.application_status'))
+
+@expert.route('/submit-additional-info', methods=['POST'])
+@login_required
+def submit_additional_info():
+    """Submit additional information for expert application"""
+    application_id = request.form.get('application_id')
+    additional_info = request.form.get('additional_info')
+    
+    if not application_id or not additional_info:
+        flash('Please provide all required information.', 'danger')
+        return redirect(url_for('expert.application_status'))
+    
+    application = ExpertApplication.query.get_or_404(application_id)
+    
+    # Security check - ensure users can only submit info for their own applications
+    if application.user_id != current_user.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    try:
+        # Create a record of the additional information
+        existing_notes = application.admin_notes or ""
+        
+        # Update the application with the additional info
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        application.admin_notes = f"{existing_notes}\n\n--- Expert Response ({timestamp}) ---\n{additional_info}"
+        
+        # Update application status to indicate it's ready for admin review
+        if application.status == 'needs_info':
+            application.status = 'pending_review'
+            
+        application.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        # Send email notification to admin about the additional info (optional)
+        # send_admin_notification_email(application)
+        
+        flash('Additional information submitted successfully. Your application is now under review.', 'success')
+    except Exception as e:
+        current_app.logger.error(f"Error submitting additional information: {str(e)}")
+        flash(f'Error submitting information: {str(e)}', 'danger')
+    
+    return redirect(url_for('expert.application_status'))
+
+@expert.route('/my-profile', methods=['GET', 'POST'])
+@login_required
+@expert_required
+def my_profile():
+    """View and edit expert profile"""
+    # Verify user is an approved expert
+    if not current_user.is_expert:
+        flash('You need to be an approved expert to access this page.', 'danger')
+        return redirect(url_for('main.profile'))
+    
+    if request.method == 'POST':
+        # Update expert profile information
+        institution = request.form.get('institution', '')
+        areas_of_expertise = request.form.get('areas_of_expertise', '')
+        bio = request.form.get('bio', '')
+        
+        # Update user with expert profile information
+        current_user.institution = institution
+        current_user.areas_of_expertise = areas_of_expertise
+        current_user.bio = bio
+        
+        db.session.commit()
+        flash('Expert profile updated successfully.', 'success')
+        return redirect(url_for('expert.my_profile'))
+    
+    return render_template('expert/my_profile.html', expert=current_user) 

@@ -211,8 +211,8 @@
                             <th>Email</th>
                             <th>Areas of Expertise</th>
                             <th>Institution</th>
-                            <th>Bio</th>
                             <th>Applied</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -223,15 +223,19 @@
                             <td>{{ application.email }}</td>
                             <td>{{ application.areas_of_expertise }}</td>
                             <td>{{ application.institution }}</td>
-                            <td>{{ application.bio }}</td>
                             <td>{{ application.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                             <td>
-                                <form action="{{ url_for('admin.approve_expert', user_id=application.user.id) }}" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
-                                </form>
-                                <form action="{{ url_for('admin.reject_expert', user_id=application.user.id) }}" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-sm btn-danger">Reject</button>
-                                </form>
+                                <span class="badge {% if application.status == 'pending' %}bg-primary{% elif application.status == 'pending_review' %}bg-info{% elif application.status == 'needs_info' %}bg-warning{% elif application.status == 'approved' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% endif %}">
+                                    {{ application.status | replace('_', ' ') | title }}
+                                </span>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detailModal{{ application.id }}">
+                                    <i class="bi bi-search"></i> Details
+                                </button>
+                                <a href="{{ url_for('admin.application_details', application_id=application.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-chat-dots"></i> Full View
+                                </a>
                             </td>
                         </tr>
                         {% else %}
@@ -245,6 +249,165 @@
         </div>
     </div>
 </div>
+
+<!-- Detail Modals -->
+{% for application in applications %}
+<div class="modal fade" id="detailModal{{ application.id }}" tabindex="-1" aria-labelledby="detailModalLabel{{ application.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="detailModalLabel{{ application.id }}">Expert Application: {{ application.user.username }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">User Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Username:</dt>
+                                    <dd class="col-sm-8">{{ application.user.username }}</dd>
+                                    
+                                    <dt class="col-sm-4">Email:</dt>
+                                    <dd class="col-sm-8">{{ application.email }}</dd>
+                                    
+                                    <dt class="col-sm-4">Member Since:</dt>
+                                    <dd class="col-sm-8">{{ application.user.created_at.strftime('%Y-%m-%d') }}</dd>
+                                    
+                                    <dt class="col-sm-4">Institution:</dt>
+                                    <dd class="col-sm-8">{{ application.institution or 'Not specified' }}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Application Status</h6>
+                            </div>
+                            <div class="card-body">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Status:</dt>
+                                    <dd class="col-sm-8">
+                                        <span class="badge {% if application.status == 'pending' %}bg-primary{% elif application.status == 'pending_review' %}bg-info{% elif application.status == 'needs_info' %}bg-warning{% elif application.status == 'approved' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% endif %}">
+                                            {{ application.status | replace('_', ' ') | title }}
+                                        </span>
+                                    </dd>
+                                    
+                                    <dt class="col-sm-4">Applied On:</dt>
+                                    <dd class="col-sm-8">{{ application.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                                    
+                                    <dt class="col-sm-4">Updated On:</dt>
+                                    <dd class="col-sm-8">{{ application.updated_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                                    
+                                    <dt class="col-sm-4">Resume:</dt>
+                                    <dd class="col-sm-8">
+                                        {% if application.resume_url %}
+                                            <a href="{{ application.resume_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-file-earmark-text"></i> View Resume
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">Not provided</span>
+                                        {% endif %}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Areas of Expertise</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>{{ application.areas_of_expertise }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Professional Bio</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>{{ application.bio }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="POST" action="{{ url_for('admin.update_application_notes', application_id=application.id) }}" class="mb-4">
+                    <div class="form-group">
+                        <label for="adminNotes{{ application.id }}">Admin Notes</label>
+                        <textarea class="form-control" id="adminNotes{{ application.id }}" name="admin_notes" rows="3">{{ application.admin_notes or '' }}</textarea>
+                        <div class="form-text">
+                            These notes will be visible to the expert if the application status is set to "Needs Info".
+                        </div>
+                    </div>
+                    <div class="text-end mt-2">
+                        <button type="submit" class="btn btn-sm btn-primary">Save Notes</button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <div>
+                    {% if application.status == 'approved' or application.status == 'rejected' %}
+                        {% if not application.resume_url %}
+                        <button type="button" class="btn btn-warning" disabled>Request Resume</button>
+                        {% endif %}
+                        <button type="button" class="btn btn-info" disabled>Request Additional Info</button>
+                    {% else %}
+                        {% if not application.resume_url %}
+                        <form action="{{ url_for('admin.request_resume', application_id=application.id) }}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-warning">Request Resume</button>
+                        </form>
+                        {% endif %}
+                        
+                        <form action="{{ url_for('admin.request_additional_info', application_id=application.id) }}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-info">Request Additional Info</button>
+                        </form>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if application.status == 'approved' or application.status == 'rejected' %}
+                        <button type="button" class="btn btn-success" disabled>Approve</button>
+                        <button type="button" class="btn btn-danger" disabled>Reject</button>
+                    {% elif application.status == 'pending_review' %}
+                    <form action="{{ url_for('admin.process_additional_info', application_id=application.id) }}" method="post" class="d-inline">
+                        <input type="hidden" name="action" value="approve">
+                        <button type="submit" class="btn btn-success">Approve Information</button>
+                    </form>
+                    <form action="{{ url_for('admin.process_additional_info', application_id=application.id) }}" method="post" class="d-inline">
+                        <input type="hidden" name="action" value="request_more_info">
+                        <button type="submit" class="btn btn-warning">Need More Info</button>
+                    </form>
+                    <form action="{{ url_for('admin.process_additional_info', application_id=application.id) }}" method="post" class="d-inline">
+                        <input type="hidden" name="action" value="reject">
+                        <button type="submit" class="btn btn-danger">Reject</button>
+                    </form>
+                    {% else %}
+                    <form action="{{ url_for('admin.approve_expert', user_id=application.user.id) }}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-success">Approve</button>
+                    </form>
+                    <form action="{{ url_for('admin.reject_expert', user_id=application.user.id) }}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">Reject</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 {% endblock %}
 
 {% block scripts %}

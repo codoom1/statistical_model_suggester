@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block title %}Expert Application Details{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Timeline styling */
+    .timeline {
+        position: relative;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    
+    .timeline::after {
+        content: '';
+        position: absolute;
+        width: 6px;
+        background-color: #e0e0e0;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        margin-left: -3px;
+    }
+    
+    .timeline-container {
+        padding: 10px 30px;
+        position: relative;
+        background-color: inherit;
+        width: 50%;
+        margin-bottom: 20px;
+    }
+    
+    .timeline-container.admin {
+        left: 0;
+    }
+    
+    .timeline-container.expert {
+        left: 50%;
+    }
+    
+    .timeline-container::after {
+        content: '';
+        position: absolute;
+        width: 25px;
+        height: 25px;
+        right: -12px;
+        top: 15px;
+        border-radius: 50%;
+        z-index: 1;
+    }
+    
+    .timeline-container.admin::after {
+        background-color: #8b1a1d;
+        right: -12px;
+    }
+    
+    .timeline-container.expert::after {
+        background-color: #0d6efd;
+        left: -12px;
+    }
+    
+    .timeline-content {
+        padding: 20px;
+        background-color: white;
+        position: relative;
+        border-radius: 6px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .timeline-container.admin .timeline-content {
+        border-left: 4px solid #8b1a1d;
+    }
+    
+    .timeline-container.expert .timeline-content {
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .timeline-container.admin .timeline-content::after {
+        content: '';
+        position: absolute;
+        border-width: 10px;
+        border-style: solid;
+        border-color: transparent #fff transparent transparent;
+        top: 15px;
+        right: 100%;
+    }
+    
+    .timeline-container.expert .timeline-content::after {
+        content: '';
+        position: absolute;
+        border-width: 10px;
+        border-style: solid;
+        border-color: transparent transparent transparent #fff;
+        top: 15px;
+        left: 100%;
+    }
+    
+    .timeline-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+    
+    .timeline-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    
+    .timeline-avatar.admin {
+        background-color: #8b1a1d;
+    }
+    
+    .timeline-avatar.expert {
+        background-color: #0d6efd;
+    }
+    
+    .timeline-meta {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .timeline-name {
+        font-weight: bold;
+    }
+    
+    .timeline-timestamp {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .timeline-message {
+        margin-top: 10px;
+        white-space: pre-wrap;
+    }
+    
+    @media screen and (max-width: 768px) {
+        .timeline::after {
+            left: 31px;
+        }
+        
+        .timeline-container {
+            width: 100%;
+            padding-left: 70px;
+            padding-right: 25px;
+        }
+        
+        .timeline-container.admin, .timeline-container.expert {
+            left: 0;
+        }
+        
+        .timeline-container.admin::after, .timeline-container.expert::after {
+            left: 19px;
+        }
+        
+        .timeline-container.expert .timeline-content::after {
+            border-color: transparent #fff transparent transparent;
+            left: auto;
+            right: 100%;
+        }
+    }
+    
+    /* Form and section styling */
+    .application-section {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        background-color: #fff;
+    }
+    
+    .application-section h4 {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .admin-form {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #8b1a1d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <!-- Application Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Expert Application: {{ application.user.username }}</h3>
+                        <span class="badge {% if application.status == 'pending' %}bg-primary{% elif application.status == 'pending_review' %}bg-info{% elif application.status == 'needs_info' %}bg-warning{% elif application.status == 'approved' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% endif %} fs-6">
+                            {{ application.status | replace('_', ' ') | title }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Application Information Column -->
+        <div class="col-lg-4">
+            <!-- Basic Information -->
+            <div class="application-section">
+                <h4>Basic Information</h4>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Username:</dt>
+                    <dd class="col-sm-8">{{ application.user.username }}</dd>
+                    
+                    <dt class="col-sm-4">Email:</dt>
+                    <dd class="col-sm-8">{{ application.email }}</dd>
+                    
+                    <dt class="col-sm-4">Member Since:</dt>
+                    <dd class="col-sm-8">{{ application.user.created_at.strftime('%Y-%m-%d') }}</dd>
+                    
+                    <dt class="col-sm-4">Applied On:</dt>
+                    <dd class="col-sm-8">{{ application.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                    
+                    <dt class="col-sm-4">Last Updated:</dt>
+                    <dd class="col-sm-8">{{ application.updated_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                </dl>
+            </div>
+            
+            <!-- Expertise Information -->
+            <div class="application-section">
+                <h4>Expertise Information</h4>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Institution:</dt>
+                    <dd class="col-sm-8">{{ application.institution or 'Not specified' }}</dd>
+                    
+                    <dt class="col-sm-4">Areas:</dt>
+                    <dd class="col-sm-8">{{ application.areas_of_expertise }}</dd>
+                </dl>
+                
+                <h5 class="mt-3">Bio:</h5>
+                <p>{{ application.bio }}</p>
+                
+                {% if application.resume_url %}
+                <div class="mt-3">
+                    <a href="{{ application.resume_url }}" target="_blank" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-text"></i> View Resume/CV
+                    </a>
+                </div>
+                {% else %}
+                <div class="mt-3">
+                    <span class="text-muted">No resume provided</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Admin Actions -->
+            {% if current_user.is_admin %}
+            <div class="application-section">
+                <h4>Admin Actions</h4>
+                
+                <div class="d-grid gap-2">
+                    {% if application.status == 'approved' or application.status == 'rejected' %}
+                        <button class="btn btn-success w-100 mb-2" disabled>Approve Application</button>
+                        <button class="btn btn-danger w-100 mb-2" disabled>Reject Application</button>
+                        {% if not application.resume_url %}
+                        <button class="btn btn-warning w-100 mb-2" disabled>Request Resume</button>
+                        {% endif %}
+                    {% elif application.status == 'pending_review' %}
+                    <form action="{{ url_for('admin.process_additional_info', application_id=application.id) }}" method="post">
+                        <input type="hidden" name="action" value="approve">
+                        <button type="submit" class="btn btn-success w-100 mb-2">Approve Application</button>
+                    </form>
+                    
+                    <form action="{{ url_for('admin.process_additional_info', application_id=application.id) }}" method="post">
+                        <input type="hidden" name="action" value="reject">
+                        <button type="submit" class="btn btn-danger w-100 mb-2">Reject Application</button>
+                    </form>
+                    {% else %}
+                    <form action="{{ url_for('admin.approve_expert', user_id=application.user.id) }}" method="post">
+                        <button type="submit" class="btn btn-success w-100 mb-2">Approve Application</button>
+                    </form>
+                    
+                    <form action="{{ url_for('admin.reject_expert', user_id=application.user.id) }}" method="post">
+                        <button type="submit" class="btn btn-danger w-100 mb-2">Reject Application</button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if not application.resume_url and application.status != 'approved' and application.status != 'rejected' %}
+                    <form action="{{ url_for('admin.request_resume', application_id=application.id) }}" method="post">
+                        <button type="submit" class="btn btn-warning w-100 mb-2">Request Resume</button>
+                    </form>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('admin.expert_applications') }}" class="btn btn-secondary w-100">Back to Applications</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Communication Column -->
+        <div class="col-lg-8">
+            <!-- Communication Timeline -->
+            <div class="application-section">
+                <h4>Communication History</h4>
+                
+                {% if current_user.is_admin and application.status != 'approved' and application.status != 'rejected' %}
+                <div class="admin-form mb-4">
+                    <h5>Request Additional Information</h5>
+                    <form action="{{ url_for('admin.request_additional_info', application_id=application.id) }}" method="post">
+                        <div class="mb-3">
+                            <label for="admin_notes" class="form-label">Admin Notes</label>
+                            <textarea class="form-control" id="admin_notes" name="admin_notes" rows="4" placeholder="Specify what additional information you need from the applicant...">{{ application.admin_notes or '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Request</button>
+                    </form>
+                </div>
+                {% elif current_user.is_admin and (application.status == 'approved' or application.status == 'rejected') %}
+                <div class="admin-form mb-4">
+                    <h5>Request Additional Information</h5>
+                    <div class="alert alert-secondary">
+                        <i class="bi bi-info-circle me-2"></i> Cannot request additional information for approved or rejected applications.
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if conversation_history %}
+                <div class="timeline">
+                    {% for entry in conversation_history %}
+                        <div class="timeline-container {{ entry.role }}">
+                            <div class="timeline-content">
+                                <div class="timeline-header">
+                                    <div class="d-flex align-items-center">
+                                        <div class="timeline-avatar {{ entry.role }}">
+                                            {{ entry.author[0].upper() }}
+                                        </div>
+                                        <div class="timeline-meta">
+                                            <div class="timeline-name">{{ entry.author }}</div>
+                                            <div class="timeline-timestamp">{{ entry.timestamp }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-message">{{ entry.message }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    No communication history available for this application.
+                </div>
+                {% endif %}
+                
+                {% if current_user.id == application.user_id and application.status == 'needs_info' %}
+                <div class="application-section mt-4">
+                    <h5>Submit Additional Information</h5>
+                    <form action="{{ url_for('expert.submit_additional_info') }}" method="post">
+                        <input type="hidden" name="application_id" value="{{ application.id }}">
+                        <div class="mb-3">
+                            <label for="additional_info" class="form-label">Your Response</label>
+                            <textarea class="form-control" id="additional_info" name="additional_info" rows="6" placeholder="Provide the requested information here..." required></textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Submit Information</button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Scroll to the bottom of the communication timeline if it exists
+        const timeline = document.querySelector('.timeline');
+        if (timeline) {
+            timeline.scrollTop = timeline.scrollHeight;
+        }
+    });
+</script>
+{% endblock %} 

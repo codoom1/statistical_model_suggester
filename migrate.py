@@ -1,38 +1,39 @@
-from app import create_app
-from models import db
+from flask_migrate import Migrate
+from app import create_app, db
 import os
-from sqlalchemy import inspect
+import subprocess
 
-def migrate():
-    """Recreate database tables"""
+def setup_migrations():
+    """Set up and run database migrations"""
     app = create_app()
     
-    # Get the database file path
-    db_path = os.path.join(os.path.dirname(__file__), 'users.db')
+    # Configure Flask-Migrate
+    migrate = Migrate(app, db)
     
-    # Remove existing database if it exists
-    if os.path.exists(db_path):
-        os.remove(db_path)
-        print(f"Removed existing database at {db_path}")
-    
-    # Create new database with updated schema
     with app.app_context():
-        # Drop all tables first to ensure clean slate
-        db.drop_all()
+        # Check if migrations directory exists
+        if not os.path.exists('migrations'):
+            print("Initializing migrations directory...")
+            result = subprocess.run(['flask', 'db', 'init'], check=True)
+            if result.returncode != 0:
+                print("Error initializing migrations")
+                return
         
-        # Create all tables with correct schema
-        db.create_all()
+        # Create a migration script
+        print("Creating migration script...")
+        result = subprocess.run(['flask', 'db', 'migrate', '-m', "Add resume_url and admin_notes to expert applications"], check=True)
+        if result.returncode != 0:
+            print("Error creating migration script")
+            return
         
-        # Verify tables were created
-        inspector = inspect(db.engine)
-        tables = inspector.get_table_names()
-        print(f"Created tables: {', '.join(tables)}")
+        # Apply the migration
+        print("Applying migration...")
+        result = subprocess.run(['flask', 'db', 'upgrade'], check=True)
+        if result.returncode != 0:
+            print("Error applying migration")
+            return
         
-        # Verify User table schema
-        columns = [col['name'] for col in inspector.get_columns('user')]
-        print(f"User table columns: {', '.join(columns)}")
-        
-        print("Created new database with updated schema")
+        print("Migration complete!")
 
-if __name__ == "__main__":
-    migrate() 
+if __name__ == '__main__':
+    setup_migrations() 

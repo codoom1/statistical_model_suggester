@@ -19,6 +19,16 @@ def send_email_async(app, msg):
             logger.info(f"Email sent successfully to {msg.recipients}")
         except Exception as e:
             logger.error(f"Failed to send email: {e}")
+            
+            # Try to provide more specific troubleshooting information
+            if "Authentication" in str(e) or "Username and Password not accepted" in str(e):
+                logger.error("Authentication error - check your MAIL_USERNAME and MAIL_PASSWORD")
+                logger.error("For Gmail, you need to use an App Password: https://myaccount.google.com/apppasswords")
+            elif "Application-specific password required" in str(e):
+                logger.error("Gmail requires an App Password. Generate one at: https://myaccount.google.com/apppasswords")
+            elif "SMTP" in str(e):
+                logger.error(f"SMTP server error - check your MAIL_SERVER ({app.config.get('MAIL_SERVER')}) and MAIL_PORT ({app.config.get('MAIL_PORT')})")
+            
             # Log the email content instead
             logger.info(f"Email would have been sent to: {msg.recipients}")
             logger.info(f"Subject: {msg.subject}")
@@ -46,16 +56,24 @@ def send_email(subject, recipient, html_body, text_body=None):
         logger.info(f"[DEV MODE] Body: {html_body}")
         return
     
-    # Otherwise, send the actual email
-    msg = Message(
-        subject=subject,
-        recipients=[recipient],
-        html=html_body,
-        body=text_body or "Please view this email in a HTML-compatible email client."
-    )
-    
-    # Send email in background thread to not block the request
-    Thread(target=send_email_async, args=(app, msg)).start()
+    try:
+        # Otherwise, send the actual email
+        msg = Message(
+            subject=subject,
+            recipients=[recipient],
+            html=html_body,
+            body=text_body or "Please view this email in a HTML-compatible email client."
+        )
+        
+        # Send email in background thread to not block the request
+        Thread(target=send_email_async, args=(app, msg)).start()
+        logger.info(f"Email queued for delivery to: {recipient}")
+    except Exception as e:
+        logger.error(f"Error preparing email for sending: {e}")
+        # Log the failure and the content
+        logger.info(f"Failed email would have been sent to: {recipient}")
+        logger.info(f"Subject: {subject}")
+        logger.info(f"Body: {html_body}")
 
 def send_expert_approved_email(user, email):
     """Send notification when expert application is approved

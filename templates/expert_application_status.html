@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Expert Application Status{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Expert Application Status</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Application Information</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-3">Status:</dt>
+                                    <dd class="col-sm-9">
+                                        <span class="badge {% if application.status == 'pending' %}bg-primary{% elif application.status == 'pending_review' %}bg-info{% elif application.status == 'needs_info' %}bg-warning{% elif application.status == 'approved' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% endif %}">
+                                            {{ application.status | replace('_', ' ') | title }}
+                                        </span>
+                                    </dd>
+                                    
+                                    <dt class="col-sm-3">Submitted On:</dt>
+                                    <dd class="col-sm-9">{{ application.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                                    
+                                    <dt class="col-sm-3">Last Updated:</dt>
+                                    <dd class="col-sm-9">{{ application.updated_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                                    
+                                    <dt class="col-sm-3">Email:</dt>
+                                    <dd class="col-sm-9">{{ application.email }}</dd>
+                                    
+                                    <dt class="col-sm-3">Institution:</dt>
+                                    <dd class="col-sm-9">{{ application.institution or 'Not specified' }}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Areas of Expertise</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <p>{{ application.areas_of_expertise }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Professional Bio</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <p>{{ application.bio }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Resume/CV</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                {% if application.resume_url %}
+                                <p>
+                                    <a href="{{ application.resume_url }}" target="_blank" class="btn btn-outline-primary">
+                                        <i class="bi bi-file-earmark-text"></i> View Uploaded Resume
+                                    </a>
+                                </p>
+                                {% else %}
+                                <p>
+                                    {% if application.status == 'needs_info' %}
+                                    <div class="alert alert-warning">
+                                        <i class="bi bi-exclamation-triangle"></i> The review committee has requested your resume/CV to continue the evaluation process.
+                                    </div>
+                                    {% endif %}
+                                </p>
+                                
+                                <form action="{{ url_for('expert.upload_resume') }}" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="application_id" value="{{ application.id }}">
+                                    <div class="mb-3">
+                                        <label for="resume" class="form-label">Upload Resume/CV (PDF, DOC, or DOCX)</label>
+                                        <input class="form-control" type="file" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                                        <div class="form-text">Upload your professional resume or CV to support your application.</div>
+                                    </div>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">Upload Resume</button>
+                                    </div>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if application.status == 'needs_info' and application.admin_notes %}
+                    <div class="mb-4">
+                        <h5>Additional Information Requested</h5>
+                        <div class="card bg-light border-warning">
+                            <div class="card-body">
+                                <div class="alert alert-warning mb-3">
+                                    <i class="bi bi-info-circle me-2"></i> The review committee has requested the following information:
+                                </div>
+                                <div class="mb-3">
+                                    <div class="border-start border-warning ps-3 py-2">
+                                        {{ application.admin_notes | nl2br }}
+                                    </div>
+                                </div>
+                                
+                                <form action="{{ url_for('expert.submit_additional_info') }}" method="post">
+                                    <input type="hidden" name="application_id" value="{{ application.id }}">
+                                    <div class="mb-3">
+                                        <label for="additional_info" class="form-label">Your Response</label>
+                                        <textarea class="form-control" id="additional_info" name="additional_info" rows="4" placeholder="Provide the requested information here..." required></textarea>
+                                    </div>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">Submit Additional Information</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if application.status == 'pending' or application.status == 'needs_info' %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Your application is currently under review. We will notify you by email once a decision has been made.
+                    </div>
+                    {% elif application.status == 'pending_review' %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Thank you for providing additional information. Your application is currently under review. We will notify you once a decision has been made.
+                    </div>
+                    {% elif application.status == 'approved' %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> Congratulations! Your expert application has been approved. You can now provide consultations and expert advice to users.
+                    </div>
+                    {% elif application.status == 'rejected' %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-x-circle"></i> We regret to inform you that your expert application has not been approved at this time. You can apply again after 3 months with updated information.
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{{ url_for('main.profile') }}" class="btn btn-secondary">Back to Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

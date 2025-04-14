@@ -8,6 +8,7 @@ flask-login==0.6.3
 flask-sqlalchemy==3.1.1
 flask-wtf==1.2.1
 flask-mail==0.9.1
+flask-migrate==4.1.0
 email-validator==2.1.0.post1
 numpy==1.26.4
 pandas==2.2.1
@@ -23,6 +24,7 @@ matplotlib==3.8.3
 scipy==1.12.0
 seaborn==0.13.1
 pillow==10.2.0
+itsdangerous==2.1.2
 # Required for rendering plots in web interface
 plotly==5.18.0
 # Required for Hugging Face models

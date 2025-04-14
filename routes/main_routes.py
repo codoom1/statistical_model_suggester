@@ -685,9 +685,9 @@ def history():
             # For logged-in users, redirect to their profile which shows their analyses
             return redirect(url_for('main.profile'))
         else:
-            # For anonymous users, use the legacy JSON file-based history
-            history_data = load_history()
-            return render_template('history.html', history=history_data)
+            # For guests, redirect to login with a message
+            flash('Please log in to view your analysis history.', 'info')
+            return redirect(url_for('auth.login', next=url_for('main.history')))
     except Exception as e:
         return render_template('error.html', error=str(e))
 
@@ -767,38 +767,14 @@ def download_interpretation(model_name):
 @main.route('/history/<int:index>')
 def view_history_result(index):
     """View a specific result from history"""
+    if not current_user.is_authenticated:
+        # For guests, redirect to login with a message
+        flash('Please log in to view analysis details.', 'info')
+        return redirect(url_for('auth.login', next=url_for('main.history')))
+        
     try:
-        history = load_history()
-        if 0 <= index < len(history):
-            entry = history[index]
-            
-            # Get model database from app config
-            MODEL_DATABASE = current_app.config.get('MODEL_DATABASE', {})
-            
-            # Verify the model exists in the database
-            recommended_model = entry['recommended_model']
-            if recommended_model not in MODEL_DATABASE:
-                # Use a fallback model if the original one doesn't exist
-                recommended_model = get_default_model(entry['analysis_goal'], entry['dependent_variable'])
-            
-            # Get variables_correlated or default to unknown
-            variables_correlated = entry.get('variables_correlated', 'unknown')
-            
-            return render_template('results.html',
-                                research_question=entry['research_question'],
-                                recommended_model=recommended_model,
-                                explanation=f"Historical analysis from {entry['timestamp']}",
-                                MODEL_DATABASE=MODEL_DATABASE,
-                                analysis_goal=entry['analysis_goal'],
-                                dependent_variable_type=entry['dependent_variable'],
-                                independent_variables=entry['independent_variables'],
-                                sample_size=entry['sample_size'],
-                                missing_data=entry['missing_data'],
-                                data_distribution=entry['data_distribution'],
-                                relationship_type=entry['relationship_type'],
-                                variables_correlated=variables_correlated)
-        else:
-            return render_template('error.html', error="History entry not found")
+        # For logged-in users, redirect to user's own analyses
+        return redirect(url_for('main.profile'))
     except Exception as e:
         return render_template('error.html', error=str(e))
 

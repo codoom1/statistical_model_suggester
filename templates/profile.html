@@ -58,10 +58,24 @@
                         
                         {% if not user.is_expert %}
                             <a href="{{ url_for('expert.apply_expert') }}" class="btn btn-outline-secondary">Apply to Become an Expert</a>
+                            
+                            {# Check if user has a pending application #}
+                            {% set has_pending_application = false %}
+                            {% for app in user.expert_applications %}
+                                {% if app.status in ['pending', 'needs_info'] and not has_pending_application %}
+                                    {% set has_pending_application = true %}
+                                    <a href="{{ url_for('expert.application_status') }}" class="btn btn-outline-info mt-2">
+                                        <i class="bi bi-clipboard-check"></i> View Application Status
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
                         {% endif %}
                         
                         {% if user.is_expert %}
                             <a href="{{ url_for('expert.experts_list') }}" class="btn btn-outline-secondary">View All Experts</a>
+                            <a href="{{ url_for('expert.my_profile') }}" class="btn btn-outline-success">
+                                <i class="bi bi-person-badge"></i> My Expert Profile
+                            </a>
                         {% endif %}
                     </div>
                 </form>
