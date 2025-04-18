@@ -20,7 +20,7 @@ def test_huggingface_api():
         return False
 
     # Get model from environment or use default
-    model = os.environ.get('HUGGINGFACE_MODEL', 'mistralai/Mistral-7B-Instruct-v0.2')
+    model = os.environ.get('HUGGINGFACE_MODEL', 'google/flan-t5-base')
     
     # Set up headers and API endpoint
     headers = {
@@ -32,12 +32,11 @@ def test_huggingface_api():
     
     # Simple test prompt
     payload = {
-        "inputs": "Hello, how are you today?",
+        "inputs": "What is 2 + 2?",
         "parameters": {
-            "max_new_tokens": 50,
+            "max_length": 50,
             "temperature": 0.7,
-            "top_p": 0.95,
-            "return_full_text": False
+            "top_p": 0.95
         }
     }
     
@@ -65,15 +64,14 @@ def test_huggingface_api():
             print(json.dumps(result, indent=2))
             
             # Extract generated text
-            if isinstance(result, list) and len(result) > 0:
-                if isinstance(result[0], dict) and "generated_text" in result[0]:
-                    generated_text = result[0]["generated_text"].strip()
-                    print(f"Generated text: {generated_text}")
-                    return True
-                elif isinstance(result[0], str):
-                    generated_text = result[0].strip()
-                    print(f"Generated text: {generated_text}")
-                    return True
+            if isinstance(result[0], dict) and "generated_text" in result[0]:
+                generated_text = result[0]["generated_text"].strip()
+                print(f"Generated text: {generated_text}")
+                return True
+            elif isinstance(result[0], str):
+                generated_text = result[0].strip()
+                print(f"Generated text: {generated_text}")
+                return True
             
             print("ERROR: Unexpected response format")
             return False
@@ -108,4 +106,4 @@ if __name__ == "__main__":
     if success:
         print("\n✅ TEST PASSED: Hugging Face API is working correctly!")
     else:
-        print("\n❌ TEST FAILED: There was an issue with the Hugging Face API connection") 
+        print("\n❌ TEST FAILED: There was an issue with the Hugging Face API connection")

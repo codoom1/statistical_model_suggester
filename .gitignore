@@ -31,36 +31,42 @@ env/
 *.swp
 *.swo
 
-# Environment variables
-.env
-.env.local
-.env.*.local
-.env.backup
-
 # Database
 *.db
-*.sqlite
 *.sqlite3
+instance/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+!.env.sample
 
 # Logs
 *.log
-logs/
 
-# OS
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
 # Application specific
-instance/
-*.pyc
-.coverage
-htmlcov/
-.pytest_cache/
-.mypy_cache/
-
-# Local development
-.webassets-cache
+/static/uploads/
+/static/diagnostic_plots/*
+!/static/diagnostic_plots/.gitkeep
+/static/r_results/*
+!/static/r_results/.gitkeep
 
 # Temporary files
-temp.json
-*.backup 
+*.tmp
+*.bak
+*.swp
+*~
+
+# Distribution / packaging
+*.tar.gz
+*.zip
