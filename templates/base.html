@@ -170,8 +170,8 @@
 
         .back-button {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 80px; /* Move up slightly to make space */
+            left: 20px;  /* Move to the left */
             z-index: 1000;
             background-color: #0d6efd;
             color: white;
@@ -223,6 +223,39 @@
             background-color: #6f42c1;
             border-color: #6f42c1;
         }
+
+        /* Scroll to Top Button - New */
+        #scrollToTopBtn {
+            display: none; /* Hidden by default */
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1010; /* Ensure it's above back button */
+            border: none;
+            outline: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 50%; /* Make it round */
+            font-size: 18px;
+            width: 50px;
+            height: 50px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #scrollToTopBtn:hover {
+            background-color: #0056b3;
+        }
+
+        #scrollToTopBtn.show {
+            display: block; /* Or flex/inline-flex if needed */
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -240,10 +273,15 @@
                             <i class="bi bi-house-door me-1"></i>Home
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/models' %}active{% endif %}" href="{{ url_for('main.models_list') }}">
-                            <i class="bi bi-database me-1"></i>Models
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint == 'main.models_in_group' %}active{% endif %}" href="#" id="navbarDropdownModels" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-diagram-3 me-1"></i>Models
                         </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownModels">
+                            {% for group_name in model_groups %}
+                            <li><a class="dropdown-item" href="{{ url_for('main.models_in_group', group_name=group_name) }}">{{ group_name }}</a></li>
+                            {% endfor %}
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/history' %}active{% endif %}" href="{{ url_for('main.history') }}">
@@ -365,5 +403,37 @@
     <a href="javascript:history.back()" class="back-button" title="Go back">
         <i class="bi bi-arrow-left"></i>
     </a>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTopBtn" title="Go to top">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+
+    <script>
+        // Scroll to Top Button Logic
+        var scrollToTopBtn = document.getElementById("scrollToTopBtn");
+
+        // When the user scrolls down 100px from the top of the document, show the button
+        window.onscroll = function() {scrollFunction()};
+
+        function scrollFunction() {
+            if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+                // Add the .show class if not already present
+                if (!scrollToTopBtn.classList.contains('show')) {
+                    scrollToTopBtn.classList.add('show');
+                }
+            } else {
+                // Remove the .show class if present
+                 if (scrollToTopBtn.classList.contains('show')) {
+                    scrollToTopBtn.classList.remove('show');
+                 }
+            }
+        }
+
+        // When the user clicks on the button, scroll to the top of the document smoothly
+        scrollToTopBtn.addEventListener('click', function(){
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        });
+    </script>
 </body>
 </html> 

@@ -8,12 +8,12 @@
         <div class="col-md-10">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Statistical Models</h4>
+                    <h4 class="mb-0">{{ group_name | replace('_', ' ') | title }}</h4>
                     <p class="mb-0">Click on a model to view detailed information</p>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        {% for model_name, model_info in models.items() %}
+                        {% for model_name, model_info in models %}
                         <div class="col-md-6 mb-4">
                             <a href="{{ url_for('main.model_details', model_name=model_name) }}" class="text-decoration-none">
                                 <div class="card h-100 shadow-sm">

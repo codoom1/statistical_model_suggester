@@ -5,11 +5,123 @@ from datetime import datetime
 import json
 import os
 import random
+from collections import OrderedDict
 
 main = Blueprint('main', __name__)
 
 # Path for history file (legacy support)
 HISTORY_FILE = 'history.json'
+
+# -----------------------------------------------------------------------------
+# MODEL GROUPING FOR NAVIGATION DROPDOWN
+# -----------------------------------------------------------------------------
+# Defines the categorization of models for the main navigation dropdown.
+# - Keys: The display name of the group (string).
+# - Values: A list of model name strings that belong to this group.
+#           These names MUST exactly match the keys in MODEL_DATABASE (model_database.json).
+# - OrderedDict: Used to ensure the groups appear in the dropdown in the defined order.
+# -----------------------------------------------------------------------------
+# Define Model Groups (Order matters for the dropdown)
+MODEL_GROUPS = OrderedDict([
+    ('Classical Statistical Tests', [
+        'T test',
+        'Chi-Square Test',
+        'Mann-Whitney U Test',
+        'Kruskal-Wallis Test',
+        'Analysis of Variance (ANOVA)',
+        'Analysis of Covariance (ANCOVA)',
+        'Repeated Measures ANOVA'
+        # Add other relevant test models here if they exist
+    ]),
+    ('Regression Models', [
+        'Linear Regression',
+        'Multiple Linear Regression',
+        'Logistic Regression',
+        'Multinomial Logistic Regression',
+        'Ordinal Regression',
+        'Poisson Regression',
+        'Ridge Regression',
+        'Lasso Regression',
+        'Elastic Net Regression',
+        'Quantile Regression',
+        'Stepwise Regression',
+        'Generalized Linear Model (GLM)',
+        'Generalized Additive Model (GAM)',
+        'Kernel Regression',
+        'Polynomial Regression',
+        'Bayesian Linear Regression', # Consider if Bayesian models get their own group
+        'Bayesian Quantile Regression' # Or are subtypes here
+    ]),
+    ('Time Series Models', [
+        'ARIMA',
+        'Exponential Smoothing',
+        'Prophet',
+        'Vector Autoregression (VAR)'
+        # Add other time series models
+    ]),
+    ('Multivariate Analysis', [
+        'Principal Component Analysis (PCA)',
+        'Factor Analysis',
+        'K-Means clustering',
+        'Discriminant Analysis',
+        'Canonical Correlation',
+        'Multidimensional Scaling',
+        'Multivariate Analysis of Covariance (MANCOVA)',
+        'Multivariate Analysis of Variance (MANOVA)',
+        'Analysis of Covariance (ANCOVA)',
+        'Analysis of Variance (ANOVA)'
+        # Add other multivariate models (K-Means, DBSCAN etc. could fit here or ML)
+    ]),
+    ('Machine Learning Models', [
+        'Decision Trees',
+        'Random Forest',
+        'Gradient Boosting',
+        'XGBoost',
+        'LightGBM',
+        'CatBoost',
+        'Support Vector Machines (SVM)',
+        'K-Nearest Neighbors (KNN)',
+        'Naive Bayes classifier',
+        'Neural Networks',
+        'K-Means',
+        'Hierarchical Clustering',
+        'DBSCAN'
+        # Add other ML models
+    ]),
+    ('Mixed and Hierarchical Models', [
+        'Mixed Effects Model',
+        'Hierarchical Linear Model',
+        'Multilevel Model',
+        'Bayesian Hierarchical Regression'
+    ]),
+    ('Structural Models', [
+        'Structural Equation Modeling (SEM)',
+        'Path Analysis'
+    ]),
+    ('Survival Models', [
+        'Cox Proportional Hazards Model',
+        'Kaplan-Meier Curve'
+    ]),
+    ('Bayesian Models', [
+        'Bayesian Linear Regression',
+        'Bayesian Hierarchical Regression',
+        'Bayesian Model Averaging',
+        'Bayesian Quantile Regression',
+        'Bayesian Additive Regression Trees (BART)'
+     ]),
+     #(optional) 'Deep Learning Models', [
+      #  'Convolutional Neural Networks (CNN)',
+      #  'Recurrent Neural Networks (RNN)',
+      #  'Long Short-Term Memory (LSTM)',
+      #  'Gated Recurrent Units (GRU)',
+      #  'Transformer Models'
+     #])
+])
+
+# Make model groups available to all templates
+@main.context_processor
+def inject_model_groups():
+    return dict(model_groups=MODEL_GROUPS)
 
 def load_history():
     """Load analysis history from JSON file (legacy support)"""
@@ -691,13 +803,33 @@ def history():
     except Exception as e:
         return render_template('error.html', error=str(e))
 
-@main.route('/models')
-def models_list():
-    """Display list of all available models"""
-    try:
-        return render_template('models_list.html', models=current_app.config.get('MODEL_DATABASE', []))
-    except Exception as e:
-        return render_template('error.html', error=str(e))
+@main.route('/models/<group_name>')
+def models_in_group(group_name):
+    """Display models belonging to a specific group."""
+    model_database = current_app.config.get('MODEL_DATABASE', {})
+
+    # Validate group_name
+    if group_name not in MODEL_GROUPS:
+        flash(f"Invalid model group: {group_name}", "danger")
+        return redirect(url_for('main.home')) # Or show a 404 page
+
+    # Get model names for the requested group
+    group_model_names = MODEL_GROUPS[group_name]
+
+    # Filter the main database to get details for models in this group
+    models_in_group_details = {
+        name: details for name, details in model_database.items()
+        if name in group_model_names
+    }
+
+    # Sort models within the group alphabetically
+    sorted_models = sorted(models_in_group_details.items())
+
+    return render_template(
+        'models_list.html',
+        models=sorted_models,
+        group_name=group_name # Pass group name for the title
+    )
 
 @main.route('/model/<model_name>')
 def model_details(model_name):

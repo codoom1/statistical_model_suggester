@@ -12,102 +12,11 @@ import logging
 import requests
 import json
 
+# Import the new AI service and error class
+from utils.ai_service import call_huggingface_api, is_ai_enabled, HuggingFaceError
+
 # Configure logging
 logger = logging.getLogger(__name__)
-
-# Set up Hugging Face client
-def get_huggingface_client():
-    """Get the Hugging Face client with proper API key configuration"""
-    api_key = os.environ.get('HUGGINGFACE_API_KEY')
-    logger.info(f"HUGGINGFACE_API_KEY found: {'Yes' if api_key else 'No'}")
-    if not api_key:
-        logger.warning("No HUGGINGFACE_API_KEY environment variable set. Will use public model access.")
-        api_key = ""  # Empty string for anonymous access
-    
-    # We're using a function to return a callable with API key in closure
-    # This makes it easier to use throughout the code
-    def hf_client(prompt, model="mistralai/Mistral-7B-Instruct-v0.2"):
-        """
-        Call Hugging Face Inference API
-        
-        Args:
-            prompt (str): The prompt to send to the model
-            model (str): The model to use from Hugging Face
-            
-        Returns:
-            str: The generated text response
-        """
-        headers = {
-            "Authorization": f"Bearer {api_key}" if api_key else None,
-            "Content-Type": "application/json"
-        }
-        
-        # Remove None values from headers
-        headers = {k: v for k, v in headers.items() if v is not None}
-        
-        api_url = f"https://api-inference.huggingface.co/models/{model}"
-        
-        logger.info(f"Making request to Hugging Face API: {api_url}")
-        logger.info(f"Using model: {model}")
-        logger.info(f"Headers set: {list(headers.keys())}")
-        
-        payload = {
-            "inputs": prompt,
-            "parameters": {
-                "max_new_tokens": 250,  # Increased for more comprehensive responses
-                "temperature": 0.7,
-                "top_p": 0.95,
-                "return_full_text": False
-            }
-        }
-        
-        try:
-            response = requests.post(api_url, headers=headers, json=payload, timeout=30)  # Added timeout
-            
-            if response.status_code != 200:
-                logger.error(f"Hugging Face API error: {response.status_code} - {response.text}")
-                
-                # Special handling for credit limit errors
-                if response.status_code == 402:
-                    logger.critical("URGENT: Hugging Face API credits exceeded - Administrator action required")
-                    return "Error: API credit limit exceeded. Please contact the administrator to upgrade the subscription or wait until the next billing cycle."
-                
-                return f"Error: Received status code {response.status_code} from API."
-                
-            # Try to parse JSON response
-            try:
-                result = response.json()
-                logger.info(f"Got response from Hugging Face API: {type(result)}")
-                
-                # Extract the generated text
-                if isinstance(result, list) and len(result) > 0:
-                    if isinstance(result[0], dict) and "generated_text" in result[0]:
-                        return result[0]["generated_text"].strip()
-                    elif isinstance(result[0], str):
-                        return result[0].strip()
-                
-                # If we get here, we have an unexpected format
-                logger.warning(f"Unexpected response format from Hugging Face API: {result}")
-                return "I'm sorry, I received an unexpected response format from the AI service."
-                
-            except ValueError as e:
-                logger.error(f"JSON parsing error: {e}")
-                logger.error(f"Response content: {response.text}")
-                return "I'm sorry, I received an invalid response from the AI service."
-            
-        except requests.exceptions.Timeout:
-            logger.error("Hugging Face API request timed out")
-            return "I'm sorry, the request to the AI service timed out. Please try again later."
-            
-        except requests.exceptions.ConnectionError:
-            logger.error("Connection error when calling Hugging Face API")
-            return "I'm sorry, there was a connection error when calling the AI service."
-            
-        except Exception as e:
-            logger.error(f"Error calling Hugging Face API: {e}")
-            return f"I'm sorry, an error occurred: {str(e)}"
-    
-    return hf_client
 
 # Research domains and their associated intent keywords
 RESEARCH_DOMAINS = {
@@ -990,59 +899,59 @@ def enhance_questions_with_ai(questions, research_topic, research_description, d
         list: Enhanced questions with more relevant content
     """
     # If AI is disabled or not available, return original questions
-    if not use_ai:
+    if not use_ai or not is_ai_enabled():
         return questions
     
-    # Get Hugging Face client
-    client = get_huggingface_client()
-    if client is None:
-        # Fallback to simple rule-based enhancement
-        return fallback_question_enhancement(questions, research_topic, research_description, domain, intent)
-    
-    try:
-        enhanced_questions = []
-        
-        # Loop through each question
-        for question in questions:
-            enhanced_question = question.copy()
+    # Get the default model from config in case API call fails early
+    _, configured_model = get_huggingface_config()
+
+    enhanced_questions = []
+    api_error_occurred = False # Track if any API call failed
+
+    # Loop through each question
+    for question in questions:
+        enhanced_question = question.copy()
+        enhanced_question['ai_enhanced'] = False # Initialize as not enhanced
+
+        # Only enhance open-ended questions, which benefit most from AI processing
+        if question.get('type') == 'Open-Ended':
+            # Prepare AI prompt
+            prompt = f"""<s>[INST] You are an expert questionnaire designer. Improve the following open-ended question to make it more specific, relevant, and insightful for the research context described below. Keep the question concise and clear.
+
+Research Topic: {research_topic}
+Research Description: {research_description}
+Domain: {domain or 'Not specified'}
+Intent: {intent or 'Not specified'}
+
+Original Question: {question.get('text', '')}
+
+Provide only the text of the enhanced question with no explanations or additional comments. [/INST]"""
             
-            # Only enhance open-ended questions, which benefit most from AI processing
-            if question.get('type') == 'Open-Ended':
-                # Prepare AI prompt
-                prompt = f"""<s>[INST] You are an expert questionnaire designer. Improve the following open-ended question to make it more specific, relevant, and insightful for the research context described below. Keep the question concise and clear.
+            try:
+                # Call the centralized AI service
+                enhanced_text = call_huggingface_api(prompt)
                 
-                Research Topic: {research_topic}
-                Research Description: {research_description}
-                Domain: {domain or 'Not specified'}
-                Intent: {intent or 'Not specified'}
-                
-                Original Question: {question.get('text', '')}
-                
-                Provide only the text of the enhanced question with no explanations or additional comments. [/INST]"""
-                
-                try:
-                    # Call Hugging Face API
-                    enhanced_text = client(prompt)
-                    
-                    # Use AI-enhanced text if it's valid, otherwise keep original
-                    if enhanced_text and len(enhanced_text) > 10:  # Basic validation
-                        enhanced_question['text'] = enhanced_text
-                        enhanced_question['ai_enhanced'] = True
-                        logger.info(f"AI enhanced question: Original: '{question.get('text')}' -> Enhanced: '{enhanced_text}'")
-                    else:
-                        logger.warning(f"AI returned invalid response for question: '{question.get('text')}'")
-                
-                except Exception as e:
-                    logger.error(f"Error calling Hugging Face API: {e}")
-                    # Keep original question on API error
-            
-            enhanced_questions.append(enhanced_question)
-        
-        return enhanced_questions
-        
-    except Exception as e:
-        logger.error(f"Error in AI question enhancement: {e}")
+                # Use AI-enhanced text if it's valid, otherwise keep original
+                if enhanced_text and len(enhanced_text) > 10:  # Basic validation
+                    enhanced_question['text'] = enhanced_text
+                    enhanced_question['ai_enhanced'] = True
+                    logger.info(f"AI enhanced question: Original: '{question.get('text')}' -> Enhanced: '{enhanced_text}'")
+                else:
+                    logger.warning(f"AI returned invalid or short response for question: '{question.get('text')}', Response: '{enhanced_text}'")
+
+            except (HuggingFaceError, ValueError) as e:
+                logger.error(f"Error enhancing question '{question.get('text')}' with AI: {e}")
+                api_error_occurred = True # Mark that an error happened
+                # Keep original question on API error
+
+        enhanced_questions.append(enhanced_question)
+
+    # If any API error occurred during the process, fallback for all questions might be safer
+    if api_error_occurred:
+        logger.warning("Fallback to rule-based enhancement due to API errors during enhancement.")
         return fallback_question_enhancement(questions, research_topic, research_description, domain, intent)
+
+    return enhanced_questions
 
 def fallback_question_enhancement(questions, research_topic, research_description, domain=None, intent=None):
     """
@@ -1149,12 +1058,10 @@ def generate_ai_questions(research_topic, research_description, domain=None, int
     Returns:
         list: AI-generated questions
     """
-    # Get Hugging Face client
-    client = get_huggingface_client()
-    if client is None:
-        logger.warning("No Hugging Face client available for AI question generation")
+    if not is_ai_enabled():
+        logger.warning("AI question generation skipped: AI features are disabled.")
         return []
-    
+
     ai_questions = []
     
     # Define question types to generate
@@ -1188,13 +1095,12 @@ def generate_ai_questions(research_topic, research_description, domain=None, int
         # Generate different question types
         for q_type in question_types:
             # Prepare AI prompt for generating a question
-            prompt = f"""<s>[INST] You are an expert questionnaire designer. Create {num_questions} high-quality {q_type['name']} questions for a research questionnaire based on the following context.
+            prompt = f"""<s>[INST] You are an expert questionnaire designer. Based on the research context below, generate {num_questions} distinct {q_type['name']} questions relevant to the topic{category_desc}.
 
 Research Topic: {research_topic}
 Research Description: {research_description}
 Domain: {domain or 'Not specified'}
 Intent: {intent or 'Not specified'}
-Question Category: {category_desc if category_desc else 'General questions about the topic'}
 
 For each question:
 1. The question should be specific, clear, and directly relevant to the research topic
@@ -1209,8 +1115,8 @@ Return ONLY the questions with no explanations or additional text, one question 
 [/INST]"""
             
             try:
-                # Call Hugging Face API
-                generated_text = client(prompt)
+                # Call the centralized AI service
+                generated_text = call_huggingface_api(prompt)
                 
                 if generated_text and len(generated_text) > 10:
                     # Process the generated questions
@@ -1240,7 +1146,7 @@ Return ONLY the questions with no explanations or additional text, one question 
                 
                 logger.info(f"Generated {len(ai_questions)} AI questions of type: {q_type['name']}")
                 
-            except Exception as e:
+            except (HuggingFaceError, ValueError) as e:
                 logger.error(f"Error generating {q_type['name']} questions: {e}")
     
     except Exception as e:

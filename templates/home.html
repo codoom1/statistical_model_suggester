@@ -207,7 +207,7 @@ body {
                     <a href="{{ url_for('main.analysis_form') }}" class="btn btn-light btn-lg">
                         <i class="bi bi-graph-up me-2"></i>Start Your Analysis
                     </a>
-                    <a href="{{ url_for('main.models_list') }}" class="btn btn-outline-light btn-lg">
+                    <a href="{{ url_for('main.models_in_group', group_name='Regression Models') }}" class="btn btn-outline-light btn-lg">
                         <i class="bi bi-database me-2"></i>Browse Models
                     </a>
                 </div>
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="bi bi-book consultation-icon" style="color: #6f42c1;"></i>
                     <h3 class="consultation-title">Educational Resources</h3>
                     <p class="consultation-description">Access comprehensive documentation, tutorials, and examples for each statistical model in our database.</p>
-                    <a href="{{ url_for('main.models_list') }}" class="btn btn-purple">Learn More</a>
+                    <a href="{{ url_for('main.models_in_group', group_name='Regression Models') }}" class="btn btn-purple">Learn More</a>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
