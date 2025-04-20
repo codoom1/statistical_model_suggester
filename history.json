@@ -972,5 +972,133 @@
     "relationship_type": "linear",
     "variables_correlated": "yes",
     "recommended_model": "Elastic Net Regression"
+  },
+  {
+    "timestamp": "2025-04-19 21:38:48",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "variables_correlated": "unknown",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-19 21:39:05",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "variables_correlated": "unknown",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-19 22:43:11",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "variables_correlated": "unknown",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-19 22:44:37",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "variables_correlated": "unknown",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-19 22:44:56",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "cluster",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Cluster Analysis"
+  },
+  {
+    "timestamp": "2025-04-19 22:51:49",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "cluster",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "Cluster Analysis"
+  },
+  {
+    "timestamp": "2025-04-19 23:02:52",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "cluster",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "K-Means clustering"
+  },
+  {
+    "timestamp": "2025-04-19 23:04:06",
+    "research_question": "How can customers be grouped based on their purchasing behaviors and demographics?",
+    "analysis_goal": "cluster",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "200",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "K-Means clustering"
   }
 ]

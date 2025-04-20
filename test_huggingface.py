@@ -20,7 +20,7 @@ def test_huggingface_api():
         return False
 
     # Get model from environment or use default
-    model = os.environ.get('HUGGINGFACE_MODEL', 'google/flan-t5-base')
+    model = os.environ.get('HUGGINGFACE_MODEL', 'mistralai/Mistral-7B-Instruct-v0.3')
     
     # Set up headers and API endpoint
     headers = {

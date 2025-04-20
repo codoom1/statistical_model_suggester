@@ -527,7 +527,7 @@
         }
       }
     },
-    "Principal Component Analysis": {
+    "Principal Component Analysis (PCA)": {
       "description": "A dimensionality reduction technique that transforms correlated variables into uncorrelated principal components while retaining most of the variability in the data.",
       "use_cases": [
       "dimensionality reduction",
@@ -590,7 +590,7 @@
       }
     }
   },
-  "T_test": {
+  "T test": {
     "description": "A statistical test used to determine if there is a significant difference between the means of two groups.",
     "use_cases": [
       "hypothesis testing",
@@ -651,7 +651,7 @@
       }
     }
   },
-  "Chi_Square_Test": {
+  "Chi-Square Test": {
     "description": "A statistical test used to determine if there is a significant association between categorical variables.",
     "use_cases": [
       "goodness-of-fit",
@@ -713,7 +713,7 @@
       }
     }
   },
-  "Mann_Whitney_U_Test": {
+  "Mann-Whitney U Test": {
     "description": "A non-parametric test used to determine whether two independent samples come from the same distribution.",
     "use_cases": [
       "hypothesis testing",
@@ -774,7 +774,7 @@
       }
     }
   },
-  "Kruskal_Wallis_Test": {
+  "Kruskal-Wallis Test": {
     "description": "Non-parametric method for testing whether samples originate from the same distribution.",
     "use_cases": [
       "hypothesis testing",
@@ -835,7 +835,7 @@
       }
     }
   },
-  "Kernel_Regression": {
+  "Kernel Regression": {
     "description": "Non-parametric technique to estimate the conditional expectation of a random variable.",
     "use_cases": [
       "non-linear prediction",
@@ -1289,7 +1289,7 @@
       }
     }
   },
-  "Cluster Analysis": {
+  "K-Means clustering": {
     "description": "An unsupervised machine learning technique that identifies natural groupings or clusters within data based on similarity measures. It organizes observations into homogeneous groups where members are similar to each other but different from those in other clusters, making it valuable for market segmentation, pattern recognition, image processing, and identifying distinct subgroups in heterogeneous populations.",
     "use_cases": [
       "clustering",
@@ -1407,7 +1407,7 @@
       }
     }
   },
-  "Discriminant_Analysis": {
+  "Discriminant Analysis": {
     "description": "A classification method that finds the combination of features that best separates different classes. It creates discriminant functions that maximize the differences between predefined groups while minimizing within-group variance, making it effective for classification tasks, feature selection, understanding group differences, and dimension reduction while preserving class separability.",
     "use_cases": [
       "classification",
@@ -1663,7 +1663,7 @@
       }
     }
   },
-  "Cox Proportional Hazards": {
+  "Cox Proportional Hazards Model": {
     "description": "A semi-parametric regression model for analyzing survival data that estimates the effect of covariates on the hazard rate while making minimal assumptions about the baseline hazard function. It provides hazard ratios for covariates while accounting for censored data.",
     "use_cases": [
       "survival analysis",
@@ -1729,7 +1729,7 @@
       }
     }
   },
-  "Kaplan Meier": {
+  "Kaplan-Meier Curve": {
     "description": "A non-parametric statistic used to estimate the survival function from time-to-event data, accounting for right-censored observations. It provides survival probabilities over time without assuming an underlying distribution, making it ideal for descriptive survival analysis.",
     "use_cases": [
       "survival curve estimation",
@@ -2229,7 +2229,7 @@
         }
       }
     },
-    "Support Vector Machines": {
+    "Support Vector Machines (SVM)": {
       "description": "A supervised learning algorithm that finds the optimal hyperplane to separate classes in feature space, potentially after mapping data to higher dimensions using kernel functions. SVMs maximize the margin between different classes while handling nonlinear relationships through kernel tricks, making them effective for classification (SVC), regression (SVR), outlier detection, and applications with clear margin of separation in high-dimensional spaces. They are particularly robust against overfitting in high-dimensional spaces and effective when the number of dimensions exceeds the number of samples.",
     "use_cases": [
       "classification",
@@ -2305,7 +2305,7 @@
       }
     }
   },
-  "K-Nearest Neighbors": {
+  "K-Nearest Neighbors (KNN)": {
     "description": "A simple yet effective non-parametric method that classifies or predicts based on the majority class or average value of the k nearest data points. KNN makes no assumptions about data distribution and adapts to complex decision boundaries through local approximations, making it useful for classification, regression, recommendation systems, and as a baseline for more complex models when prior knowledge about data structure is limited. The algorithm's performance heavily depends on distance metric selection and feature scaling.",
     "use_cases": [
       "classification",
@@ -2383,7 +2383,7 @@
       }
     }
   },
-  "Naive Bayes": {
+  "Naive Bayes classifier": {
     "description": "A probabilistic classifier based on Bayes' theorem with an assumption of conditional independence between features. It calculates the probability of each class given the feature values and selects the most likely class, making it computationally efficient for high-dimensional data. Naive Bayes is particularly effective for text classification (spam detection, sentiment analysis), medical diagnosis, and recommendation systems when features can be reasonably assumed to be independent, despite often violating this assumption in practice while still performing well.",
     "use_cases": [
       "text classification",
@@ -2614,7 +2614,7 @@
       }
     }
   },
-  "Structural Equation Modeling": {
+  "Structural Equation Modeling (SEM)": {
     "description": "A comprehensive multivariate statistical framework that combines factor analysis, path analysis, and regression to test complex networks of relationships between observed and latent variables. SEM accounts for measurement error, handles multiple dependent variables simultaneously, and evaluates both direct and indirect effects. It is widely used in psychology, social sciences, marketing, and health sciences for theory testing, scale validation, and causal inference.",
     "use_cases": [
       "causal modeling",
@@ -2850,7 +2850,7 @@
       }
     }
   },
-  "Bayesian Additive Regression Trees": {
+  "Bayesian Additive Regression Trees (BART)": {
     "description": "Nonparametric Bayesian ensemble method that combines many weak learners (decision trees) through a sum-of-trees model. Automatically handles nonlinearities, interactions, and variable selection. Provides uncertainty estimates via posterior distributions over tree structures and leaf parameters.",
     "use_cases": [
       "nonlinear_relationships",
