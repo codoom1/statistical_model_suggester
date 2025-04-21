@@ -13,7 +13,7 @@ import requests
 import json
 
 # Import the new AI service and error class
-from utils.ai_service import call_huggingface_api, is_ai_enabled, HuggingFaceError
+from utils.ai_service import call_huggingface_api, is_ai_enabled, HuggingFaceError, get_huggingface_config
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -548,7 +548,7 @@ INTENT_QUESTIONS = {
     'prescriptive': PRESCRIPTIVE_QUESTIONS
 }
 
-def analyze_research_description(description, topic, use_ai=False):
+def analyze_research_description(description, topic, use_ai=False, num_ai_questions=3):
     """
     Analyze the research description to identify relevant categories
     and generate appropriate questions.
@@ -557,6 +557,7 @@ def analyze_research_description(description, topic, use_ai=False):
         description (str): The research description provided by the user
         topic (str): The main research topic
         use_ai (bool): Whether to use AI enhancement for questions
+        num_ai_questions (int): Number of AI questions to generate per type/section
         
     Returns:
         list: Structured sections and questions for the questionnaire
@@ -626,7 +627,8 @@ def analyze_research_description(description, topic, use_ai=False):
                 description, 
                 primary_domain, 
                 primary_intent,
-                use_ai=use_ai
+                use_ai=use_ai,
+                num_ai_questions=num_ai_questions
             )
             sections.append(section)
     
@@ -670,7 +672,7 @@ def analyze_research_description(description, topic, use_ai=False):
                 primary_domain,
                 primary_intent,
                 category=None,  # General category
-                num_questions=3  # More questions for general section
+                num_questions=num_ai_questions # Use the parameter
             )
             
             # Combine enhanced template questions with AI-generated ones
@@ -697,7 +699,7 @@ def analyze_research_description(description, topic, use_ai=False):
             primary_domain,
             primary_intent,
             category=None,
-            num_questions=4  # Generate several questions of each type
+            num_questions=num_ai_questions + 1 # Generate slightly more for the dedicated section
         )
         
         if comprehensive_ai_questions:
@@ -710,7 +712,7 @@ def analyze_research_description(description, topic, use_ai=False):
     
     return sections
 
-def generate_section_for_category(category, topic, description, domain=None, intent=None, use_ai=False):
+def generate_section_for_category(category, topic, description, domain=None, intent=None, use_ai=False, num_ai_questions=3):
     """
     Generate a questionnaire section for a specific category.
     
@@ -721,6 +723,7 @@ def generate_section_for_category(category, topic, description, domain=None, int
         domain (str, optional): The primary research domain
         intent (str, optional): The primary research intent
         use_ai (bool): Whether to use AI enhancement
+        num_ai_questions (int): Number of AI questions to generate for this section
         
     Returns:
         dict: Section with title, description and questions
@@ -800,7 +803,7 @@ def generate_section_for_category(category, topic, description, domain=None, int
             domain,
             intent,
             category,
-            num_questions=2
+            num_questions=num_ai_questions
         )
         
         if ai_questions:
@@ -1154,7 +1157,7 @@ Return ONLY the questions with no explanations or additional text, one question 
     
     return ai_questions
 
-def generate_questionnaire(research_description, research_topic=None, target_audience=None, questionnaire_purpose=None, use_ai_enhancement=False):
+def generate_questionnaire(research_description, research_topic=None, target_audience=None, questionnaire_purpose=None, use_ai_enhancement=False, num_ai_questions=3):
     """
     Generate a questionnaire structure based on a research description.
     
@@ -1164,6 +1167,7 @@ def generate_questionnaire(research_description, research_topic=None, target_aud
         target_audience (str, optional): Target audience for the questionnaire
         questionnaire_purpose (str, optional): Purpose of the questionnaire
         use_ai_enhancement (bool, optional): Whether to use AI to enhance question relevance
+        num_ai_questions (int): Number of AI questions to generate per type/section
         
     Returns:
         list: A list of questionnaire sections with questions
@@ -1175,7 +1179,7 @@ def generate_questionnaire(research_description, research_topic=None, target_aud
     intent_analysis = analyze_intent(research_description)
     
     # Generate sections and questions based on the research description
-    sections = analyze_research_description(research_description, research_topic, use_ai=use_ai_enhancement)
+    sections = analyze_research_description(research_description, research_topic, use_ai=use_ai_enhancement, num_ai_questions=num_ai_questions)
     
     # If AI enhancement is requested but API fails, use our dummy enhancement for demo purposes
     if use_ai_enhancement:

@@ -39,13 +39,24 @@ def design():
         # Check if AI enhancement was requested
         use_ai = request.form.get('use_ai_enhancement', 'off') == 'on'
         
+        # Get the number of AI questions per type (default to 3 if not provided or not using AI)
+        num_ai_questions = 3 # Default value
+        if use_ai:
+            try:
+                num_ai_questions = int(request.form.get('num_ai_questions', 3))
+                # Clamp the value between 1 and 5
+                num_ai_questions = max(1, min(num_ai_questions, 5))
+            except ValueError:
+                num_ai_questions = 3 # Fallback to default if conversion fails
+        
         # Generate questionnaire based on research description
         questionnaire = generate_questionnaire(
             research_description,
             research_topic,
             target_audience,
             questionnaire_purpose,
-            use_ai_enhancement=use_ai
+            use_ai_enhancement=use_ai,
+            num_ai_questions=num_ai_questions
         )
         
         # Store questionnaire data in session

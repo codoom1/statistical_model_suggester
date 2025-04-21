@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Search Results for "{{ query }}"</h4>
+        </div>
+        <div class="card-body">
+          {% if results %}
+            <div class="row">
+              {% for model_name, model_info in results %}
+              <div class="col-md-6 mb-4">
+                <a href="{{ url_for('main.model_details', model_name=model_name) }}" class="text-decoration-none">
+                  <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                      <h5 class="card-title">{{ model_name }}</h5>
+                      <p class="card-text">{{ model_info.description }}</p>
+                      <div class="mt-2">
+                        {% for goal in model_info.analysis_goals %}
+                        <span class="badge bg-primary me-1">{{ goal }}</span>
+                        {% endfor %}
+                        {% for var_type in model_info.dependent_variable %}
+                        <span class="badge bg-secondary me-1">{{ var_type }}</span>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="mt-3">No models found matching "{{ query }}".</p>
+          {% endif %}
+          <div class="mt-3">
+            <a href="{{ url_for('main.home') }}" class="btn btn-primary"><i class="bi bi-house-door me-1"></i>Back to Home</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

@@ -50,6 +50,31 @@
         margin-bottom: 0;
         padding-left: 1.25rem;
     }
+    
+    /* Progress Overlay Styles */
+    #progress-overlay {
+        display: none; /* Hidden by default */
+        position: fixed; /* Cover the whole page */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+        z-index: 1050; /* High z-index */
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    #progress-overlay.active {
+        display: flex; /* Show the overlay */
+    }
+
+    #progress-overlay .progress {
+        width: 60%; /* Width of the progress bar */
+        margin-bottom: 1rem;
+    }
 </style>
 {% endblock %}
 
@@ -60,6 +85,19 @@
             <div class="design-header">
                 <h2>Design Your Questionnaire</h2>
                 <p class="text-muted">Enter your research details to automatically generate a customized questionnaire</p>
+            </div>
+            
+            <!-- Sample Buttons -->
+            <div class="text-center mb-4">
+                <button type="button" id="academic-sample-btn" class="btn btn-outline-secondary btn-sm me-2">
+                    <i class="bi bi-clipboard-data me-1"></i>Try Academic Sample
+                </button>
+                <button type="button" id="market-research-sample-btn" class="btn btn-outline-secondary btn-sm me-2">
+                    <i class="bi bi-clipboard-data me-1"></i>Try Market Research Sample
+                </button>
+                <div class="form-text mt-2">
+                    <i class="bi bi-info-circle me-1"></i>Click to auto-fill the form with different sample scenarios
+                </div>
             </div>
             
             <div class="design-form">
@@ -111,7 +149,7 @@
                         <h4 class="mb-3">Advanced Options</h4>
                         
                         <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" id="use_ai_enhancement" name="use_ai_enhancement">
+                            <input class="form-check-input" type="checkbox" id="use_ai_enhancement" name="use_ai_enhancement" checked onchange="toggleAiOptions()">
                             <label class="form-check-label" for="use_ai_enhancement">
                                 <strong>Enable AI-Powered Question Generation</strong>
                             </label>
@@ -124,6 +162,13 @@
                                     <li>Add an "Additional Insights" section with unique AI-crafted questions</li>
                                 </ul>
                             </div>
+                        </div>
+                        
+                        <!-- AI Options - Hidden by default -->
+                        <div id="ai-options-section" class="mb-4">
+                            <label for="num_ai_questions" class="form-label">Number of AI Questions per Section/Type (1-5): <span id="num-ai-questions-value">3</span></label>
+                            <input type="range" class="form-range" id="num_ai_questions" name="num_ai_questions" min="1" max="5" step="1" value="3">
+                            <div class="form-text">Controls how many questions the AI attempts to generate for each relevant category and type (Open-Ended, MC, Rating).</div>
                         </div>
                         
                         <!-- Note about editing after generation -->
@@ -153,4 +198,87 @@
         </div>
     </div>
 </div>
+
+<!-- Progress Bar Overlay -->
+<div id="progress-overlay">
+    <div class="spinner-border text-primary mb-3" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <h4>Generating Questionnaire...</h4>
+    <p>This may take a few moments, especially with AI enhancements.</p>
+    <div class="progress">
+        <div class="progress-bar progress-bar-striped progress-bar-animated bg-purple" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    const academicSample = {
+        research_topic: "Impact of Remote Work on Employee Well-being",
+        target_audience: "Full-time employees who transitioned to remote work in the last 2 years",
+        questionnaire_purpose: "Academic study for understanding psychological effects",
+        research_description: "This study investigates the relationship between remote work arrangements and employee mental well-being, specifically focusing on stress levels, work-life balance, social isolation, and job satisfaction. We aim to identify key factors (e.g., home office setup, communication frequency, manager support) that moderate this relationship. The goal is to provide evidence-based recommendations for organizations supporting remote employees.",
+        use_ai_enhancement: true
+    };
+
+    const marketResearchSample = {
+        research_topic: "Consumer Preferences for Eco-Friendly Packaging",
+        target_audience: "Primary grocery shoppers aged 25-55",
+        questionnaire_purpose: "Market research to inform packaging design",
+        research_description: "We are researching consumer attitudes towards sustainable packaging options for everyday grocery products. We want to understand preferences for different materials (e.g., recycled cardboard, compostable plastic, glass), willingness to pay a premium, perceived environmental impact, and barriers to choosing eco-friendly options. Key aspects include identifying preferred aesthetics, information desired on packaging, and reactions to different branding messages related to sustainability.",
+        use_ai_enhancement: true
+    };
+
+    function fillQuestionnaireForm(sampleData) {
+        document.getElementById('research_topic').value = sampleData.research_topic || '';
+        document.getElementById('target_audience').value = sampleData.target_audience || '';
+        document.getElementById('questionnaire_purpose').value = sampleData.questionnaire_purpose || '';
+        document.getElementById('research_description').value = sampleData.research_description || '';
+        document.getElementById('use_ai_enhancement').checked = sampleData.use_ai_enhancement || false;
+    }
+
+    document.getElementById('academic-sample-btn').addEventListener('click', function() {
+        fillQuestionnaireForm(academicSample);
+    });
+
+    document.getElementById('market-research-sample-btn').addEventListener('click', function() {
+        fillQuestionnaireForm(marketResearchSample);
+    });
+
+    // --- AI Options Toggle and Slider Logic ---
+    const aiCheckbox = document.getElementById('use_ai_enhancement');
+    const aiOptionsSection = document.getElementById('ai-options-section');
+    const numSlider = document.getElementById('num_ai_questions');
+    const numValueSpan = document.getElementById('num-ai-questions-value');
+
+    function toggleAiOptions() {
+        if (aiCheckbox.checked) {
+            aiOptionsSection.style.display = 'block';
+        } else {
+            aiOptionsSection.style.display = 'none';
+        }
+    }
+
+    // Update slider value display
+    numSlider.oninput = function() {
+        numValueSpan.textContent = this.value;
+    }
+
+    // Initial call to set visibility based on default checkbox state
+    toggleAiOptions();
+
+    // --- Progress Bar Logic ---
+    const questionnaireForm = document.querySelector('form[action*="questionnaire.design"]');
+    const progressOverlay = document.getElementById('progress-overlay');
+
+    if (questionnaireForm && progressOverlay) {
+        questionnaireForm.addEventListener('submit', function() {
+            // Show the progress overlay when the form is submitted
+            progressOverlay.classList.add('active');
+            // Optionally disable the submit button to prevent double submission
+            this.querySelector('button[type="submit"]').disabled = true;
+        });
+    }
+</script>
+{% endblock %}
 {% endblock %} 

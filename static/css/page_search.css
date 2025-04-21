@@ -1,0 +1,11 @@
+/* Page search highlight classes */
+.page-search-highlight {
+    background-color: yellow;
+    padding: 2px;
+    border-radius: 5px;
+}
+
+/* Current match highlight */
+.page-search-highlight.current-match {
+    background-color: orange !important;
+} 

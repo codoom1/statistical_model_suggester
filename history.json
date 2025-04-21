@@ -1100,5 +1100,52 @@
     "relationship_type": "non_linear",
     "variables_correlated": "unknown",
     "recommended_model": "K-Means clustering"
+  },
+  {
+    "timestamp": "2025-04-19 23:43:21",
+    "research_question": "How do multiple correlated predictors influence housing prices in different markets?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "120",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "yes",
+    "recommended_model": "Elastic Net Regression"
+  },
+  {
+    "timestamp": "2025-04-21 16:23:28",
+    "research_question": "How do classroom characteristics and student factors affect test scores over multiple time points?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "150",
+    "missing_data": "moderate",
+    "data_distribution": "normal",
+    "relationship_type": "hierarchical",
+    "variables_correlated": "unknown",
+    "recommended_model": "Mixed Effects Model"
+  },
+  {
+    "timestamp": "2025-04-21 16:31:17",
+    "research_question": "What factors affect student test scores and by how much?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous",
+      "categorical"
+    ],
+    "sample_size": "80",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
   }
 ]

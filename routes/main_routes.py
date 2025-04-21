@@ -910,6 +910,23 @@ def view_history_result(index):
     except Exception as e:
         return render_template('error.html', error=str(e))
 
+@main.route('/search')
+def search():
+    """Search models by name or description."""
+    query = request.args.get('q', '').strip()
+    model_db = current_app.config.get('MODEL_DATABASE', {})
+    results = []
+    if query:
+        for name, info in model_db.items():
+            if query.lower() in name.lower() or query.lower() in info.get('description', '').lower():
+                results.append((name, info))
+    return render_template('search_results.html', query=query, results=results)
+
+@main.route('/contact')
+def contact():
+    """Render the Contact Us page with support email and social links."""
+    return render_template('contact.html')
+
 @main.route('/analysis-form')
 def analysis_form():
     return render_template('analysis_form.html')
