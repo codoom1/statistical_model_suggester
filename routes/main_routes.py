@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
 from flask_login import login_required, current_user
 from models import db, User, Analysis, get_model_details
 from datetime import datetime
@@ -912,15 +912,63 @@ def view_history_result(index):
 
 @main.route('/search')
 def search():
-    """Search models by name or description."""
+    """Search models and static pages by keywords across metadata fields."""
     query = request.args.get('q', '').strip()
     model_db = current_app.config.get('MODEL_DATABASE', {})
     results = []
     if query:
+        q_lower = query.lower()
         for name, info in model_db.items():
-            if query.lower() in name.lower() or query.lower() in info.get('description', '').lower():
+            found = False
+            # Check model name
+            if q_lower in name.lower():
+                found = True
+            # Check description
+            elif q_lower in info.get('description', '').lower():
+                found = True
+            else:
+                # Check list/string fields
+                for field in ['analysis_goals','dependent_variable','relationship_type','missing_data','data_distribution']:
+                    vals = info.get(field)
+                    if isinstance(vals, list):
+                        if any(q_lower in str(v).lower() for v in vals):
+                            found = True
+                            break
+                    elif isinstance(vals, str) and q_lower in vals.lower():
+                        found = True
+                        break
+                # Check independent variables
+                if not found and isinstance(info.get('independent_variables'), list):
+                    if any(q_lower in str(v).lower() for v in info.get('independent_variables')):
+                        found = True
+            if found:
                 results.append((name, info))
-    return render_template('search_results.html', query=query, results=results)
+    # Search static pages by name
+    pages = [
+        {'name': 'Home', 'url': url_for('main.home')},
+        {'name': 'Analysis Form', 'url': url_for('main.analysis_form')},
+        {'name': 'History', 'url': url_for('main.history')},
+        {'name': 'Experts', 'url': url_for('expert.experts_list')},
+        {'name': 'Questionnaire Designer', 'url': url_for('questionnaire.index')},
+        {'name': 'Contact Us', 'url': url_for('main.contact')}
+    ]
+    page_results = [p for p in pages if query.lower() in p['name'].lower()]
+    return render_template('search_results.html', query=query, results=results, page_results=page_results)
+
+@main.route('/api/search')
+def search_api():
+    """Return JSON list of model names matching query for autocomplete."""
+    q = request.args.get('q', '').strip()
+    model_db = current_app.config.get('MODEL_DATABASE', {})
+    suggestions = []
+    if q:
+        for name, info in model_db.items():
+            if q.lower() in name.lower():
+                suggestions.append({
+                    'name': name,
+                    'url': url_for('main.model_details', model_name=name)
+                })
+    return jsonify(suggestions)
 
 @main.route('/contact')
 def contact():

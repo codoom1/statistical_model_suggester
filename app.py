@@ -129,6 +129,12 @@ def create_app():
     app.register_blueprint(questionnaire_bp, url_prefix='/questionnaire')
     app.register_blueprint(chatbot_bp, url_prefix='/chatbot')
 
+    # Make model_groups available globally to all templates
+    @app.context_processor
+    def inject_model_groups_global():
+        from routes.main_routes import MODEL_GROUPS
+        return dict(model_groups=MODEL_GROUPS)
+
     # Add Jinja2 custom filters
     @app.template_filter('nl2br')
     def nl2br_filter(s):

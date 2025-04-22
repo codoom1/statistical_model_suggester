@@ -53,8 +53,11 @@ def expert_profile(expert_id):
 @expert_required
 def consultations():
     """View consultations for the current expert"""
-    consultations = Consultation.query.filter_by(expert_id=current_user.id).all()
-    return render_template('expert/consultations.html', consultations=consultations)
+    # Consultations the expert is providing
+    expert_consultations = Consultation.query.filter_by(expert_id=current_user.id).all()
+    # Consultations the user has requested
+    requested_consultations = Consultation.query.filter_by(requester_id=current_user.id).all()
+    return render_template('my_consultations.html', expert_consultations=expert_consultations, requested_consultations=requested_consultations)
 
 @expert.route('/consultation/<int:consultation_id>')
 @login_required
@@ -67,8 +70,18 @@ def view_consultation(consultation_id):
     if consultation.expert_id != current_user.id:
         flash('You are not authorized to view this consultation.', 'danger')
         return redirect(url_for('expert.consultations'))
-        
-    return render_template('expert/view_consultation.html', consultation=consultation)
+    
+    # Use shared view_consultation template
+    return render_template('view_consultation.html', consultation=consultation)
+
+# Admin view for any consultation details
+@expert.route('/admin/consultation/<int:consultation_id>')
+@login_required
+@admin_required
+def admin_view_consultation(consultation_id):
+    """Allow admin to view all consultation details"""
+    consultation = Consultation.query.get_or_404(consultation_id)
+    return render_template('view_consultation.html', consultation=consultation)
 
 @expert.route('/apply-expert', methods=['GET', 'POST'])
 @login_required

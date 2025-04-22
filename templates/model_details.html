@@ -1,356 +1,330 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ model_name }} - Model Details</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/page_search.css') }}">
-    <style>
-        .model-card { margin-bottom: 20px; }
-        .implementation-tab { padding: 15px; }
-        .resource-link { margin-bottom: 10px; }
-        /* Basic nav styling for search bar */
-        .search-nav {
-            background-color: #8b1a1d;
-            padding: 10px 0;
-            margin-bottom: 20px;
-        }
-        .search-nav .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .search-nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .search-nav a:hover {
-            text-decoration: underline;
-        }
-        #page-search-form {
-            display: flex;
-            align-items: center;
-        }
-        #page-search-input {
-            max-width: 200px;
-        }
-    </style>
-</head>
-<body>
-    <!-- Simple navigation/search bar -->
-    <div class="search-nav">
-        <div class="container">
-            <a href="{{ url_for('main.home') }}">
-                <i class="bi bi-house-door me-1"></i>Return to Home
-            </a>
-            
-            <!-- Page Search Form -->
-            <form id="page-search-form" class="d-flex align-items-center" onsubmit="return pageSearch();">
-                <input id="page-search-input" class="form-control form-control-sm me-2" type="search" placeholder="Search page..." aria-label="Search this page">
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-light" type="button" id="pageSearchDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Search Options & Controls">
-                        <i class="bi bi-search"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end p-2 shadow" aria-labelledby="pageSearchDropdown" style="min-width: 280px;">
-                        <li class="mb-2">
-                            <button class="btn btn-sm btn-primary w-100" type="submit">Search Now</button>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li class="d-flex justify-content-around align-items-center mb-2">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="case-sensitive-check" title="Case sensitive">
-                                <label class="form-check-label small" for="case-sensitive-check">Case Sensitive (Aa)</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="regex-check" title="Use regex">
-                                <label class="form-check-label small" for="regex-check">Use Regex (.*)</label>
-                            </div>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li class="d-flex justify-content-between align-items-center">
-                            <span class="small me-2">Found: <span id="match-count" class="badge bg-secondary">0</span></span>
-                            <div>
-                                <button id="prev-match" type="button" class="btn btn-sm btn-outline-secondary me-1" title="Previous match"><i class="bi bi-chevron-up"></i></button>
-                                <button id="next-match" type="button" class="btn btn-sm btn-outline-secondary" title="Next match"><i class="bi bi-chevron-down"></i></button>
-                            </div>
-                        </li>
-                    </ul>
+{% extends "base.html" %}
+
+{% block title %}{{ model_name }} - Model Details{% endblock %}
+
+{% block extra_css %}
+<style>
+    .model-card { margin-bottom: 20px; }
+    .implementation-tab { padding: 15px; }
+    .resource-link { margin-bottom: 10px; }
+    /* Basic nav styling for search bar */
+    .search-nav {
+        background-color: #8b1a1d;
+        padding: 10px 0;
+        margin-bottom: 20px;
+    }
+    .search-nav .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .search-nav a {
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .search-nav a:hover {
+        text-decoration: underline;
+    }
+    #page-search-form {
+        display: flex;
+        align-items: center;
+    }
+    #page-search-input {
+        max-width: 200px;
+    }
+
+    /* Style implementation tabs to stand out */
+    .nav-tabs .nav-link {
+        background-color: white;
+        border: 1px solid #0e7dec;
+        color: white;
+        margin-right: 0.25rem;
+        border-top-left-radius: .25rem;
+        border-top-right-radius: .25rem;
+    }
+    .nav-tabs .nav-link.active {
+        background-color: #ffffff;
+        border-color: #dee2e6 #dee2e6 #ffffff;
+        color: #1a5d9f;
+    }
+    .tab-content .implementation-tab {
+        background-color: #ffffff;
+        border: 1px solid #dee2e6;
+        border-top: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{{ model_name }}</h4>
                 </div>
-            </form>
-        </div>
-    </div>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">{{ model_name }}</h4>
+                <div class="card-body">
+                    <!-- Model Overview -->
+                    <div class="mb-4">
+                        <h5>Description</h5>
+                        <p>{{ model_details.description }}</p>
                     </div>
-                    <div class="card-body">
-                        <!-- Model Overview -->
-                        <div class="mb-4">
-                            <h5>Description</h5>
-                            <p>{{ model_details.description }}</p>
-                        </div>
 
-                        <!-- Use Cases and Requirements -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="card h-100">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">Use Cases</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <ul class="list-unstyled">
-                                            {% for use_case in model_details.use_cases %}
-                                            <li><i class="bi bi-check-circle text-success"></i> {{ use_case }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
+                    <!-- Use Cases and Requirements -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Use Cases</h5>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card h-100">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">Requirements</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <ul class="list-unstyled">
-                                            <li><strong>Sample Size:</strong> {{ model_details.sample_size | join(', ') }}</li>
-                                            <li><strong>Missing Data:</strong> {{ model_details.missing_data | join(', ') }}</li>
-                                            <li><strong>Data Distribution:</strong> {{ model_details.data_distribution | join(', ') }}</li>
-                                            <li><strong>Relationship Type:</strong> {{ model_details.relationship_type | join(', ') }}</li>
-                                        </ul>
-                                    </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled">
+                                        {% for use_case in model_details.use_cases %}
+                                        <li><i class="bi bi-check-circle text-success"></i> {{ use_case }}</li>
+                                        {% endfor %}
+                                    </ul>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Variable Types -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">Variable Types</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h6>Dependent Variables</h6>
-                                        <ul>
-                                            {% for var_type in model_details.dependent_variable %}
-                                            <li>{{ var_type }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6>Independent Variables</h6>
-                                        <ul>
-                                            {% for var_type in model_details.independent_variables %}
-                                            <li>{{ var_type }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Requirements</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled">
+                                        <li><strong>Sample Size:</strong> {{ model_details.sample_size | join(', ') }}</li>
+                                        <li><strong>Missing Data:</strong> {{ model_details.missing_data | join(', ') }}</li>
+                                        <li><strong>Data Distribution:</strong> {{ model_details.data_distribution | join(', ') }}</li>
+                                        <li><strong>Relationship Type:</strong> {{ model_details.relationship_type | join(', ') }}</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Implementation -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">Implementation</h5>
-                            </div>
-                            <div class="card-body">
-                                <ul class="nav nav-tabs" id="implementationTabs" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link active" id="python-tab" data-bs-toggle="tab" data-bs-target="#python" type="button" role="tab">Python</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="r-tab" data-bs-toggle="tab" data-bs-target="#r" type="button" role="tab">R</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="spss-tab" data-bs-toggle="tab" data-bs-target="#spss" type="button" role="tab">SPSS</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="sas-tab" data-bs-toggle="tab" data-bs-target="#sas" type="button" role="tab">SAS</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="stata-tab" data-bs-toggle="tab" data-bs-target="#stata" type="button" role="tab">Stata</button>
-                                    </li>
-                                </ul>
-                                <div class="tab-content mt-3" id="implementationTabContent">
-                                    <div class="tab-pane fade show active implementation-tab" id="python" role="tabpanel">
-                                        <pre><code>{{ model_details.implementation.python.code }}</code></pre>
-                                        <a href="{{ model_details.implementation.python.documentation }}" target="_blank" class="btn btn-sm btn-outline-primary">Documentation</a>
-                                    </div>
-                                    <div class="tab-pane fade implementation-tab" id="r" role="tabpanel">
-                                        <pre><code>{{ model_details.implementation.r.code }}</code></pre>
-                                        <a href="{{ model_details.implementation.r.documentation }}" target="_blank" class="btn btn-sm btn-outline-primary">Documentation</a>
-                                    </div>
-                                    <div class="tab-pane fade implementation-tab" id="spss" role="tabpanel">
-                                        <pre><code>{{ model_details.implementation.spss.code }}</code></pre>
-                                        <a href="{{ model_details.implementation.spss.documentation }}" target="_blank" class="btn btn-sm btn-outline-primary">Documentation</a>
-                                    </div>
-                                    <div class="tab-pane fade implementation-tab" id="sas" role="tabpanel">
-                                        <pre><code>{{ model_details.implementation.sas.code }}</code></pre>
-                                        <a href="{{ model_details.implementation.sas.documentation }}" target="_blank" class="btn btn-sm btn-outline-primary">Documentation</a>
-                                    </div>
-                                    <div class="tab-pane fade implementation-tab" id="stata" role="tabpanel">
-                                        <pre><code>{{ model_details.implementation.stata.code }}</code></pre>
-                                        <a href="{{ model_details.implementation.stata.documentation }}" target="_blank" class="btn btn-sm btn-outline-primary">Documentation</a>
-                                    </div>
+                    <!-- Variable Types -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Variable Types</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Dependent Variables</h6>
+                                    <ul>
+                                        {% for var_type in model_details.dependent_variable %}
+                                        <li>{{ var_type }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Independent Variables</h6>
+                                    <ul>
+                                        {% for var_type in model_details.independent_variables %}
+                                        <li>{{ var_type }}</li>
+                                        {% endfor %}
+                                    </ul>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Synthetic Data Example -->
-                        {% if model_details.synthetic_data %}
-                        <div class="card mb-4" id="synthetic-data">
-                            <div class="card-header">
-                                <h5 class="mb-0">Synthetic Data Example</h5>
+                    <!-- Implementation -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Implementation</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="nav nav-tabs" id="implementationTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="python-tab" data-bs-toggle="tab" data-bs-target="#python" type="button" role="tab">Python</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="r-tab" data-bs-toggle="tab" data-bs-target="#r" type="button" role="tab">R</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="spss-tab" data-bs-toggle="tab" data-bs-target="#spss" type="button" role="tab">SPSS</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="sas-tab" data-bs-toggle="tab" data-bs-target="#sas" type="button" role="tab">SAS</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="stata-tab" data-bs-toggle="tab" data-bs-target="#stata" type="button" role="tab">Stata</button>
+                                </li>
+                            </ul>
+                            <div class="tab-content mt-3" id="implementationTabContent">
+                                <div class="tab-pane fade show active implementation-tab" id="python" role="tabpanel">
+                                    <pre><code>{{ model_details.implementation.python.code }}</code></pre>
+                                    <a href="{{ model_details.implementation.python.documentation }}" target="_blank" class="btn btn-sm btn-outline-primary">Documentation</a>
+                                </div>
+                                <div class="tab-pane fade implementation-tab" id="r" role="tabpanel">
+                                    <pre><code>{{ model_details.implementation.r.code }}</code></pre>
+                                    <a href="{{ model_details.implementation.r.documentation }}" target="_blank" class="btn btn-sm btn-outline-primary">Documentation</a>
+                                </div>
+                                <div class="tab-pane fade implementation-tab" id="spss" role="tabpanel">
+                                    <pre><code>{{ model_details.implementation.spss.code }}</code></pre>
+                                    <a href="{{ model_details.implementation.spss.documentation }}" target="_blank" class="btn btn-sm btn-outline-primary">Documentation</a>
+                                </div>
+                                <div class="tab-pane fade implementation-tab" id="sas" role="tabpanel">
+                                    <pre><code>{{ model_details.implementation.sas.code }}</code></pre>
+                                    <a href="{{ model_details.implementation.sas.documentation }}" target="_blank" class="btn btn-sm btn-outline-primary">Documentation</a>
+                                </div>
+                                <div class="tab-pane fade implementation-tab" id="stata" role="tabpanel">
+                                    <pre><code>{{ model_details.implementation.stata.code }}</code></pre>
+                                    <a href="{{ model_details.implementation.stata.documentation }}" target="_blank" class="btn btn-sm btn-outline-primary">Documentation</a>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <p>{{ model_details.synthetic_data.description }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Synthetic Data Example -->
+                    {% if model_details.synthetic_data %}
+                    <div class="card mb-4" id="synthetic-data">
+                        <div class="card-header">
+                            <h5 class="mb-0">Synthetic Data Example</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ model_details.synthetic_data.description }}</p>
+                            
+                            <ul class="nav nav-tabs mb-3" id="syntheticDataTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="code-tab" data-bs-toggle="tab" data-bs-target="#code" type="button" role="tab">R Code</button>
+                                </li>
+                                {% if model_details.synthetic_data.results %}
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab">Analysis Results</button>
+                                </li>
+                                {% endif %}
+                            </ul>
+                            
+                            <div class="tab-content" id="syntheticDataTabContent">
+                                <!-- R Code Tab -->
+                                <div class="tab-pane fade show active" id="code" role="tabpanel">
+                                    <h6>R Code for Data Generation and Analysis</h6>
+                                    <pre class="bg-light p-3" style="overflow-x: auto;"><code>{{ model_details.synthetic_data.r_code }}</code></pre>
+                                    <div class="alert alert-info mt-3">
+                                        <i class="bi bi-info-circle-fill me-2"></i>
+                                        <small>Copy this code into your R environment to generate synthetic data and perform analysis with this model.</small>
+                                    </div>
+                                </div>
                                 
-                                <ul class="nav nav-tabs mb-3" id="syntheticDataTabs" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link active" id="code-tab" data-bs-toggle="tab" data-bs-target="#code" type="button" role="tab">R Code</button>
-                                    </li>
-                                    {% if model_details.synthetic_data.results %}
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab">Analysis Results</button>
-                                    </li>
-                                    {% endif %}
-                                </ul>
-                                
-                                <div class="tab-content" id="syntheticDataTabContent">
-                                    <!-- R Code Tab -->
-                                    <div class="tab-pane fade show active" id="code" role="tabpanel">
-                                        <h6>R Code for Data Generation and Analysis</h6>
-                                        <pre class="bg-light p-3" style="overflow-x: auto;"><code>{{ model_details.synthetic_data.r_code }}</code></pre>
-                                        <div class="alert alert-info mt-3">
-                                            <i class="bi bi-info-circle-fill me-2"></i>
-                                            <small>Copy this code into your R environment to generate synthetic data and perform analysis with this model.</small>
+                                <!-- Results Tab -->
+                                {% if model_details.synthetic_data.results %}
+                                <div class="tab-pane fade" id="results" role="tabpanel">
+                                    <h6 class="mb-3">Expected Analysis Results</h6>
+                                    
+                                    <!-- Text Output -->
+                                    <div class="card mb-3">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0">Console Output</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <pre class="bg-dark text-white p-3" style="overflow-x: auto; font-size: 0.85rem;"><code>{{ model_details.synthetic_data.results.text_output }}</code></pre>
                                         </div>
                                     </div>
                                     
-                                    <!-- Results Tab -->
-                                    {% if model_details.synthetic_data.results %}
-                                    <div class="tab-pane fade" id="results" role="tabpanel">
-                                        <h6 class="mb-3">Expected Analysis Results</h6>
-                                        
-                                        <!-- Text Output -->
-                                        <div class="card mb-3">
-                                            <div class="card-header bg-light">
-                                                <h6 class="mb-0">Console Output</h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <pre class="bg-dark text-white p-3" style="overflow-x: auto; font-size: 0.85rem;"><code>{{ model_details.synthetic_data.results.text_output }}</code></pre>
-                                            </div>
+                                    <!-- Plot Output -->
+                                    {% if model_details.synthetic_data.results.plots %}
+                                    <div class="card">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0">Visualizations</h6>
                                         </div>
-                                        
-                                        <!-- Plot Output -->
-                                        {% if model_details.synthetic_data.results.plots %}
-                                        <div class="card">
-                                            <div class="card-header bg-light">
-                                                <h6 class="mb-0">Visualizations</h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="row">
-                                                    {% for plot_data in model_details.synthetic_data.results.plots %}
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="card">
-                                                            <div class="card-body text-center">
-                                                                <img src="data:image/png;base64,{{ plot_data }}" alt="Plot {{ loop.index }}" class="img-fluid">
-                                                            </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                {% for plot_data in model_details.synthetic_data.results.plots %}
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="card">
+                                                        <div class="card-body text-center">
+                                                            <img src="data:image/png;base64,{{ plot_data }}" alt="Plot {{ loop.index }}" class="img-fluid">
                                                         </div>
                                                     </div>
-                                                    {% endfor %}
                                                 </div>
+                                                {% endfor %}
                                             </div>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        <div class="alert alert-info mt-3">
-                                            <i class="bi bi-info-circle-fill me-2"></i>
-                                            <small>These results are from running the R code on synthetic data. Your actual results may vary depending on your data.</small>
                                         </div>
                                     </div>
                                     {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <!-- Interpretation Guide -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0">Interpretation Guide</h5>
-                            </div>
-                            <div class="card-body">
-                                <p>Need help interpreting the results of your {{ model_name }} analysis? Our comprehensive interpretation guide explains:</p>
-                                <ul>
-                                    <li>How to read and understand model outputs</li>
-                                    <li>Interpreting coefficients and effect sizes correctly</li>
-                                    <li>Understanding diagnostic plots and visualizations</li>
-                                    <li>Common pitfalls and how to avoid them</li>
-                                    <li>Making valid conclusions from your analysis</li>
-                                </ul>
-                                <div class="d-flex justify-content-center mt-3">
-                                    <a href="{{ url_for('main.model_interpretation', model_name=model_name) }}" class="btn btn-success me-2">
-                                        <i class="bi bi-book"></i> View Interpretation Guide
-                                    </a>
-                                    <a href="{{ url_for('main.download_interpretation', model_name=model_name) }}" class="btn btn-outline-success">
-                                        <i class="bi bi-download"></i> Download Guide
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Additional Resources -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">Additional Resources</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h6>Tutorials and Guides</h6>
-                                        <div class="resource-link">
-                                            <a href="https://www.statmethods.net/" target="_blank" class="btn btn-outline-primary btn-sm">Quick-R Statistical Methods</a>
-                                        </div>
-                                        <div class="resource-link">
-                                            <a href="https://scikit-learn.org/stable/tutorial/index.html" target="_blank" class="btn btn-outline-primary btn-sm">Scikit-learn Tutorials</a>
-                                        </div>
-                                        <div class="resource-link">
-                                            <a href="https://stats.idre.ucla.edu/" target="_blank" class="btn btn-outline-primary btn-sm">UCLA Statistical Methods</a>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6>Academic Papers and References</h6>
-                                        <div class="resource-link">
-                                            <a href="https://scholar.google.com/" target="_blank" class="btn btn-outline-secondary btn-sm">Find Research Papers</a>
-                                        </div>
-                                        <div class="resource-link">
-                                            <a href="https://arxiv.org/list/stat.ME/recent" target="_blank" class="btn btn-outline-secondary btn-sm">Latest Statistical Methods</a>
-                                        </div>
+                                    
+                                    <div class="alert alert-info mt-3">
+                                        <i class="bi bi-info-circle-fill me-2"></i>
+                                        <small>These results are from running the R code on synthetic data. Your actual results may vary depending on your data.</small>
                                     </div>
                                 </div>
+                                {% endif %}
                             </div>
                         </div>
+                    </div>
+                    {% endif %}
 
-                        <div class="text-center mt-4">
-                            <a href="/" class="btn btn-primary">Back to Home</a>
-                            <a href="/models" class="btn btn-secondary">View All Models</a>
+                    <!-- Interpretation Guide -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Interpretation Guide</h5>
                         </div>
+                        <div class="card-body">
+                            <p>Need help interpreting the results of your {{ model_name }} analysis? Our comprehensive interpretation guide explains:</p>
+                            <ul>
+                                <li>How to read and understand model outputs</li>
+                                <li>Interpreting coefficients and effect sizes correctly</li>
+                                <li>Understanding diagnostic plots and visualizations</li>
+                                <li>Common pitfalls and how to avoid them</li>
+                                <li>Making valid conclusions from your analysis</li>
+                            </ul>
+                            <div class="d-flex justify-content-center mt-3">
+                                <a href="{{ url_for('main.model_interpretation', model_name=model_name) }}" class="btn btn-success me-2">
+                                    <i class="bi bi-book"></i> View Interpretation Guide
+                                </a>
+                                <a href="{{ url_for('main.download_interpretation', model_name=model_name) }}" class="btn btn-outline-success">
+                                    <i class="bi bi-download"></i> Download Guide
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Resources -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Additional Resources</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Tutorials and Guides</h6>
+                                    <div class="resource-link">
+                                        <a href="https://www.statmethods.net/" target="_blank" class="btn btn-outline-primary btn-sm">Quick-R Statistical Methods</a>
+                                    </div>
+                                    <div class="resource-link">
+                                        <a href="https://scikit-learn.org/stable/tutorial/index.html" target="_blank" class="btn btn-outline-primary btn-sm">Scikit-learn Tutorials</a>
+                                    </div>
+                                    <div class="resource-link">
+                                        <a href="https://stats.idre.ucla.edu/" target="_blank" class="btn btn-outline-primary btn-sm">UCLA Statistical Methods</a>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Academic Papers and References</h6>
+                                    <div class="resource-link">
+                                        <a href="https://scholar.google.com/" target="_blank" class="btn btn-outline-secondary btn-sm">Find Research Papers</a>
+                                    </div>
+                                    <div class="resource-link">
+                                        <a href="https://arxiv.org/list/stat.ME/recent" target="_blank" class="btn btn-outline-secondary btn-sm">Latest Statistical Methods</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="/" class="btn btn-primary">Back to Home</a>
+                        <a href="/models" class="btn btn-secondary">View All Models</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/page_search.js') }}"></script>
-</body>
-</html> 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/page_search.js') }}"></script>
+{% endblock %} 

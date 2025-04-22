@@ -142,6 +142,15 @@
         /* Style fixes for the profile page */
         .avatar-circle {
             background-color: #007bff !important;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            color: white !important;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Restore original styles for the model cards */
@@ -256,6 +265,39 @@
             opacity: 1;
             visibility: visible;
         }
+
+        /* Nested dropdown for Explore > Models */
+        .dropdown-submenu {
+            position: relative;
+        }
+        .dropdown-submenu .dropdown-menu {
+            top: 0;
+            left: 100%;
+            margin-left: .1rem;
+            display: none;
+        }
+        .dropdown-submenu:hover > .dropdown-menu {
+            display: block;
+        }
+
+        /* Coursera-style pill-shaped search bar */
+        .navbar .input-group .form-control {
+            border: none;
+            padding: 0.5rem 1rem;
+        }
+        .navbar .input-group .btn {
+            border: none;
+            padding: 0.5rem 1rem;
+            background-color: #ffffff;
+            color: #333;
+        }
+        .navbar .input-group .form-control:focus {
+            box-shadow: none;
+        }
+        /* Make the search icon blue */
+        .navbar .input-group .btn i {
+            color: #007bff;
+        }
     </style>
     
     <!-- Page Search CSS -->
@@ -267,7 +309,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.home') }}">StatSnapp</a>
+            <a class="navbar-brand fw-bold" href="{{ url_for('main.home') }}">StatSnapp</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -279,72 +321,52 @@
                         </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.endpoint == 'main.models_in_group' %}active{% endif %}" href="#" id="navbarDropdownModels" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-diagram-3 me-1"></i>Models
+                        <a class="nav-link dropdown-toggle" href="#" id="exploreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Explore
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownModels">
-                            {% for group_name in model_groups %}
-                            <li><a class="dropdown-item" href="{{ url_for('main.models_in_group', group_name=group_name) }}">{{ group_name }}</a></li>
-                            {% endfor %}
+                        <ul class="dropdown-menu" aria-labelledby="exploreDropdown">
+                            <li class="dropdown-submenu">
+                                <a class="dropdown-item dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Models</a>
+                                <ul class="dropdown-menu">
+                                    {% for group_name in model_groups %}
+                                    <li><a class="dropdown-item" href="{{ url_for('main.models_in_group', group_name=group_name) }}">{{ group_name }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.history') }}">History</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('expert.experts_list') }}">Experts</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('questionnaire.index') }}">Questionnaire Designer</a></li>
                         </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/history' %}active{% endif %}" href="{{ url_for('main.history') }}">
-                            <i class="bi bi-clock-history me-1"></i>History
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if '/experts' in request.path %}active{% endif %}" href="{{ url_for('expert.experts_list') }}">
-                            <i class="bi bi-people me-1"></i>Experts
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if '/questionnaire' in request.path %}active{% endif %}" href="{{ url_for('questionnaire.index') }}">
-                            <i class="bi bi-file-earmark-text me-1"></i>Questionnaire Designer
-                        </a>
                     </li>
                 </ul>
-                <!-- In-Nav Page Search Form -->
-                <form id="page-search-form" class="d-flex ms-3 me-auto align-items-center" onsubmit="return pageSearch();" style="min-width: 250px;">
-                    <input id="page-search-input" class="form-control form-control-sm me-2" type="search" placeholder="Search page..." aria-label="Search this page" style="flex-grow: 1;">
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-light" type="button" id="pageSearchDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Search Options & Controls">
-                            <i class="bi bi-search"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end p-2 shadow" aria-labelledby="pageSearchDropdown" style="min-width: 280px;">
-                            <li class="mb-2">
-                                <button class="btn btn-sm btn-primary w-100" type="submit">Search Now</button> <!-- Submit button inside dropdown -->
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li class="d-flex justify-content-around align-items-center mb-2">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="case-sensitive-check" title="Case sensitive">
-                                    <label class="form-check-label small" for="case-sensitive-check">Case Sensitive (Aa)</label>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="regex-check" title="Use regex">
-                                    <label class="form-check-label small" for="regex-check">Use Regex (.*)</label>
-                                </div>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li class="d-flex justify-content-between align-items-center">
-                                <span class="small me-2">Found: <span id="match-count" class="badge bg-secondary">0</span></span>
-                                <div>
-                                    <button id="prev-match" type="button" class="btn btn-sm btn-outline-secondary me-1" title="Previous match"><i class="bi bi-chevron-up"></i></button>
-                                    <button id="next-match" type="button" class="btn btn-sm btn-outline-secondary" title="Next match"><i class="bi bi-chevron-down"></i></button>
-                                </div>
-                            </li>
-                        </ul>
+                <form class="d-flex flex-fill mx-3 position-relative" action="/search" method="get">
+                    <div class="input-group flex-fill">
+                        <input id="global-search-input" type="search" name="q" class="form-control rounded-start-pill" placeholder="What do you want to learn?" aria-label="Search" data-bs-toggle="dropdown" aria-expanded="false" autocomplete="off">
+                        <button class="btn btn-light rounded-end-pill" type="submit"><i class="bi bi-search"></i></button>
                     </div>
+                    <ul id="global-search-suggestions" class="dropdown-menu w-100 mt-0"></ul>
                 </form>
-                <!-- End In-Nav Page Search -->
-                <div class="d-flex">
-                    {% if current_user.is_authenticated %}
-                    <div class="dropdown">
-                        <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle me-1"></i>{{ current_user.username }}
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-globe me-1"></i>English
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+                            <li><a class="dropdown-item" href="#">English</a></li>
+                            <li><a class="dropdown-item" href="#">Spanish</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-bell"></i></a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        {% if current_user.is_authenticated %}
+                        <a class="nav-link d-flex align-items-center p-0" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="avatar-circle">{{ current_user.username[0]|upper }}</div>
+                            <i class="bi bi-caret-down-fill ms-1 text-white"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" href="{{ url_for('main.profile') }}"><i class="bi bi-person me-2"></i>Profile</a></li>
                             {% if current_user.is_expert %}
                             <li><a class="dropdown-item" href="{{ url_for('expert.my_consultations') }}"><i class="bi bi-chat-text me-2"></i>My Consultations</a></li>
@@ -360,12 +382,11 @@
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
                         </ul>
-                    </div>
-                    {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light me-2">Login</a>
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-light">Register</a>
-                    {% endif %}
-                </div>
+                        {% else %}
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                        {% endif %}
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
@@ -389,26 +410,41 @@
     </div>
     {% endblock %}
 
-    <footer class="mt-5 py-4">
-        <div class="container text-center">
-            <div class="row">
-                <div class="col-md-6 text-md-start">
-                    <h5>Statistical Model Suggester</h5>
-                    <p style="color: #000000; font-weight: 500;">Your intelligent guide to statistical modeling</p>
+    <footer class="mt-5 py-5" style="background-color: #6d2e30;">
+        <div class="container">
+            <div class="row text-white">
+                <div class="col-12 col-md">
+                    <a class="navbar-brand text-white fw-bold" href="{{ url_for('main.home') }}">StatSnapp</a>
+                    <small class="d-block mb-3 text-white-50">Your intelligent guide to statistical modeling</small>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="mb-0">© 2025 Statistical Model Suggester. All rights reserved.</p>
-                </div>
-            </div>
-            <div class="row mt-3">
-                <div class="col-md-6 text-md-start">
-                    <h5>Contact Us</h5>
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-1"><i class="bi bi-envelope me-2"></i><a href="mailto:support@statisticalmodelsuggester.com">support@statisticalmodelsuggester.com</a></li>
-                        <li class="mb-1"><i class="bi bi-twitter me-2"></i><a href="https://twitter.com/StatModelSuggest" target="_blank">@StatModelSuggest</a></li>
-                        <li class="mb-1"><i class="bi bi-linkedin me-2"></i><a href="https://www.linkedin.com/company/statistical-model-suggester" target="_blank">LinkedIn</a></li>
-                        <li class="mb-1"><i class="bi bi-github me-2"></i><a href="https://github.com/codoom1/statistical-model-suggester" target="_blank">GitHub</a></li>
+                <div class="col-6 col-md">
+                    <h5>Explore</h5>
+                    <ul class="list-unstyled text-small">
+                        <li><a class="link-light" href="{{ url_for('main.models_in_group', group_name='Regression Models') }}">Models</a></li>
+                        <li><a class="link-light" href="{{ url_for('main.history') }}">History</a></li>
+                        <li><a class="link-light" href="{{ url_for('expert.experts_list') }}">Experts</a></li>
+                        <li><a class="link-light" href="{{ url_for('questionnaire.index') }}">Questionnaire Designer</a></li>
                     </ul>
+                </div>
+                <div class="col-6 col-md">
+                    <h5>Resources</h5>
+                    <ul class="list-unstyled text-small">
+                        <li><a class="link-light" href="#">Documentation</a></li>
+                        <li><a class="link-light" href="#">Tutorials</a></li>
+                        <li><a class="link-light" href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-md">
+                    <h5>Connect</h5>
+                    <ul class="list-unstyled text-small">
+                        <li><a class="link-light" href="mailto:support@statisticalmodelsuggester.com"><i class="bi bi-envelope me-2"></i>Email</a></li>
+                        <li><a class="link-light" href="https://twitter.com/StatModelSuggest" target="_blank"><i class="bi bi-twitter me-2"></i>Twitter</a></li>
+                        <li><a class="link-light" href="https://www.linkedin.com/company/statistical-model-suggester" target="_blank"><i class="bi bi-linkedin me-2"></i>LinkedIn</a></li>
+                        <li><a class="link-light" href="https://github.com/codoom1/statistical-model-suggester" target="_blank"><i class="bi bi-github me-2"></i>GitHub</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-md text-md-end">
+                    <p class="mb-0 text-white-50">© 2025 Statistical Model Suggester</p>
                 </div>
             </div>
         </div>
@@ -486,7 +522,39 @@
         });
     </script>
 
-    <!-- Page Search Script (External) -->
-    <script src="{{ url_for('static', filename='js/page_search.js') }}"></script>
+    <!-- Search autocomplete script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('global-search-input');
+        const suggBox = document.getElementById('global-search-suggestions');
+        input.addEventListener('input', async function() {
+            const q = this.value.trim();
+            if (q.length < 2) { suggBox.classList.remove('show'); return; }
+            try {
+                const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+                const suggestions = await res.json();
+                let html = '';
+                suggestions.forEach(s => {
+                    html += `<li><a class="dropdown-item" href="${s.url}">${s.name}</a></li>`;
+                });
+                suggBox.innerHTML = html;
+                if (suggestions.length) suggBox.classList.add('show'); else suggBox.classList.remove('show');
+            } catch (e) { console.error(e); }
+        });
+        document.addEventListener('click', function(e) {
+            if (!input.contains(e.target) && !suggBox.contains(e.target)) {
+                suggBox.classList.remove('show');
+            }
+        });
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                if (suggBox.classList.contains('show')) {
+                    const first = suggBox.querySelector('a.dropdown-item');
+                    if (first) { e.preventDefault(); window.location = first.href; }
+                }
+            }
+        });
+    });
+    </script>
 </body>
 </html> 
