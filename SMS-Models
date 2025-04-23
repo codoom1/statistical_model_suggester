@@ -1,0 +1,719 @@
+Statistical Model Suggester
+
+1.	Classical Statistical Tests
+a.	**Z-Test**  
+b)	**Independent Samples T-Test**  
+c)	**Paired T-Test**  
+d)	**Chi-Square Test of Independence**  
+e)	**Chi-Square Goodness-of-Fit Test**  
+f)	**One-Way ANOVA**  
+g)	**Two-Way ANOVA**  
+h)	**Mann-Whitney U Test**  
+i)	**Kruskal-Wallis Test**  
+j)	**Wilcoxon Signed-Rank Test**  
+k)	**Friedman Test**  
+l)	**Pearson Correlation Coefficient (Test for Significance)**  
+m)	**Spearman’s Rank Correlation Test**  
+n)	**Kendall’s Tau Test**  
+o)	**Fisher’s Exact Test**  
+p)	**Kolmogorov-Smirnov Test**  
+q)	**Shapiro-Wilk Test**  
+r)	**Levene’s Test**  
+s)	**Bartlett’s Test**  
+t)	**Durbin-Watson Test**  
+u)	**Cochran’s Q Test**  
+v)	**McNemar’s Test**  
+w)	**Log-Rank Test**  
+x)	**Runs Test**  
+y)	**Grubbs’ Test for Outliers**
+
+
+
+
+
+
+2.	Regression Models
+
+1.	Simple Linear Regression
+2.	Multiple Linear Regression
+3.	Polynomial Regression
+4.	Logistic Regression
+5.	Multinomial Logistic Regression
+6.	Ordinal Logistic Regression
+7.	Poisson Regression
+8.	Negative Binomial Regression
+9.	Probit Regression
+10.	Quantile Regression
+11.	Ridge Regression
+12.	Lasso Regression
+13.	Elastic Net Regression
+14.	Nonlinear Least Squares Regression
+15.	Generalized Additive Models (GAM)
+16.	Exponential Regression
+17.	Power Regression
+18.	Bayesian Linear Regression
+19.	Hierarchical Bayesian Regression
+20.	Decision Tree Regression
+21.	Random Forest Regression
+22.	Gradient Boosting Regression (e.g., XGBoost, LightGBM)
+23.	Support Vector Regression (SVR)
+24.	Neural Network Regression
+25.	K-Nearest Neighbors (KNN) Regression
+
+
+
+
+
+
+
+
+3.	Time Series Models
+
+1.	Autoregressive (AR) Model
+2.	Moving Average (MA) Model
+3.	Autoregressive Moving Average (ARMA) Model
+4.	Autoregressive Integrated Moving Average (ARIMA) Model
+5.	Seasonal ARIMA (SARIMA) Model
+6.	Exponential Smoothing (ETS)
+7.	Holt-Winters Model
+8.	Vector Autoregression (VAR)
+9.	Vector Error Correction Model (VECM)
+10.	State Space Models (SSM)
+11.	Bayesian Structural Time Series (BSTS)
+12.	Dynamic Linear Models (DLM)
+13.	Generalized Autoregressive Conditional Heteroskedasticity (GARCH)
+14.	Stochastic Volatility Models
+15.	Threshold Autoregressive (TAR) Model
+16.	Markov Switching Models
+17.	Recurrent Neural Networks (RNN)
+18.	Long Short-Term Memory (LSTM)
+19.	Gated Recurrent Units (GRU)
+20.	Temporal Convolutional Networks (TCN)
+21.	Gradient Boosting for Time Series (e.g., XGBoost, LightGBM)
+22.	Random Forest for Time Series
+23.	Prophet
+24.	Wavelet Transform Models
+25.	Kalman Filter
+
+
+
+
+
+4.	Multivariate Analysis
+
+1.	Principal Component Analysis (PCA)
+2.	Factor Analysis
+3.	Independent Component Analysis (ICA)
+4.	Canonical Correlation Analysis (CCA)
+5.	t-Distributed Stochastic Neighbor Embedding (t-SNE)
+6.	Uniform Manifold Approximation and Projection (UMAP)
+7.	K-Means Clustering
+8.	Hierarchical Clustering
+9.	DBSCAN
+10.	Gaussian Mixture Models (GMM)
+11.	Spectral Clustering
+12.	Mean Shift Clustering
+13.	Linear Discriminant Analysis (LDA)
+14.	Quadratic Discriminant Analysis (QDA)
+15.	Support Vector Machines (SVM)
+16.	Random Forest for Multivariate Data
+17.	Gradient Boosting for Multivariate Data
+18.	Multivariate Linear Regression
+19.	Multivariate Logistic Regression
+20.	Partial Least Squares Regression (PLS)
+21.	Canonical Correlation Analysis (CCA)
+22.	Structural Equation Modeling (SEM)
+23.	Bayesian Networks
+24.	Copula Models
+25.	Latent Dirichlet Allocation (LDA)
+
+
+
+
+
+
+
+
+5.	Machine Learning Models
+Supervised Learning Models
+1.	Linear Regression
+2.	Logistic Regression
+3.	Decision Tree
+4.	Random Forest
+5.	Gradient Boosting Machines (GBM)
+6.	XGBoost
+7.	LightGBM
+8.	CatBoost
+9.	Support Vector Machine (SVM)
+10.	k-Nearest Neighbors (k-NN)
+11.	Naive Bayes
+12.	Neural Networks (Feedforward Neural Networks)
+13.	Convolutional Neural Networks (CNN)
+14.	Recurrent Neural Networks (RNN)
+15.	Long Short-Term Memory Networks (LSTM)
+16.	Gated Recurrent Units (GRU)
+17.	Temporal Convolutional Networks (TCN)
+18.	Extreme Learning Machines (ELM)
+Unsupervised Learning Models
+19.	K-Means Clustering
+20.	Hierarchical Clustering
+21.	DBSCAN (Density-Based Spatial Clustering of Applications with Noise)
+22.	Gaussian Mixture Models (GMM)
+23.	Principal Component Analysis (PCA)
+24.	Independent Component Analysis (ICA)
+25.	t-Distributed Stochastic Neighbor Embedding (t-SNE)
+26.	Uniform Manifold Approximation and Projection (UMAP)
+27.	Autoencoders
+28.	Self-Organizing Maps (SOM)
+29.	Latent Dirichlet Allocation (LDA)
+30.	Non-Negative Matrix Factorization (NMF)
+
+Semi-Supervised Learning Models
+31.	Label Propagation
+32.	Label Spreading
+33.	Graph-Based Semi-Supervised Learning
+Reinforcement Learning Models
+34.	Q-Learning
+35.	Deep Q-Networks (DQN)
+36.	Proximal Policy Optimization (PPO)
+37.	Actor-Critic Methods
+38.	Monte Carlo Tree Search (MCTS)
+39.	Trust Region Policy Optimization (TRPO)
+40.	Soft Actor-Critic (SAC)
+Ensemble Learning Models
+41.	Bagging (Bootstrap Aggregating)
+42.	Boosting (AdaBoost, Gradient Boosting)
+43.	Stacking (Stacked Generalization)
+44.	Blending
+Deep Learning Models
+45.	Multilayer Perceptron (MLP)
+46.	Residual Networks (ResNet)
+47.	DenseNet (Densely Connected Convolutional Networks)
+48.	U-Net (for Image Segmentation)
+49.	Transformer Models
+50.	BERT (Bidirectional Encoder Representations from Transformers)
+51.	GPT (Generative Pre-trained Transformer)
+52.	Variational Autoencoders (VAE)
+53.	Generative Adversarial Networks (GAN)
+54.	Diffusion Models
+Specialized Models
+55.	Bayesian Neural Networks (BNN)
+56.	Gaussian Processes (GP)
+57.	Hidden Markov Models (HMM)
+58.	Conditional Random Fields (CRF)
+59.	Kalman Filter
+60.	Markov Decision Processes (MDP)
+________________________________________
+Hybrid and Advanced Models
+61.	Neuro-Fuzzy Models
+62.	Evolutionary Algorithms (e.g., Genetic Programming)
+63.	Swarm Intelligence Models (e.g., Particle Swarm Optimization)
+64.	Siamese Networks
+65.	Memory Networks
+66.	Capsule Networks
+
+6.	Mixed and Hierarchical Models
+1.	Random Intercept Model
+2.	Random Slope Model
+3.	Random Intercept and Slope Model
+4.	Multilevel Linear Model
+5.	Cross-Classified Random Effects Model
+6.	Logistic Mixed Model
+7.	Poisson Mixed Model
+8.	Negative Binomial Mixed Model
+9.	Ordinal Mixed Model
+10.	Multinomial Mixed Model
+11.	Bayesian Random Effects Model
+12.	Hierarchical Bayesian Regression
+13.	Latent Variable Hierarchical Models
+14.	Nonlinear Mixed Effects Model (NLME)
+15.	Generalized Additive Mixed Models (GAMM)
+16.	Multivariate Linear Mixed Model
+17.	Multivariate Generalized Linear Mixed Model (MGLMM)
+18.	Nested Random Effects Model
+19.	Crossed Random Effects Model
+20.	Linear Growth Curve Model
+21.	Nonlinear Growth Curve Model
+22.	Marginal Models (Generalized Estimating Equations - GEE)
+23.	Joint Longitudinal-Survival Models
+24.	Spatial Linear Mixed Model
+25.	Spatio-Temporal Mixed Model
+7.	Structural Models
+1.	Confirmatory Factor Analysis (CFA)
+2.	Path Analysis
+3.	Latent Growth Curve Models (LGCM)
+4.	Mediation and Moderation Models
+5.	Multigroup SEM
+6.	Bayesian SEM
+7.	Propensity Score Matching (PSM)
+8.	Difference-in-Differences (DiD)
+9.	Instrumental Variables (IV) Regression
+10.	Synthetic Control Method
+11.	Structural Causal Models (SCM)
+12.	Granger Causality
+13.	Dynamic Stochastic General Equilibrium (DSGE) Models
+14.	Markov Decision Processes (MDP)
+15.	Hidden Markov Models (HMM)
+16.	Dynamic Factor Models (DFM)
+17.	State Space Models (SSM)
+18.	Exponential Random Graph Models (ERGM)
+19.	Stochastic Block Models (SBM)
+20.	Latent Space Models
+21.	Bayesian Networks
+22.	Structural Balance Theory
+23.	Finite Element Models (FEM)
+24.	Lumped Parameter Models
+25.	System Dynamics Models
+
+
+
+
+
+
+
+
+
+8.	Survival Models
+1.	Exponential Model
+2.	Weibull Model
+3.	Log-Normal Model
+4.	Log-Logistic Model
+5.	Gamma Model
+6.	Gompertz Model
+7.	Cox Proportional Hazards Model
+8.	Stratified Cox Model
+9.	Time-Varying Covariates Cox Model
+10.	Kaplan-Meier Estimator
+11.	Nelson-Aalen Estimator
+12.	Log-Rank Test
+13.	Fine-Gray Model
+14.	Cause-Specific Hazard Model
+15.	Competing Risks Regression
+16.	Shared Frailty Model
+17.	Correlated Frailty Model
+18.	Joint Longitudinal-Survival Model
+19.	Latent Class Joint Model
+20.	Bayesian Cox Model
+21.	Bayesian Hierarchical Survival Model
+22.	Bayesian Accelerated Failure Time (AFT) Model
+23.	Log-Linear AFT Model
+24.	Generalized Gamma AFT Model
+25.	Markov Multistate Model
+26.	Semi-Markov Multistate Model
+27.	Random Survival Forests
+28.	Gradient Boosting for Survival Analysis
+29.	Deep Learning Survival Models (e.g., DeepHit)
+
+
+
+
+
+9.	Bayesian Models
+
+1.	Bayesian Linear Regression
+2.	Bayesian Logistic Regression
+3.	Hierarchical Bayesian Regression
+4.	Bayesian Generalized Linear Models (GLM)
+5.	Bayesian Regularized Regression
+6.	Bayesian Structural Time Series (BSTS)
+7.	Dynamic Linear Models (DLM)
+8.	Bayesian Autoregressive (AR) Models
+9.	Bayesian Vector Autoregression (VAR)
+10.	Bayesian Cox Proportional Hazards Model
+11.	Bayesian Accelerated Failure Time (AFT) Model
+12.	Bayesian Joint Survival Models
+13.	Bayesian Random Effects Models
+14.	Nested Bayesian Hierarchical Models
+15.	Cross-Classified Bayesian Models
+16.	Dirichlet Process Mixture Models (DPMM)
+17.	Gaussian Process Regression (GPR)
+18.	Bayesian Additive Regression Trees (BART)
+19.	Bayesian Networks
+20.	Dynamic Bayesian Networks (DBN)
+21.	Hidden Markov Models (HMM) with Bayesian Inference
+22.	Bayesian Neural Networks (BNN)
+23.	Variational Autoencoders (VAE)
+24.	Bayesian Optimization
+25.	Latent Dirichlet Allocation (LDA) with Bayesian Inference
+
+
+
+
+
+
+
+
+10.	Network Models
+1.	Bayesian Networks (BN)
+2.	Markov Random Fields (MRF)
+3.	Conditional Random Fields (CRF)
+4.	Hidden Markov Models (HMM)
+5.	Dynamic Bayesian Networks (DBN)
+6.	Erdős–Rényi Model
+7.	Barabási–Albert Model
+8.	Watts–Strogatz Model
+9.	Stochastic Block Model (SBM)
+10.	Exponential Random Graph Models (ERGM)
+11.	Latent Space Models
+12.	Degree Centrality
+13.	Betweenness Centrality
+14.	Closeness Centrality
+15.	Eigenvector Centrality
+16.	PageRank
+17.	Modularity Maximization
+18.	Louvain Method
+19.	Label Propagation Algorithm (LPA)
+20.	Infomap
+21.	Independent Cascade Model (ICM)
+22.	Linear Threshold Model (LTM)
+23.	SIR/SIS Epidemic Models
+24.	Bass Diffusion Model
+25.	Structural Balance Theory
+26.	Signed Graph Models
+27.	Multiplex Networks
+28.	Temporal Networks
+29.	Multilayer Network Models
+30.	Flow Networks
+31.	Small-World Networks
+32.	Scale-Free Networks
+33.	Graph Neural Networks (GNN)
+34.	Random Walk Models
+11.	Spatial Models
+1.	Spatial Lag Model (SLM)
+2.	Spatial Error Model (SEM)
+3.	Geographically Weighted Regression (GWR)
+4.	Multilevel Spatial Regression
+5.	Bayesian Spatial Regression
+6.	Moran’s I
+7.	Geary’s C
+8.	Local Indicators of Spatial Association (LISA)
+9.	Getis-Ord Gi* Statistic
+10.	Kriging
+11.	Inverse Distance Weighting (IDW)
+12.	Spline Interpolation
+13.	Nearest Neighbor Interpolation
+14.	Poisson Point Process
+15.	Cox Process
+16.	Markov Point Process
+17.	Ripley’s K Function
+18.	Gravity Models
+19.	Flow Networks
+20.	Shortest Path Algorithms
+21.	Spatio-Temporal Autoregressive Models (STAR)
+22.	Dynamic Spatio-Temporal Models (DSTM)
+23.	Kalman Filter for Spatio-Temporal Data
+24.	Spatial K-Means Clustering
+25.	Density-Based Spatial Clustering (DBSCAN)
+26.	Hierarchical Spatial Clustering
+27.	Cellular Automata
+28.	Agent-Based Spatial Models
+29.	Spatial Diffusion Models
+30.	Bayesian Hierarchical Spatial Models
+31.	Bayesian Kriging
+32.	Land Use/Land Cover Change Models
+33.	Species Distribution Models (SDM)
+34.	Spatial Econometric Models
+35.	Spatial Interaction Models
+
+12.	Text/NLP Models
+1.	Bag of Words (BoW)
+2.	Term Frequency-Inverse Document Frequency (TF-IDF)
+3.	Latent Semantic Analysis (LSA)
+4.	Latent Dirichlet Allocation (LDA)
+5.	Word Embeddings (Word2Vec, GloVe, FastText)
+6.	n-grams
+7.	Hidden Markov Models (HMM)
+8.	Conditional Random Fields (CRF)
+9.	Recurrent Neural Networks (RNN)
+10.	Long Short-Term Memory (LSTM)
+11.	Gated Recurrent Units (GRU)
+12.	Convolutional Neural Networks (CNN) for Text
+13.	Transformers
+14.	BERT
+15.	GPT
+16.	T5
+17.	XLNet
+18.	RoBERTa
+19.	DistilBERT
+20.	Sentence-BERT (SBERT)
+21.	Seq2Seq (Sequence-to-Sequence)
+22.	Variational Autoencoders (VAE) for Text
+23.	Generative Adversarial Networks (GAN) for Text
+24.	Diffusion Models for Text
+25.	Prompt-Based Models
+26.	Tokenization
+27.	Stemming and Lemmatization
+28.	Part-of-Speech Tagging (POS)
+29.	Dependency Parsing
+30.	Named Entity Recognition (NER)
+31.	Sentiment Analysis Models
+32.	Text Classification Models
+33.	Machine Translation Models
+34.	Text Summarization Models
+35.	Question Answering Models
+36.	Dialogue Systems (Chatbots)
+37.	Coreference Resolution Models
+38.	Relation Extraction Models
+39.	Text Generation Models
+40.	Paraphrasing Models
+
+
+13.	Causal Inference and Econometric Models
+1.	Randomized Controlled Trials (RCT)
+2.	Cluster Randomized Trials
+3.	Factorial Designs
+4.	Propensity Score Matching (PSM)
+5.	Inverse Probability Weighting (IPW)
+6.	Doubly Robust Estimation
+7.	Regression Discontinuity Design (RDD)
+8.	Difference-in-Differences (DiD)
+9.	Synthetic Control Method
+10.	Two-Stage Least Squares (2SLS)
+11.	Generalized Method of Moments (GMM)
+12.	Control Function Approach
+13.	Simultaneous Equations Models (SEM)
+14.	Dynamic Stochastic General Equilibrium (DSGE) Models
+15.	Structural Vector Autoregression (SVAR)
+16.	Mediation Analysis
+17.	Moderation Analysis
+18.	Conditional Process Analysis
+19.	Directed Acyclic Graphs (DAGs)
+20.	Structural Causal Models (SCM)
+21.	Fixed Effects Model
+22.	Random Effects Model
+23.	First-Difference Estimator
+24.	Arellano-Bond Estimator
+25.	Heckman Selection Model
+26.	Quantile Regression
+27.	Bayesian Econometric Models
+28.	Spatial Econometric Models
+29.	Nonparametric and Semiparametric Models
+30.	Double Machine Learning (DML)
+31.	Causal Forests
+32.	Counterfactual Prediction Models
+
+14.	Image and Open CV
+1.	Grayscale Conversion
+2.	Histogram Equalization
+3.	Gaussian Blur
+4.	Thresholding (Binary, Adaptive)
+5.	Morphological Operations (Erosion, Dilation, Opening, Closing)
+6.	Edge Detection (Sobel, Canny)
+7.	Image Resizing and Scaling
+8.	Affine and Perspective Transformations
+9.	Harris Corner Detection
+10.	SIFT (Scale-Invariant Feature Transform)
+11.	SURF (Speeded-Up Robust Features)
+12.	ORB (Oriented FAST and Rotated BRIEF)
+13.	FAST (Features from Accelerated Segment Test)
+14.	BRIEF (Binary Robust Independent Elementary Features)
+15.	HOG (Histogram of Oriented Gradients)
+16.	K-Means Clustering for Image Segmentation
+17.	Watershed Algorithm
+18.	GrabCut
+19.	Mean Shift Segmentation
+20.	Deep Learning-Based Segmentation (U-Net, Mask R-CNN)
+21.	Haar Cascades
+22.	HOG + SVM
+23.	YOLO (You Only Look Once)
+24.	SSD (Single Shot MultiBox Detector)
+25.	Faster R-CNN
+26.	Convolutional Neural Networks (CNN)
+27.	AlexNet
+28.	VGGNet
+29.	ResNet (Residual Networks)
+30.	Inception Networks
+31.	Lucas-Kanade Method
+32.	Farneback Method
+33.	Background Subtraction (MOG2, KNN)
+34.	Stereo Vision
+35.	Structure from Motion (SfM)
+36.	Depth Estimation with Neural Networks
+37.	Face Detection (Haar Cascades, DNN Module)
+38.	Object Tracking (CSRT, KCF, MOSSE)
+39.	Camera Calibration
+40.	Pose Estimation (OpenPose, MediaPipe)
+
+15.	Audio and Signal Processing
+1.	Fourier Transform (FT)
+2.	Short-Time Fourier Transform (STFT)
+3.	Wavelet Transform
+4.	Pre-Emphasis Filtering
+5.	Downsampling and Upsampling
+6.	Windowing Functions (e.g., Hamming, Hanning)
+7.	Mel-Frequency Cepstral Coefficients (MFCC)
+8.	Chroma Features
+9.	Spectral Features (e.g., Spectral Centroid, Bandwidth, Rolloff)
+10.	Zero-Crossing Rate
+11.	Root Mean Square Energy (RMSE)
+12.	Pitch Detection Algorithms (e.g., YIN, Autocorrelation)
+13.	Low-Pass, High-Pass, Band-Pass Filters
+14.	Wiener Filter
+15.	Kalman Filter
+16.	Adaptive Filters (e.g., LMS, NLMS)
+17.	Denoising Autoencoders
+18.	Autoregressive (AR) Models
+19.	Hidden Markov Models (HMM)
+20.	Dynamic Time Warping (DTW)
+21.	Recurrent Neural Networks (RNN)
+22.	Long Short-Term Memory (LSTM)
+23.	Independent Component Analysis (ICA)
+24.	Non-Negative Matrix Factorization (NMF)
+25.	Deep Learning-Based Source Separation (e.g., UNet, Conv-TasNet)
+26.	Support Vector Machines (SVM) for Audio Classification
+27.	Convolutional Neural Networks (CNN) for Audio
+28.	Transformers for Audio (e.g., Wav2Vec, HuBERT)
+29.	Keyword Spotting Models (e.g., DeepSpeech, QuartzNet)
+30.	Speaker Identification and Verification Models
+31.	Additive Synthesis
+32.	Subtractive Synthesis
+33.	Granular Synthesis
+34.	WaveNet
+35.	Neural Audio Synthesis (e.g., DDSP, DiffWave)
+36.	QRS Detection Algorithms
+37.	EEG Signal Analysis (e.g., Event-Related Potentials)
+38.	Heart Rate Variability (HRV) Analysis
+39.	EMG Signal Processing
+40.	Respiratory Signal Analysis
+41.	Acoustic Event Detection (AED)
+42.	Vibration Analysis
+43.	Seismic Signal Processing
+44.	Underwater Acoustic Signal Processing
+45.	Noise Mapping and Prediction
+
+
+
+
+
+
+
+
+16.	Optimization Models
+1.	Simplex Method
+2.	Interior-Point Methods
+3.	Duality Theory
+4.	Transportation Problem
+5.	Assignment Problem
+6.	Branch-and-Bound
+7.	Cutting Plane Methods
+8.	Branch-and-Cut
+9.	Set Covering and Partitioning
+10.	Knapsack Problem
+11.	Gradient Descent
+12.	Newton’s Method
+13.	Sequential Quadratic Programming (SQP)
+14.	Karush-Kuhn-Tucker (KKT) Conditions
+15.	Geometric Programming
+16.	Semidefinite Programming (SDP)
+17.	Second-Order Cone Programming (SOCP)
+18.	Convex Relaxation
+19.	Duality in Convex Optimization
+20.	Bellman Equation
+21.	Markov Decision Processes (MDP)
+22.	Stochastic Dynamic Programming
+23.	Reinforcement Learning (RL)
+24.	Traveling Salesman Problem (TSP)
+25.	Vehicle Routing Problem (VRP)
+26.	Graph Coloring
+27.	Maximum Flow and Minimum Cut
+28.	Stochastic Programming
+29.	Robust Optimization
+30.	Chance-Constrained Programming
+31.	Genetic Algorithms (GA)
+32.	Simulated Annealing (SA)
+33.	Particle Swarm Optimization (PSO)
+34.	Ant Colony Optimization (ACO)
+35.	Tabu Search
+36.	Gradient Boosting
+37.	Support Vector Machines (SVM)
+38.	Neural Network Optimization (e.g., Adam, RMSProp)
+39.	Bayesian Optimization
+40.	Sparse Optimization (Lasso, Elastic Net)
+41.	Pareto Optimality
+42.	Weighted Sum Method
+43.	Goal Programming
+44.	Evolutionary Multi-Objective Optimization (EMO)
+
+17.	Risk Models
+1.	Value at Risk (VaR)
+2.	Conditional Value at Risk (CVaR)
+3.	Black-Scholes Model
+4.	Monte Carlo Simulation for Financial Risk
+5.	Credit Risk Models (e.g., KMV, CreditMetrics)
+6.	Capital Asset Pricing Model (CAPM)
+7.	GARCH Models
+8.	Copula Models
+9.	Loss Distribution Approach (LDA)
+10.	Credibility Theory
+11.	Chain Ladder Method
+12.	Excess-of-Loss Reinsurance Models
+13.	Risk-Adjusted Return on Capital (RAROC)
+14.	Bowtie Analysis
+15.	Failure Mode and Effects Analysis (FMEA)
+16.	Event Tree Analysis (ETA)
+17.	Fault Tree Analysis (FTA)
+18.	Key Risk Indicators (KRIs)
+19.	Hazard Identification and Risk Assessment (HIRA)
+20.	Quantitative Microbial Risk Assessment (QMRA)
+21.	Epidemiological Models (e.g., SIR, SEIR)
+22.	Toxicological Risk Assessment
+23.	Catastrophe Modeling
+24.	Climate Risk Scenarios
+25.	Hydrological Risk Models
+26.	Seismic Risk Assessment
+27.	Decision Trees
+28.	Monte Carlo Simulation for Project Risk
+29.	Earned Value Management (EVM)
+30.	PERT (Program Evaluation and Review Technique)
+31.	Threat Modeling
+32.	Attack Surface Analysis
+33.	Cyber Risk Quantification (CRQ)
+34.	Bayesian Networks for Cybersecurity
+35.	Systemic Risk Models
+36.	Network Risk Propagation Models
+37.	Stress Testing for Systemic Risks
+38.	Prospect Theory
+39.	Game Theory for Risk
+40.	Human Reliability Analysis (HRA)
+
+18.	Forensic Models
+1.	Bayesian Networks for Trace Evidence
+2.	Likelihood Ratio (LR) Models
+3.	Multivariate Statistical Analysis
+4.	Principal Component Analysis (PCA)
+5.	Short Tandem Repeat (STR) Analysis
+6.	Mitochondrial DNA Analysis
+7.	Y-Chromosome Analysis
+8.	Mixed DNA Profile Deconvolution
+9.	Probabilistic Genotyping Models
+10.	Automated Fingerprint Identification Systems (AFIS)
+11.	Minutiae-Based Matching Algorithms
+12.	Facial Recognition Models
+13.	Iris Recognition Models
+14.	Voice Recognition Models
+15.	File Carving Algorithms
+16.	Network Traffic Analysis Models
+17.	Metadata Analysis
+18.	Steganalysis Models
+19.	Blockchain Forensics Models
+20.	Bullet and Cartridge Matching Algorithms
+21.	Trajectory Reconstruction Models
+22.	Gunshot Residue (GSR) Analysis
+23.	Acoustic Analysis of Gunshots
+24.	Gas Chromatography-Mass Spectrometry (GC-MS)
+25.	Pharmacokinetic Models
+26.	Isotopic Analysis
+27.	Blood Alcohol Concentration (BAC) Models
+28.	Bloodstain Pattern Analysis (BPA)
+29.	Finite Element Analysis (FEA) for Forensics
+30.	Computational Fluid Dynamics (CFD) Models
+31.	Event Sequence Diagrams
+32.	Benford’s Law
+33.	Link Analysis Models
+34.	Anomaly Detection Algorithms
+35.	Forensic Accounting Models
+36.	Offender Profiling Models
+37.	Geographic Profiling Models
+38.	Polygraph Testing Models
+39.	Cognitive Bias Models
+
