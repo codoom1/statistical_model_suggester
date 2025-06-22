@@ -5,13 +5,11 @@ This module provides routes for the questionnaire design service,
 allowing users to create, preview, and edit questionnaires.
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, Response, send_file, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, send_file
 from flask_login import login_required, current_user
 from utils.questionnaire_generator import generate_questionnaire
 from utils.export_utils import export_to_word, export_to_pdf
 from models import db, Questionnaire
-import json
-import os
 from datetime import datetime
 import logging
 

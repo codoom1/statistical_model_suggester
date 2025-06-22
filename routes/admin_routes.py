@@ -1,14 +1,14 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from models import db, User, ExpertApplication, Analysis, Consultation
 from functools import wraps
 from datetime import datetime, timedelta
-from sqlalchemy import func
 from utils.email_service import send_expert_approved_email, send_expert_rejected_email
 import os
 import json
-from utils.ai_service import call_huggingface_api, is_ai_enabled, HuggingFaceError, get_huggingface_config
-import logging
+from utils.ai_service import (
+    call_huggingface_api, is_ai_enabled, HuggingFaceError, get_huggingface_config
+)
 import re
 
 admin = Blueprint('admin', __name__, url_prefix='/admin')
@@ -19,7 +19,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or not current_user.is_admin:
             flash('You need to be an admin to access this page.', 'danger')
-            return redirect(url_for('main.index'))
+            return redirect(url_for('main.home'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -63,18 +63,17 @@ def dashboard():
         
         # Format date string
         month_str = current_date.strftime('%b %Y')
-        months.append(month_str)
-        
+        months.append(month_str)        
         # Count users created before this month end
         regular_count = User.query.filter(
-            User._is_admin == False,
-            User._is_expert == False,
+            User._is_admin.is_(False),
+            User._is_expert.is_(False),
             User.created_at <= month_end
         ).count()
         
         expert_count = User.query.filter(
-            User._is_expert == True,
-            User.is_approved_expert == True,
+            User._is_expert.is_(True),
+            User.is_approved_expert.is_(True),
             User.created_at <= month_end
         ).count()
         
@@ -254,7 +253,11 @@ def consultations_list():
     """List all consultations"""
     consultations = Consultation.query.order_by(Consultation.created_at.desc()).all()
     experts = User.query.filter_by(_is_expert=True, is_approved_expert=True).all()
-    return render_template('admin/consultations_list.html', consultations=consultations, experts=experts)
+    return render_template(
+        'admin/consultations_list.html', 
+        consultations=consultations, 
+        experts=experts
+    )
 
 @admin.route('/assign-consultation/<int:consultation_id>', methods=['POST'])
 @login_required
@@ -402,8 +405,11 @@ def ai_settings():
 @admin_required
 def test_ai_integration():
     """API endpoint to test the Hugging Face integration using provided settings."""
+    if not request.json:
+        return jsonify({'success': False, 'error': 'No JSON data provided'}), 400
+    
     test_prompt = request.json.get('prompt', '')
-    api_key = request.json.get('api_key') # Can be None
+    api_key = request.json.get('api_key')  # Can be None
     model = request.json.get('model', 'mistralai/Mistral-7B-Instruct-v0.2')
     
     if not test_prompt:
