@@ -478,7 +478,6 @@ def get_default_model(analysis_goal, dependent_variable):
     if analysis_goal == 'cluster' and not dependent_variable:
         dependent_variable = 'continuous'  # A sensible default for clustering
     # Define target model patterns based on analysis goal and dependent variable type
-    target_model = None
     if analysis_goal == 'predict':
         if dependent_variable == 'continuous':
             target_models = ['Linear Regression', 'Ridge Regression', 'Lasso Regression']

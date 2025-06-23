@@ -2,7 +2,6 @@
 Test utility functions and services.
 """
 import pytest
-import json
 import os
 from unittest.mock import patch, MagicMock
 class TestEmailService:
@@ -13,7 +12,7 @@ class TestEmailService:
         from utils.email_service import send_email
         mock_send_email.return_value = True
         with app.app_context():
-            result = send_email(
+            send_email(
                 to='test@example.com',
                 subject='Test Email',
                 template='test_template',
@@ -100,8 +99,8 @@ class TestDiagnosticPlots:
                 'x': [1, 2, 3, 4, 5],
                 'y': [2, 4, 6, 8, 10]
             }
-            plots = generate_diagnostic_plots(sample_data, 'linear_regression')
-            # Should return some plot information or files
+            generate_diagnostic_plots(sample_data, 'linear_regression')
+            # Plots should be generated successfully
         except ImportError:
             pytest.skip("Plot generation utilities not available")
         except Exception as e:
@@ -144,8 +143,8 @@ class TestFileHandling:
                 'explanation': 'Test explanation'
             }
             # Test PDF export (might fail without proper dependencies)
-            result = export_analysis_to_pdf(sample_analysis)
-            # Should return file path or success indicator
+            export_analysis_to_pdf(sample_analysis)
+            # Function should execute without error
         except ImportError:
             pytest.skip("Export utilities not available")
         except Exception as e:
@@ -233,8 +232,8 @@ class TestPerformance:
             user = User.query.filter_by(username='testuser').first()
             assert user is not None
             # Test analysis lookup with proper indexing
-            analyses = Analysis.query.filter_by(user_id=user.id).all()
-            # Should work efficiently even with indexes
+            Analysis.query.filter_by(user_id=user.id).all()
+            # Query should work efficiently even with indexes
     def test_memory_usage(self):
         """Test memory usage of key operations."""
         import sys

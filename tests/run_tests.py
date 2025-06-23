@@ -4,7 +4,6 @@ This script runs all tests and provides a comprehensive report.
 """
 import pytest
 import sys
-import os
 from pathlib import Path
 # Add the project root to Python path
 project_root = Path(__file__).parent.parent
@@ -21,7 +20,7 @@ def run_all_tests():
     ]
     # Add coverage if pytest-cov is available
     try:
-        import pytest_cov
+        __import__('pytest_cov')
         test_args.extend([
             '--cov=.',  # Coverage for current directory
             '--cov-report=html',  # HTML coverage report

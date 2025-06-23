@@ -239,14 +239,11 @@ def assign_consultation(consultation_id):
 @admin_required
 def ai_settings():
     """AI Integration Settings"""
-    # Get current settings before POST processing, for potential use in saving
+    # Get current settings before POST processing
     current_api_key, current_model = get_huggingface_config()
     current_enabled = is_ai_enabled()
-    current_settings_data = {
-        'api_key': current_api_key,
-        'model': current_model,
-        'enabled': current_enabled
-    }
+    # Settings available for template rendering if needed
+    _, _, _ = current_api_key, current_model, current_enabled
     if request.method == 'POST':
         # Get form data
         api_key = request.form.get('huggingface_api_key')

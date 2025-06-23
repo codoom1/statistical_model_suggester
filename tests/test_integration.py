@@ -95,7 +95,8 @@ class TestAdminWorkflow:
             db.session.add(application)
             db.session.commit()
             user_id = user.id
-            app_id = application.id
+            # Application ID stored for potential future use
+            _ = application.id
         # Step 2: Admin login
         with app.app_context():
             admin = User()
@@ -276,7 +277,8 @@ class TestDataIntegrity:
             analysis.analysis_goal = 'predict'
             db.session.add(analysis)
             db.session.commit()
-            user_id = user.id
+            # Store IDs for testing cascade deletion
+            _ = user.id
             analysis_id = analysis.id
             # Delete user
             db.session.delete(user)

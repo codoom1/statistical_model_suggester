@@ -2,8 +2,7 @@
 Test the models module.
 """
 import pytest
-from datetime import datetime
-from models import db, User, Analysis, ExpertApplication, Consultation, Questionnaire, get_model_details
+from models import db, User, Analysis, ExpertApplication, get_model_details
 class TestUser:
     """Test the User model."""
     def test_user_creation(self, app):

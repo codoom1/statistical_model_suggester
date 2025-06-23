@@ -196,9 +196,8 @@ class TestResultsPage:
         """Test results page includes synthetic data examples."""
         response = client.post('/results', data=sample_analysis_data)
         assert response.status_code == 200
-        # May include synthetic data or code examples
-        response_text = response.data.decode('utf-8').lower()
-        # This is optional depending on implementation
+        # Response may include synthetic data or code examples
+        # (content verification handled by integration tests)
 class TestErrorHandling:
     """Test error handling in main routes."""
     def test_malformed_form_data(self, client):
