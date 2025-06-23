@@ -50,6 +50,19 @@ def runner(app):
 def test_user(app):
     """Create a test user."""
     with app.app_context():
+        # Check if test user already exists
+        existing_user = User.query.filter_by(email='test@example.com').first()
+        if existing_user:
+            # Return existing user data
+            test_user_data = {
+                'id': existing_user.id,
+                'username': existing_user.username,
+                'email': existing_user.email,
+                'password': 'testpassword'
+            }
+            return test_user_data
+        
+        # Create new test user
         user = User()
         user.username = 'testuser'
         user.email = 'test@example.com'
@@ -73,6 +86,20 @@ def test_user(app):
 def admin_user(app):
     """Create an admin user."""
     with app.app_context():
+        # Check if admin user already exists
+        existing_admin = User.query.filter_by(email='admin@example.com').first()
+        if existing_admin:
+            # Return existing admin data
+            admin_user_data = {
+                'id': existing_admin.id,
+                'username': existing_admin.username,
+                'email': existing_admin.email,
+                'password': 'adminpassword',
+                '_is_admin': True
+            }
+            return admin_user_data
+        
+        # Create new admin user
         admin = User()
         admin.username = 'admin'
         admin.email = 'admin@example.com'
@@ -98,6 +125,23 @@ def admin_user(app):
 def expert_user(app):
     """Create an expert user."""
     with app.app_context():
+        # Check if expert user already exists
+        existing_expert = User.query.filter_by(email='expert@example.com').first()
+        if existing_expert:
+            # Return existing expert data
+            expert_user_data = {
+                'id': existing_expert.id,
+                'username': existing_expert.username,
+                'email': existing_expert.email,
+                'password': 'expertpassword',
+                '_is_expert': True,
+                'is_approved_expert': True,
+                'areas_of_expertise': 'Statistics, Machine Learning',
+                'institution': 'Test University'
+            }
+            return expert_user_data
+        
+        # Create new expert user
         expert = User()
         expert.username = 'expert'
         expert.email = 'expert@example.com'
