@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import json
+import os
 import random
 from flask import Flask, current_app
 from routes.main_routes import get_model_recommendation
@@ -10,7 +11,8 @@ def test_clustering_with_no_dependent():
     app = Flask(__name__)
     
     # Load model database
-    with open('model_database.json') as f:
+    model_db_path = os.path.join('data', 'model_database.json')
+    with open(model_db_path) as f:
         model_database = json.load(f)
     
     with app.app_context():
@@ -47,9 +49,9 @@ def test_form_response():
     """Test the backend response for a form submission with no dependent variable"""
     app = Flask(__name__)
     app.config['TESTING'] = True
-    
-    # Load model database
-    with open('model_database.json') as f:
+      # Load model database
+    model_db_path = os.path.join('data', 'model_database.json')
+    with open(model_db_path) as f:
         model_database = json.load(f)
     
     # Set up the app context and config

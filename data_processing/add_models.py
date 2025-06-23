@@ -17,7 +17,8 @@ MODELS_TO_ADD = [
 
 def add_models_to_database():
     # Load the existing database
-    with open("model_database.json", "r") as f:
+    model_db_path = os.path.join("..", "data", "model_database.json")
+    with open(model_db_path, "r") as f:
         database = json.load(f)
     
     # Count models before adding
@@ -32,9 +33,8 @@ def add_models_to_database():
                 "synthetic_data": {}
             }
             added_models.append(model)
-    
-    # Save the updated database
-    with open("model_database.json", "w") as f:
+      # Save the updated database
+    with open(model_db_path, "w") as f:
         json.dump(database, f, indent=2)
     
     print(f"Added {len(added_models)} new models to database: {added_models}")

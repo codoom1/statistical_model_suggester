@@ -43,7 +43,16 @@ def run_render_setup():
         for i in range(retries):
             try:
                 # Try importing psycopg2 for PostgreSQL connection
-                import psycopg2
+                try:
+                    import psycopg2
+                except ImportError:
+                    logger.error("psycopg2 not installed. PostgreSQL connections will fail.")
+                    if is_production:
+                        return 1
+                    else:
+                        logger.warning("Skipping PostgreSQL connection test in development")
+                        break
+                
                 conn_params = database_url.replace('postgresql://', '')
                 user_pass, host_db = conn_params.split('@')
                 if ':' in user_pass:
@@ -85,7 +94,7 @@ def run_render_setup():
     
     # Import the migration script
     try:
-        from migrations import run_migrations
+        from database_management.migrations import run_migrations
         
         # Run database migrations
         logger.info("Running database migrations...")
@@ -108,4 +117,4 @@ def run_render_setup():
     return 0
 
 if __name__ == "__main__":
-    sys.exit(run_render_setup()) 
+    sys.exit(run_render_setup())

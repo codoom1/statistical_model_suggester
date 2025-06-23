@@ -20,7 +20,7 @@ from utils.diagnostic_plots.update_template import update_template
 
 def main():
     parser = argparse.ArgumentParser(description='Generate diagnostic plots and update the application')
-    parser.add_argument('--database', type=str, default='model_database.json',
+    parser.add_argument('--database', type=str, default='../data/model_database.json',
                         help='Path to the model database JSON file')
     parser.add_argument('--output', type=str, default='static/diagnostic_plots',
                         help='Directory to save the plots')

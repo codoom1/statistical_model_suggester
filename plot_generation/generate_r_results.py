@@ -7,12 +7,16 @@ from pathlib import Path
 
 # Load model database
 def load_models():
-    with open('model_database.json', 'r') as f:
+    import os
+    model_db_path = os.path.join('..', 'data', 'model_database.json')
+    with open(model_db_path, 'r') as f:
         return json.load(f)
 
 # Save model database
 def save_models(models):
-    with open('model_database.json', 'w') as f:
+    import os
+    model_db_path = os.path.join('..', 'data', 'model_database.json')
+    with open(model_db_path, 'w') as f:
         json.dump(models, f, indent=4)
 
 # Function to generate R results

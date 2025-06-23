@@ -4,12 +4,14 @@ import os
 
 # Function to load model database
 def load_models():
-    with open('model_database.json', 'r') as f:
+    model_db_path = os.path.join('..', 'data', 'model_database.json')
+    with open(model_db_path, 'r') as f:
         return json.load(f)
 
 # Function to save model database
 def save_models(models):
-    with open('model_database.json', 'w') as f:
+    model_db_path = os.path.join('..', 'data', 'model_database.json')
+    with open(model_db_path, 'w') as f:
         json.dump(models, f, indent=4)
 
 # Function to add synthetic data examples to models

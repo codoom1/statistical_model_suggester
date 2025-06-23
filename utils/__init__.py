@@ -11,10 +11,9 @@ def get_statistics():
     """
     try:
         # Import Flask inside the function to avoid circular imports
-        from flask import current_app
-        
+        from flask import current_app        
         # Get the path to model_database.json
-        model_db_path = os.path.join(current_app.root_path, 'model_database.json')
+        model_db_path = os.path.join(current_app.root_path, 'data', 'model_database.json')
         
         # Initialize statistics
         stats = {

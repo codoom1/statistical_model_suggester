@@ -63,16 +63,16 @@ def verify_model_fields(models):
 
 def main():
     # Check if model_database.json exists
-    if not os.path.exists('model_database.json'):
-        print("Error: model_database.json not found.")
+    model_db_path = os.path.join('..', 'data', 'model_database.json')
+    if not os.path.exists(model_db_path):
+        print(f"Error: model_database.json not found at {model_db_path}.")
         return
-    
-    # Load model database
-    with open('model_database.json', 'r') as f:
+      # Load model database
+    with open(model_db_path, 'r') as f:
         try:
             models = json.load(f)
         except json.JSONDecodeError:
-            print("Error: model_database.json is not valid JSON.")
+            print(f"Error: model_database.json is not valid JSON.")
             return
     
     print(f"Loaded {len(models)} models from model_database.json")

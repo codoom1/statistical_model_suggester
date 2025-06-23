@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import json
+import os
 
 # Load model database
-with open('model_database.json', 'r') as f:
+model_db_path = os.path.join('..', 'data', 'model_database.json')
+with open(model_db_path, 'r') as f:
     models = json.load(f)
 
 # Define default values for Bayesian models
@@ -117,5 +119,5 @@ for model_name in models:
         del models[model_name]['characteristics']
 
 # Save updated model database
-with open('model_database.json', 'w') as f:
-    json.dump(models, f, indent=4) 
+with open(model_db_path, 'w') as f:
+    json.dump(models, f, indent=4)

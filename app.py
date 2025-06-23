@@ -57,10 +57,9 @@ def create_app():
     
     # Initialize mail
     init_mail(app)
-    
-    # Initialize login manager
+      # Initialize login manager
     login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'
+    login_manager.login_view = 'auth.login'  # type: ignore
     login_manager.login_message_category = 'info'
     login_manager.init_app(app)
 
@@ -91,16 +90,14 @@ def create_app():
                 logger.warning("ADMIN_PASSWORD environment variable not set. Using default password for admin account.")
                 logger.warning("This is insecure. Please set ADMIN_PASSWORD in your environment variables.")
                 admin_password = 'admin123'  # Default password, should be changed
-            
-            # Check if admin user exists
+              # Check if admin user exists
             admin_user = User.query.filter_by(username=admin_username).first()
             if not admin_user:
                 logger.info(f"Creating admin user '{admin_username}'")
-                admin_user = User(
-                    username=admin_username,
-                    email=admin_email,
-                    _is_admin=True
-                )
+                admin_user = User()
+                admin_user.username = admin_username
+                admin_user.email = admin_email
+                admin_user._is_admin = True
                 admin_user.set_password(admin_password)
                 db.session.add(admin_user)
                 db.session.commit()
@@ -188,7 +185,7 @@ def create_app():
 
     # Load model database
     try:
-        model_db_path = os.path.join(os.path.dirname(__file__), 'model_database.json')
+        model_db_path = os.path.join(os.path.dirname(__file__), 'data', 'model_database.json')
         logger.debug(f"Loading model database from {model_db_path}")
         
         if not os.path.exists(model_db_path):
