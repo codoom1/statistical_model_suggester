@@ -221,12 +221,11 @@ def create_app():
     # Health check endpoint for Docker and monitoring
     @app.route('/health')
     def health_check():
-        try:
-            # Quick database check
+        try:            # Quick database check
             db.session.execute(db.text('SELECT 1'))
             return {
                 'status': 'healthy',
-                'timestamp': datetime.datetime.utcnow().isoformat(),
+                'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
                 'service': 'statistical-model-suggester'
             }, 200
         except Exception as e:
@@ -234,7 +233,7 @@ def create_app():
             return {
                 'status': 'unhealthy',
                 'error': str(e),
-                'timestamp': datetime.datetime.utcnow().isoformat(),
+                'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
                 'service': 'statistical-model-suggester'
             }, 503
 

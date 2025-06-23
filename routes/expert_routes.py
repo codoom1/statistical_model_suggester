@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from models import db, User, Analysis, Consultation, ExpertApplication
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
 from utils.email_service import send_expert_approved_email, send_expert_rejected_email
 import re
@@ -94,12 +94,12 @@ def apply_expert():
         bio = request.form.get('bio')
         # Create new expert application
         application = ExpertApplication(
-            user_id=current_user.id,
-            email=email,
-            areas_of_expertise=expertise,
-            institution=institution,
-            bio=bio,
-            status='pending'
+            user_id=current_user.id,  # type: ignore
+            email=email,  # type: ignore
+            areas_of_expertise=expertise,  # type: ignore
+            institution=institution,  # type: ignore
+            bio=bio,  # type: ignore
+            status='pending'  # type: ignore
         )
         db.session.add(application)
         db.session.commit()
@@ -192,14 +192,14 @@ def request_consultation():
                                selected_analysis=selected_analysis)
         # Create new consultation
         consultation = Consultation(
-            requester_id=current_user.id,
-            expert_id=expert_id if expert_id else None,
-            analysis_id=analysis_id if analysis_id else None,
-            title=title,
-            description=description,
-            status='in_progress' if expert_id else 'pending',
-            is_public=is_public,
-            analysis_goal=analysis_goal
+            requester_id=current_user.id,  # type: ignore
+            expert_id=expert_id if expert_id else None,  # type: ignore
+            analysis_id=analysis_id if analysis_id else None,  # type: ignore
+            title=title,  # type: ignore
+            description=description,  # type: ignore
+            status='in_progress' if expert_id else 'pending',  # type: ignore
+            is_public=is_public,  # type: ignore
+            analysis_goal=analysis_goal  # type: ignore
         )
         db.session.add(consultation)
         db.session.commit()
@@ -240,7 +240,7 @@ def respond_consultation(consultation_id):
     # Update consultation
     consultation.response = response
     consultation.status = 'completed'
-    consultation.updated_at = datetime.utcnow()
+    consultation.updated_at = datetime.now(timezone.utc)
     consultation.is_public = make_public
     db.session.commit()
     flash('Your response has been submitted.', 'success')
@@ -259,7 +259,7 @@ def assign_consultation(consultation_id):
     # Assign the expert
     consultation.expert_id = current_user.id
     consultation.status = 'in_progress'
-    consultation.updated_at = datetime.utcnow()
+    consultation.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     flash('You have been assigned to this consultation.', 'success')
     return redirect(url_for('expert.view_consultation', consultation_id=consultation.id))
@@ -348,7 +348,10 @@ def upload_resume():
         return redirect(url_for('expert.application_status'))
     # Check if the file has an allowed extension
     allowed_extensions = {'pdf', 'doc', 'docx'}
-    file_extension = resume_file.filename.rsplit('.', 1)[1].lower() if '.' in resume_file.filename else ''
+    if resume_file.filename and '.' in resume_file.filename:
+        file_extension = resume_file.filename.rsplit('.', 1)[1].lower()
+    else:
+        file_extension = ''
     if file_extension not in allowed_extensions:
         flash('Invalid file type. Please upload a PDF, DOC, or DOCX file.', 'danger')
         return redirect(url_for('expert.application_status'))
@@ -357,11 +360,15 @@ def upload_resume():
         import os
         from datetime import datetime
         from werkzeug.utils import secure_filename
+        if not resume_file.filename:
+            flash('Invalid filename.', 'danger')
+            return redirect(url_for('expert.application_status'))
         filename = secure_filename(resume_file.filename)
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
         unique_filename = f"{current_user.id}_{timestamp}_{filename}"
         # Ensure the upload directory exists
-        upload_dir = os.path.join(current_app.static_folder, 'uploads', 'resumes')
+        static_folder = current_app.static_folder or 'static'
+        upload_dir = os.path.join(static_folder, 'uploads', 'resumes')
         os.makedirs(upload_dir, exist_ok=True)
         # Save the file
         file_path = os.path.join(upload_dir, unique_filename)
@@ -396,12 +403,12 @@ def submit_additional_info():
         # Create a record of the additional information
         existing_notes = application.admin_notes or ""
         # Update the application with the additional info
-        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
         application.admin_notes = f"{existing_notes}\n\n--- Expert Response ({timestamp}) ---\n{additional_info}"
         # Update application status to indicate it's ready for admin review
         if application.status == 'needs_info':
             application.status = 'pending_review'
-        application.updated_at = datetime.utcnow()
+        application.updated_at = datetime.now(timezone.utc)
         db.session.commit()
         # Send email notification to admin about the additional info (optional)
         # send_admin_notification_email(application)

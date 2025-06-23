@@ -8,7 +8,7 @@ from flask_login import login_required, current_user
 from utils.questionnaire_generator import generate_questionnaire
 from utils.export_utils import export_to_word, export_to_pdf
 from models import db, Questionnaire
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 logger = logging.getLogger(__name__)
 questionnaire_bp = Blueprint('questionnaire', __name__, url_prefix='/questionnaire')
@@ -144,16 +144,16 @@ def edit():
                         original_question = original_questions[int(question_index)]
                         ai_enhanced = original_question.get('ai_enhanced', False)
                         ai_created = original_question.get('ai_created', False)
-                question_data = {
+                question_data: dict = {
                     'text': question_text,
                     'type': question_type
                 }
                 if options:
-                    question_data['options'] = options
+                    question_data['options'] = options  # type: ignore
                 if ai_enhanced:
-                    question_data['ai_enhanced'] = True
+                    question_data['ai_enhanced'] = True  # type: ignore
                 if ai_created:
-                    question_data['ai_created'] = True
+                    question_data['ai_created'] = True  # type: ignore
                 if question_text:  # Only add non-empty questions
                     questions.append(question_data)
             if section_title:  # Only add sections with a title
@@ -213,18 +213,18 @@ def save_questionnaire():
             questionnaire.purpose = questionnaire_purpose
             questionnaire.content = questionnaire_data
             questionnaire.is_ai_enhanced = is_ai_enhanced
-            questionnaire.updated_at = datetime.utcnow()
+            questionnaire.updated_at = datetime.now(timezone.utc)
         else:
             # Create a new questionnaire
             questionnaire = Questionnaire(
-                user_id=current_user.id,
-                title=research_topic,
-                topic=research_topic,
-                description=research_description,
-                target_audience=target_audience,
-                purpose=questionnaire_purpose,
-                content=questionnaire_data,
-                is_ai_enhanced=is_ai_enhanced
+                user_id=current_user.id,  # type: ignore
+                title=research_topic,  # type: ignore
+                topic=research_topic,  # type: ignore
+                description=research_description,  # type: ignore
+                target_audience=target_audience,  # type: ignore
+                purpose=questionnaire_purpose,  # type: ignore
+                content=questionnaire_data,  # type: ignore
+                is_ai_enhanced=is_ai_enhanced  # type: ignore
             )
             db.session.add(questionnaire)
         db.session.commit()

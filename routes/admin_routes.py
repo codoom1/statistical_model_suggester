@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from models import db, User, ExpertApplication, Analysis, Consultation
 from functools import wraps
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from utils.email_service import send_expert_approved_email, send_expert_rejected_email
 import os
 import json
@@ -43,15 +43,15 @@ def dashboard():
         ExpertApplication.status.in_(['pending', 'needs_info'])
     ).all()
     # User growth over time (last 6 months)
-    end_date = datetime.utcnow()
+    end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=180)
     months = []
     regular_users_growth = []
     experts_growth = []
-    current_date = start_date
+    current_date = start_date.replace(day=1)  # Start at beginning of month and keep timezone info
     while current_date <= end_date:
-        month_end = datetime(current_date.year, current_date.month, 1) + timedelta(days=32)
-        month_end = datetime(month_end.year, month_end.month, 1) - timedelta(days=1)
+        month_end = datetime(current_date.year, current_date.month, 1, tzinfo=timezone.utc) + timedelta(days=32)
+        month_end = datetime(month_end.year, month_end.month, 1, tzinfo=timezone.utc) - timedelta(days=1)
         # Format date string
         month_str = current_date.strftime('%b %Y')
         months.append(month_str)
@@ -69,8 +69,8 @@ def dashboard():
         regular_users_growth.append(regular_count)
         experts_growth.append(expert_count)
         # Move to next month
-        current_date = datetime(current_date.year, current_date.month, 1) + timedelta(days=32)
-        current_date = datetime(current_date.year, current_date.month, 1)
+        next_month = current_date.replace(day=1) + timedelta(days=32)
+        current_date = next_month.replace(day=1)
     return render_template(
         'admin/dashboard.html',
         admin_users_count=admin_users_count,
@@ -427,7 +427,7 @@ def request_additional_info(application_id):
     if not application.admin_notes:
         application.admin_notes = "The review committee needs additional information to process your application. Please provide the requested details."
     # Add timestamp to the notes
-    current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
     application.admin_notes = f"{application.admin_notes}\n\n--- Admin Request ({current_time}) ---\nPlease provide more information about your expertise and experience."
     db.session.commit()
     # Optional: Send email notification to the applicant

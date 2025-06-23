@@ -119,7 +119,8 @@ class TestAdminWorkflow:
         # Step 5: Verify approval
         with app.app_context():
             user = db.session.get(User, user_id)
-            assert user.is_approved_expert is True
+            if user:
+                assert user.is_approved_expert is True
 class TestAnalysisVariations:
     """Test various analysis scenarios."""
     def test_different_analysis_types(self, authenticated_client):

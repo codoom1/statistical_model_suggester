@@ -854,17 +854,17 @@ def save_user_analysis(user_id, research_question, recommended_model, analysis_g
     """Save user analysis to database"""
     try:
         analysis = Analysis(
-            user_id=user_id,
-            research_question=research_question,
-            analysis_goal=analysis_goal,
-            dependent_variable=dependent_variable_type,
-            independent_variables=json.dumps(independent_variables),
-            sample_size=sample_size,
-            missing_data=missing_data,
-            data_distribution=data_distribution,
-            relationship_type=relationship_type,
-            variables_correlated=variables_correlated,
-            recommended_model=recommended_model
+            user_id=user_id,  # type: ignore
+            research_question=research_question,  # type: ignore
+            analysis_goal=analysis_goal,  # type: ignore
+            dependent_variable=dependent_variable_type,  # type: ignore
+            independent_variables=json.dumps(independent_variables),  # type: ignore
+            sample_size=sample_size,  # type: ignore
+            missing_data=missing_data,  # type: ignore
+            data_distribution=data_distribution,  # type: ignore
+            relationship_type=relationship_type,  # type: ignore
+            variables_correlated=variables_correlated,  # type: ignore
+            recommended_model=recommended_model  # type: ignore
         )
         db.session.add(analysis)
         db.session.commit()
