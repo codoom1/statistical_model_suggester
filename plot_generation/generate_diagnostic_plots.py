@@ -20,13 +20,17 @@ from utils.diagnostic_plots.update_template import update_template
 
 def main():
     parser = argparse.ArgumentParser(description='Generate diagnostic plots and update the application')
-    parser.add_argument('--database', type=str, default='../data/model_database.json',
+    parser.add_argument('--database', type=str, 
+                        default=os.path.join(os.path.dirname(__file__), '..', 'data', 'model_database.json'),
                         help='Path to the model database JSON file')
-    parser.add_argument('--output', type=str, default='static/diagnostic_plots',
+    parser.add_argument('--output', type=str, 
+                        default=os.path.join(os.path.dirname(__file__), '..', 'static', 'diagnostic_plots'),
                         help='Directory to save the plots')
-    parser.add_argument('--requirements', type=str, default='requirements.txt',
+    parser.add_argument('--requirements', type=str, 
+                        default=os.path.join(os.path.dirname(__file__), '..', 'requirements.txt'),
                         help='Path to the requirements.txt file')
-    parser.add_argument('--template', type=str, default='templates/model_interpretation.html',
+    parser.add_argument('--template', type=str, 
+                        default=os.path.join(os.path.dirname(__file__), '..', 'templates', 'model_interpretation.html'),
                         help='Path to the model_interpretation.html template')
     parser.add_argument('--skip-install', action='store_true',
                         help='Skip installing dependencies')
