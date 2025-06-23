@@ -218,6 +218,26 @@ def create_app():
         if request.path.startswith('/static/'):
             logger.debug(f"Serving static file: {request.path}")
 
+    # Health check endpoint for Docker and monitoring
+    @app.route('/health')
+    def health_check():
+        try:
+            # Quick database check
+            db.session.execute(db.text('SELECT 1'))
+            return {
+                'status': 'healthy',
+                'timestamp': datetime.datetime.utcnow().isoformat(),
+                'service': 'statistical-model-suggester'
+            }, 200
+        except Exception as e:
+            logger.error(f"Health check failed: {e}")
+            return {
+                'status': 'unhealthy',
+                'error': str(e),
+                'timestamp': datetime.datetime.utcnow().isoformat(),
+                'service': 'statistical-model-suggester'
+            }, 503
+
     return app
 
 # Create the app instance at the module level for Gunicorn
@@ -230,4 +250,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     print(f"Starting application on port {args.port}")
-    app.run(host='0.0.0.0', debug=os.environ.get('FLASK_DEBUG', 'True').lower() == 'true', port=args.port) 
+    app.run(host='0.0.0.0', debug=os.environ.get('FLASK_DEBUG', 'True').lower() == 'true', port=args.port)
