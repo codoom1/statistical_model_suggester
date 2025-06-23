@@ -1,13 +1,13 @@
 # Makefile for Statistical Model Suggester Testing
 
-.PHONY: test test-unit test-integration test-coverage test-models test-auth test-main test-admin test-utils clean install-test-deps
+.PHONY: test test-unit test-integration test-coverage test-models test-auth test-main test-admin test-utils clean install-test-deps lint lint-fix
 
 # Default target
 test: test-unit test-integration
 
 # Install testing dependencies
 install-test-deps:
-	pip install pytest pytest-flask pytest-cov
+	pip install pytest pytest-flask pytest-cov flake8
 
 # Run all unit tests
 test-unit:
@@ -57,6 +57,18 @@ clean:
 	find . -name "*.tmp" -delete
 	find . -name "*.bak" -delete
 
+# Linting
+lint:
+	flake8 routes/ tests/ --max-line-length=88 --extend-ignore=E203,W503
+
+lint-fix:
+	@echo "Fixing basic formatting issues..."
+	@echo "Note: This fixes only simple whitespace issues. Complex issues need manual fixing."
+	# Remove trailing whitespace
+	find routes/ tests/ -name "*.py" -exec sed -i '' 's/[[:space:]]*$$//' {} \;
+	# Remove blank lines with whitespace
+	find routes/ tests/ -name "*.py" -exec sed -i '' '/^[[:space:]]*$$/d' {} \;
+
 # Help
 help:
 	@echo "Available targets:"
@@ -73,4 +85,6 @@ help:
 	@echo "  test-fast         - Run fast tests only"
 	@echo "  clean             - Clean test artifacts"
 	@echo "  install-test-deps - Install testing dependencies"
+	@echo "  lint              - Run linters"
+	@echo "  lint-fix          - Fix basic linting issues"
 	@echo "  help              - Show this help message"

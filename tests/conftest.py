@@ -6,32 +6,24 @@ import tempfile
 import os
 import sys
 from pathlib import Path
-
 # Add the project root to Python path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
-
 # Set testing environment variables before any imports
 os.environ['TESTING'] = 'true'
 os.environ['WTF_CSRF_ENABLED'] = 'false'
 os.environ['SECRET_KEY'] = 'test-secret-key'
 os.environ['MAIL_SUPPRESS_SEND'] = 'true'
-
 from models import db, User
-
-
 @pytest.fixture
 def app():
     """Create and configure a new app instance for each test."""
     # Create a temporary file to use as the database
     db_fd, db_path = tempfile.mkstemp()
-    
     # Override DATABASE_URL for this test
     os.environ['DATABASE_URL'] = f'sqlite:///{db_path}'
-    
     # Import app creation function after setting environment
     from app import create_app
-    
     app = create_app()
     app.config.update({
         'TESTING': True,
@@ -41,27 +33,19 @@ def app():
         'MAIL_SUPPRESS_SEND': True,
         'MAIL_BACKEND': 'locmem'
     })
-    
     with app.app_context():
         db.create_all()
         yield app
-    
     os.close(db_fd)
     os.unlink(db_path)
-
-
 @pytest.fixture
 def client(app):
     """A test client for the app."""
     return app.test_client()
-
-
 @pytest.fixture
 def runner(app):
     """A test runner for the app's Click commands."""
     return app.test_cli_runner()
-
-
 @pytest.fixture
 def test_user(app):
     """Create a test user."""
@@ -77,7 +61,6 @@ def test_user(app):
         # Return the user ID instead of the user object to avoid session issues
         user_id = user.id
         db.session.expunge(user)  # Detach from session to avoid conflicts
-        
         # Create a new user object that can be used in tests
         test_user_data = {
             'id': user_id,
@@ -86,8 +69,6 @@ def test_user(app):
             'password': 'testpassword'
         }
         return test_user_data
-
-
 @pytest.fixture
 def admin_user(app):
     """Create an admin user."""
@@ -104,7 +85,6 @@ def admin_user(app):
         # Return admin ID instead of the admin object to avoid session issues
         admin_id = admin.id
         db.session.expunge(admin)  # Detach from session to avoid conflicts
-        
         # Create a new admin object that can be used in tests
         admin_user_data = {
             'id': admin_id,
@@ -114,8 +94,6 @@ def admin_user(app):
             '_is_admin': True
         }
         return admin_user_data
-
-
 @pytest.fixture
 def expert_user(app):
     """Create an expert user."""
@@ -135,7 +113,6 @@ def expert_user(app):
         # Return expert ID instead of the expert object to avoid session issues
         expert_id = expert.id
         db.session.expunge(expert)  # Detach from session to avoid conflicts
-        
         # Create a new expert object that can be used in tests
         expert_user_data = {
             'id': expert_id,
@@ -148,8 +125,6 @@ def expert_user(app):
             'institution': 'Test University'
         }
         return expert_user_data
-
-
 @pytest.fixture
 def authenticated_client(client, test_user):
     """A client with an authenticated user."""
@@ -158,8 +133,6 @@ def authenticated_client(client, test_user):
         'password': test_user['password']
     })
     return client
-
-
 @pytest.fixture
 def admin_client(client, admin_user):
     """A client with an authenticated admin user."""
@@ -168,8 +141,6 @@ def admin_client(client, admin_user):
         'password': admin_user['password']
     })
     return client
-
-
 @pytest.fixture
 def sample_analysis_data():
     """Sample data for analysis form."""
@@ -184,8 +155,6 @@ def sample_analysis_data():
         'relationship_type': 'linear',
         'variables_correlated': 'no'
     }
-
-
 @pytest.fixture
 def clustering_analysis_data():
     """Sample data for clustering analysis."""

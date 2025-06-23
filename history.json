@@ -4214,5 +4214,455 @@
     "relationship_type": "linear",
     "variables_correlated": "no",
     "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:43",
+    "research_question": "What factors predict customer satisfaction?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "mixed"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:44",
+    "research_question": "What predicts sales?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:44",
+    "research_question": "What predicts success?",
+    "analysis_goal": "classify",
+    "dependent_variable": "categorical",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "300",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Multinomial Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:44",
+    "research_question": "How to segment customers?",
+    "analysis_goal": "cluster",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "200",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "K-Means clustering"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:44",
+    "research_question": "Small sample test",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "10",
+    "missing_data": "substantial",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "yes",
+    "recommended_model": "Random Forest"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:44",
+    "research_question": "Large sample test",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "10000",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:45",
+    "research_question": "Performance test question 0",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:45",
+    "research_question": "Performance test question 1",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:45",
+    "research_question": "Performance test question 2",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:45",
+    "research_question": "Performance test question 3",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:45",
+    "research_question": "Performance test question 4",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:46",
+    "research_question": "What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? What factors predict customer satisfaction? ",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:46",
+    "research_question": "What factors predict customer satisfaction?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "mixed"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:46",
+    "research_question": "What factors predict customer satisfaction?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "mixed"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:47",
+    "research_question": "How can I cluster my customer data?",
+    "analysis_goal": "cluster",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "150",
+    "missing_data": "none",
+    "data_distribution": "non_normal",
+    "relationship_type": "non_linear",
+    "variables_correlated": "unknown",
+    "recommended_model": "K-Means clustering"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:47",
+    "research_question": "What predicts customer satisfaction?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:47",
+    "research_question": "What predicts customer satisfaction?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:47",
+    "research_question": "Test question",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "100",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:47",
+    "research_question": "Test question",
+    "analysis_goal": "cluster",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "100",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "K-Means clustering"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:47",
+    "research_question": "Test question",
+    "analysis_goal": "classify",
+    "dependent_variable": "categorical",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "100",
+    "missing_data": "none",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Random Forest"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:47",
+    "research_question": "What predicts sales?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:47",
+    "research_question": "What predicts success?",
+    "analysis_goal": "classify",
+    "dependent_variable": "categorical",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Multinomial Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:47",
+    "research_question": "Small sample analysis",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "25",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:48",
+    "research_question": "Non-normal data analysis",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "non_normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Elastic Net Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:48",
+    "research_question": "Analysis with missing data",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "substantial",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Ridge Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:48",
+    "research_question": "What factors predict customer satisfaction?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "mixed"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:48",
+    "research_question": "What factors predict customer satisfaction?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "mixed"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:48",
+    "research_question": "What factors predict customer satisfaction?",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "mixed"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:49",
+    "research_question": "'; DROP TABLE users; --",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
+  },
+  {
+    "timestamp": "2025-06-23 15:44:49",
+    "research_question": "<script>alert(\"XSS\")</script>",
+    "analysis_goal": "predict",
+    "dependent_variable": "continuous",
+    "independent_variables": [
+      "continuous"
+    ],
+    "sample_size": "500",
+    "missing_data": "little",
+    "data_distribution": "normal",
+    "relationship_type": "linear",
+    "variables_correlated": "no",
+    "recommended_model": "Linear Regression"
   }
 ]
