@@ -7,7 +7,6 @@ import os
 import sys
 import logging
 import time
-import subprocess
 
 # Configure logging
 logging.basicConfig(
@@ -16,34 +15,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def install_ml_dependencies():
-    """Install ML dependencies if enabled"""
-    install_ml = os.environ.get('INSTALL_ML_DEPS', 'false').lower() == 'true'
-    
-    if install_ml:
-        logger.info("Installing ML dependencies...")
-        try:
-            result = subprocess.run([
-                sys.executable, '-m', 'pip', 'install', '-r', 'requirements-ml.txt'
-            ], check=True, capture_output=True, text=True)
-            logger.info("ML dependencies installed successfully")
-            return True
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to install ML dependencies: {e}")
-            logger.error(f"STDOUT: {e.stdout}")
-            logger.error(f"STDERR: {e.stderr}")
-            return False
-    else:
-        logger.info("Skipping ML dependencies (INSTALL_ML_DEPS not set to 'true')")
-        return True
-
 def run_render_setup():
     logger.info("Starting Render build script")
-    
-    # Install ML dependencies first if requested
-    if not install_ml_dependencies():
-        logger.error("Failed to install ML dependencies")
-        return 1
     
     # Check environment
     is_production = os.environ.get('FLASK_ENV') == 'production'
@@ -118,8 +91,7 @@ def run_render_setup():
                     logger.error("Could not connect to database after multiple attempts")
                     if is_production:
                         return 1
-    
-    # Import the migration script
+      # Import the migration script
     try:
         from database_management.migrations import run_migrations
         
@@ -130,14 +102,20 @@ def run_render_setup():
         if success:
             logger.info("Database migration completed successfully")
         else:
-            logger.error("Database migration failed")
-            if is_production:
-                # In production, fail the build if migrations fail
+            logger.warning("Database migration had issues")
+            # In development, don't fail the build for migration issues
+            if not is_production:
+                logger.info("Continuing with build despite migration issues (development mode)")
+            else:
+                logger.error("Database migration failed in production")
                 return 1
     except Exception as e:
-        logger.error(f"Error running migrations: {e}")
-        if is_production:
-            # In production, fail the build if there's an error
+        logger.warning(f"Error running migrations: {e}")
+        # In development, don't fail the build for migration issues
+        if not is_production:
+            logger.info("Continuing with build despite migration error (development mode)")
+        else:
+            logger.error("Migration error in production")
             return 1
     
     logger.info("Render build script completed successfully")

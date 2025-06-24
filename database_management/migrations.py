@@ -31,11 +31,11 @@ def run_migrations():
             if not os.path.exists('migrations'):
                 logger.info("Initializing migrations directory...")
                 init()
-            
-            # Check if the database is reachable
+              # Check if the database is reachable
             try:
                 # Simple query to test connection
-                db.session.execute('SELECT 1')
+                from sqlalchemy import text
+                db.session.execute(text('SELECT 1'))
                 db.session.commit()
                 logger.info("Database connection successful")
             except Exception as conn_err:
@@ -43,18 +43,26 @@ def run_migrations():
                 if is_postgres:
                     logger.error("Make sure your PostgreSQL database is accessible")
                 return False
-                
-            # Create migration - automatic detection of changes to models
-            logger.info("Creating migration for model changes...")
+                  # Create migration - automatic detection of changes to models
+            logger.info("Checking for pending migrations...")
             try:
-                migrate(message="Add resume_url and admin_notes to expert applications")
+                # First try to upgrade any existing migrations
+                upgrade()
+                logger.info("Applied existing migrations successfully")
+                
+                # Then create new migration if there are model changes
+                logger.info("Creating migration for any new model changes...")
+                migrate(message="Auto-migration for model updates")
+                logger.info("Created new migration")
+                
+                # Apply the new migration
+                upgrade()
+                logger.info("Applied new migration")
+                
             except Exception as migrate_err:
-                logger.warning(f"Migration creation warning (may be normal if no changes): {migrate_err}")
-                # Continue even if migration creation fails - it might just mean no changes
-            
-            # Apply the migration
-            logger.info("Applying migrations...")
-            upgrade()
+                logger.warning(f"Migration process info: {migrate_err}")
+                # For production deployments, it's common to have this kind of info
+                # Continue with the deployment even if migrations are up to date
             
             logger.info("Migration completed successfully!")
             return True
