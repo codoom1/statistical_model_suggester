@@ -27,7 +27,8 @@ def test_postgresql_connection():
         if not database_url or 'postgresql' not in database_url:
             print("⚠ No PostgreSQL DATABASE_URL found, skipping PostgreSQL tests")
             print("  Set DATABASE_URL=postgresql://user:pass@host:port/db to enable PostgreSQL tests")
-            return True  # Return True to not fail the overall test
+            assert True  # Skip test but don't fail
+            return
         
         # Test direct connection
         print(f"Testing direct connection to: {database_url}")
@@ -35,10 +36,8 @@ def test_postgresql_connection():
         cursor = conn.cursor()
         cursor.execute("SELECT version();")
         version = cursor.fetchone()
-        if version:
-            print(f"PostgreSQL version: {version[0]}")
-        else:
-            print("PostgreSQL version: Unknown")
+        assert version is not None, "Could not get PostgreSQL version"
+        print(f"PostgreSQL version: {version[0]}")
         cursor.close()
         conn.close()
         print("✓ Direct PostgreSQL connection successful")
@@ -55,8 +54,8 @@ def test_postgresql_connection():
             
             # Test a simple query
             result = db.session.execute(text("SELECT 1 as test")).fetchone()
-            if result and result[0] == 1:
-                print("✓ Database query test successful")
+            assert result is not None and result[0] == 1, "Database query test failed"
+            print("✓ Database query test successful")
             
             # Test pg_trgm extension
             try:
@@ -66,14 +65,13 @@ def test_postgresql_connection():
                 print(f"⚠ pg_trgm extension test failed: {e}")
         
         print("🎉 PostgreSQL integration test completed successfully!")
-        return True
         
     except ImportError:
         print("⚠ psycopg2 not available, skipping PostgreSQL tests")
-        return True  # Return True to not fail the overall test
+        assert True  # Skip test but don't fail
     except Exception as e:
         print(f"❌ PostgreSQL integration test failed: {e}")
-        return False
+        assert False, f"PostgreSQL integration test failed: {e}"
 
 def test_sqlite_fallback():
     """Test SQLite fallback for development/testing"""
@@ -96,17 +94,16 @@ def test_sqlite_fallback():
             
             # Test a simple query
             result = db.session.execute(text("SELECT 1 as test")).fetchone()
-            if result and result[0] == 1:
-                print("✓ SQLite query test successful")
+            assert result is not None and result[0] == 1, "SQLite query test failed"
+            print("✓ SQLite query test successful")
         
         # Clean up
         os.unlink(db_path)
         print("✓ SQLite fallback test completed successfully!")
-        return True
         
     except Exception as e:
         print(f"❌ SQLite fallback test failed: {e}")
-        return False
+        assert False, f"SQLite fallback test failed: {e}"
 
 if __name__ == "__main__":
     print("=== Database Integration Tests ===")

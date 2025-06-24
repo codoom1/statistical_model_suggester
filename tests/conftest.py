@@ -181,18 +181,22 @@ def expert_user(app):
 @pytest.fixture
 def authenticated_client(client, test_user):
     """A client with an authenticated user."""
-    client.post('/auth/login', data={
+    response = client.post('/auth/login', data={
         'username': test_user['username'],
         'password': test_user['password']
-    })
+    }, follow_redirects=True)
+    # Verify login was successful
+    assert response.status_code == 200
     return client
 @pytest.fixture
 def admin_client(client, admin_user):
     """A client with an authenticated admin user."""
-    client.post('/auth/login', data={
+    response = client.post('/auth/login', data={
         'username': admin_user['username'],
         'password': admin_user['password']
-    })
+    }, follow_redirects=True)
+    # Verify login was successful
+    assert response.status_code == 200
     return client
 @pytest.fixture
 def sample_analysis_data():

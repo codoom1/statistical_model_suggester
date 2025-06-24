@@ -7,7 +7,7 @@ class TestAdminAccess:
     def test_admin_dashboard_requires_admin(self, client, test_user):
         """Test that admin dashboard requires admin privileges."""
         # Login as regular user
-        client.post('/login', data={
+        client.post('/auth/login', data={
             'username': 'testuser',
             'password': 'testpassword'
         })

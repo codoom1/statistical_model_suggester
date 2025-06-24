@@ -71,39 +71,42 @@ def create_app():
             return db.session.get(User, int(user_id))
         except Exception as e:
             logger.error(f"Error loading user: {e}")
-            return None
-
-    # Create database tables
+            return None    # Create database tables
     with app.app_context():
         logger.debug("Creating database tables...")
         try:
             db.create_all()
             logger.debug("Database tables created successfully")
             
-            # Create admin user if it doesn't exist
-            admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
-            admin_email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
-            admin_password = os.environ.get('ADMIN_PASSWORD')
-            
-            # Check if admin credentials are properly configured
-            if not admin_password:
-                logger.warning("ADMIN_PASSWORD environment variable not set. Using default password for admin account.")
-                logger.warning("This is insecure. Please set ADMIN_PASSWORD in your environment variables.")
-                admin_password = 'admin123'  # Default password, should be changed
-              # Check if admin user exists
-            admin_user = User.query.filter_by(username=admin_username).first()
-            if not admin_user:
-                logger.info(f"Creating admin user '{admin_username}'")
-                admin_user = User()
-                admin_user.username = admin_username
-                admin_user.email = admin_email
-                admin_user._is_admin = True
-                admin_user.set_password(admin_password)
-                db.session.add(admin_user)
-                db.session.commit()
-                logger.info("Admin user created successfully")
-            else:
-                logger.info(f"Admin user '{admin_username}' already exists")
+            # Only create admin user if not in testing mode
+            if not os.environ.get('TESTING'):
+                # Create admin user if it doesn't exist
+                admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
+                admin_email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
+                admin_password = os.environ.get('ADMIN_PASSWORD')
+                
+                # Check if admin credentials are properly configured
+                if not admin_password:
+                    logger.warning("ADMIN_PASSWORD environment variable not set. Using default password for admin account.")
+                    logger.warning("This is insecure. Please set ADMIN_PASSWORD in your environment variables.")
+                    admin_password = 'admin123'  # Default password, should be changed
+                
+                # Check if admin user exists (check both username and email)
+                admin_user = User.query.filter(
+                    (User.username == admin_username) | (User.email == admin_email)
+                ).first()
+                if not admin_user:
+                    logger.info(f"Creating admin user '{admin_username}'")
+                    admin_user = User()
+                    admin_user.username = admin_username
+                    admin_user.email = admin_email
+                    admin_user._is_admin = True
+                    admin_user.set_password(admin_password)
+                    db.session.add(admin_user)
+                    db.session.commit()
+                    logger.info("Admin user created successfully")
+                else:
+                    logger.info(f"Admin user '{admin_username}' already exists")
                 
         except Exception as e:
             logger.error(f"Error creating database tables or admin user: {e}")
