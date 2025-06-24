@@ -17,6 +17,8 @@ services:
         fromDatabase:
           name: statistical-model-suggester-db
           property: connectionString
+      - key: INSTALL_ML_DEPS
+        value: "false"  # Set to "true" to enable heavy ML dependencies
       - key: ADMIN_USERNAME
         sync: false
       - key: ADMIN_EMAIL

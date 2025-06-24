@@ -14,32 +14,19 @@ psycopg2-binary>=2.9.0,<3.0.0
 SQLAlchemy>=2.0.0,<3.0.0
 alembic>=1.16.0,<2.0.0
 
-# Data Science and Machine Learning
+# Essential Data Science (required for core app)
 scikit-learn>=1.5.0,<1.7.0
-statsmodels>=0.14.0,<0.15.0
-xgboost>=2.0.0,<3.0.0
-lifelines>=0.27.0,<0.28.0
 numpy>=1.26.0,<2.0.0
 pandas>=2.2.0,<3.0.0
 scipy>=1.10.0,<2.0.0
 
-# Plotting and Visualization
+# Basic Plotting (core functionality)
 matplotlib>=3.8.0,<4.0.0
-seaborn>=0.13.0,<1.0.0
-plotly>=5.18.0,<6.0.0
 
-# Image Processing
-pillow>=11.0.0,<12.0.0
-
-# Document Generation
+# Basic Document Generation
 python-docx>=1.2.0,<2.0.0
 reportlab>=4.4.0,<5.0.0
 lxml>=5.4.0,<6.0.0
-
-# AI and ML Models
-transformers>=4.39.0,<5.0.0
-torch>=2.1.0,<3.0.0
-openai>=1.10.0,<2.0.0
 
 # Utilities
 python-dotenv>=1.0.0

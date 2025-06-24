@@ -7,6 +7,7 @@ import os
 import sys
 import logging
 import time
+import subprocess
 
 # Configure logging
 logging.basicConfig(
@@ -15,8 +16,34 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def install_ml_dependencies():
+    """Install ML dependencies if enabled"""
+    install_ml = os.environ.get('INSTALL_ML_DEPS', 'false').lower() == 'true'
+    
+    if install_ml:
+        logger.info("Installing ML dependencies...")
+        try:
+            result = subprocess.run([
+                sys.executable, '-m', 'pip', 'install', '-r', 'requirements-ml.txt'
+            ], check=True, capture_output=True, text=True)
+            logger.info("ML dependencies installed successfully")
+            return True
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to install ML dependencies: {e}")
+            logger.error(f"STDOUT: {e.stdout}")
+            logger.error(f"STDERR: {e.stderr}")
+            return False
+    else:
+        logger.info("Skipping ML dependencies (INSTALL_ML_DEPS not set to 'true')")
+        return True
+
 def run_render_setup():
     logger.info("Starting Render build script")
+    
+    # Install ML dependencies first if requested
+    if not install_ml_dependencies():
+        logger.error("Failed to install ML dependencies")
+        return 1
     
     # Check environment
     is_production = os.environ.get('FLASK_ENV') == 'production'
