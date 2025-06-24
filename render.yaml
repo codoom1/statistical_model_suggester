@@ -2,8 +2,7 @@ services:
   - type: web
     name: statistical-model-suggester
     env: python
-    buildCommand: pip install -r requirements.txt && python render_build.py
-    startCommand: gunicorn app:app
+    buildCommand: pip install -r requirements.txt && python render_build.py    startCommand: gunicorn app:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.8
@@ -11,7 +10,8 @@ services:
         generateValue: true
       - key: FLASK_ENV
         value: production
-      - key: FLASK_DEBUG        value: 0
+      - key: FLASK_DEBUG
+        value: 0
       - key: DATABASE_URL
         fromDatabase:
           name: statistical-model-suggester-db

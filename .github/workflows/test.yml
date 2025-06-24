@@ -13,20 +13,6 @@ jobs:
       matrix:
         python-version: ["3.9", "3.11"]
 
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
     - uses: actions/checkout@v3
 
@@ -55,7 +41,8 @@ jobs:
         echo "SECRET_KEY=test-secret-key" >> $GITHUB_ENV
         echo "TESTING=true" >> $GITHUB_ENV
         echo "WTF_CSRF_ENABLED=false" >> $GITHUB_ENV
-        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_db" >> $GITHUB_ENV
+        # Use SQLite for testing to avoid PostgreSQL connection issues
+        echo "DATABASE_URL=sqlite:///test.db" >> $GITHUB_ENV
 
     - name: Run linting
       run: |
@@ -126,3 +113,62 @@ jobs:
     - name: Test Docker container
       run: |
         docker run --rm -e TESTING=true sms-test python -c "print('Docker build successful')"
+
+  postgresql-integration:
+    runs-on: ubuntu-latest
+    # Only run PostgreSQL tests on main branch or if specifically triggered
+    if: github.ref == 'refs/heads/main' || contains(github.event.head_commit.message, '[test-postgres]')
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+        pip install --timeout 300 --retries 3 -r requirements-dev.txt
+      timeout-minutes: 10
+
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        until pg_isready -h localhost -p 5432 -U postgres; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        echo "PostgreSQL is ready!"
+
+    - name: Set up environment variables for PostgreSQL
+      run: |
+        echo "SECRET_KEY=test-secret-key" >> $GITHUB_ENV
+        echo "TESTING=false" >> $GITHUB_ENV
+        echo "WTF_CSRF_ENABLED=false" >> $GITHUB_ENV
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_db" >> $GITHUB_ENV
+
+    - name: Test PostgreSQL connection
+      run: |
+        psql postgresql://postgres:postgres@localhost:5432/test_db -c "SELECT version();"
+
+    - name: Run PostgreSQL-specific tests
+      run: |
+        python tests/test_database_integration.py

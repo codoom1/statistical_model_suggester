@@ -2,6 +2,7 @@ from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import json
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Index, TEXT, text
 
@@ -148,14 +149,24 @@ class Questionnaire(db.Model):
 # PostgreSQL-specific function to initialize extensions
 def initialize_postgres_extensions(app):
     """Initialize PostgreSQL extensions for full-text search"""
+    # Skip extension initialization during testing to avoid permission issues
+    if os.environ.get('TESTING') == 'true':
+        print("Skipping PostgreSQL extensions initialization during testing")
+        return
+        
     if 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']:
         try:
             with app.app_context():
+                # Check if we can connect to the database first
+                db.session.execute(text('SELECT 1'))
+                # Now try to create the extension
                 db.session.execute(text('CREATE EXTENSION IF NOT EXISTS pg_trgm'))
                 db.session.commit()
                 print("PostgreSQL extensions initialized successfully")
         except Exception as e:
             print(f"Error initializing PostgreSQL extensions: {e}")
+            # Don't fail the entire app if extensions can't be created
+            db.session.rollback()
 
 def get_model_details(model_name):
     try:

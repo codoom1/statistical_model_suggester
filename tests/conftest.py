@@ -20,8 +20,15 @@ def app():
     """Create and configure a new app instance for each test."""
     # Create a temporary file to use as the database
     db_fd, db_path = tempfile.mkstemp()
-    # Override DATABASE_URL for this test
+    
+    # Set testing environment variables before app creation
+    os.environ['TESTING'] = 'true'
+    os.environ['WTF_CSRF_ENABLED'] = 'false'
+    os.environ['SECRET_KEY'] = 'test-secret-key'
+    os.environ['MAIL_SUPPRESS_SEND'] = 'true'
+    # Force SQLite for testing to avoid PostgreSQL connection issues
     os.environ['DATABASE_URL'] = f'sqlite:///{db_path}'
+    
     # Import app creation function after setting environment
     from app import create_app
     app = create_app()
@@ -33,9 +40,11 @@ def app():
         'MAIL_SUPPRESS_SEND': True,
         'MAIL_BACKEND': 'locmem'
     })
+    
     with app.app_context():
         db.create_all()
         yield app
+        
     os.close(db_fd)
     os.unlink(db_path)
 @pytest.fixture
