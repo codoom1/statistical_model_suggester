@@ -4,145 +4,107 @@ A web application that helps users choose appropriate statistical models based o
 
 ## Features
 
-- Recommends appropriate statistical models based on:
-  - Analysis goal (prediction, classification, exploration)
-  - Data characteristics (variable types, sample size)
-  - Research question
-- Provides detailed information about recommended models
-- Suggests alternative models
-- Maintains history of previous recommendations
-- Includes implementation details and documentation links
+- **Model Recommendations**: Get suggestions for statistical models based on your data type and analysis goals
+- **User Accounts**: Save analysis history and track previous recommendations
+- **Expert Mode**: Advanced features for experienced statisticians
+- **PDF/Word Export**: Export analysis results and recommendations
+- **Admin Dashboard**: User management and system monitoring
+- **Optional AI Chat**: Enhanced recommendations with AI assistance (requires heavy ML dependencies)
 
-## Installation
+## Quick Start
 
-1. Clone the repository:
+1. **Clone and setup**:
 ```bash
 git clone https://github.com/codoom1/statistical-model-suggester.git
 cd statistical-model-suggester
-```
-
-2. Create a virtual environment:
-```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. Install dependencies:
+2. **Install dependencies**:
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt        # Core app (~100MB)
+pip install -r requirements-dev.txt    # + Development tools
 ```
 
-4. Set up environment variables:
+3. **Run the app**:
 ```bash
-export FLASK_SECRET_KEY='your-secret-key-here'  # On Windows: set FLASK_SECRET_KEY=your-secret-key-here
-```
-
-## Usage
-
-1. Start the application:
-```bash
+export FLASK_SECRET_KEY='your-secret-key-here'
 python app.py
-```
-
-2. Open your web browser and navigate to:
-```
-http://localhost:8084
-```
-
-3. Fill in the form with your data characteristics and analysis goals.
-
-4. View the recommended model and alternatives.
-
-## Project Structure
-
-```
-statistical-model-suggester/
-├── app.py                 # Main application file
-├── requirements.txt       # Python dependencies
-├── static/               # Static files (CSS, JS)
-│   ├── styles.css
-│   └── results.css
-└── templates/            # HTML templates
-    ├── index.html
-    ├── results.html
-    ├── history.html
-    └── error.html
+# Visit: http://localhost:8084
 ```
 
 ## Dependencies
 
-- Flask
-- scikit-learn
-- statsmodels
-- xgboost
-- tensorflow
-- lifelines
-- python-dotenv
-- gunicorn (for production deployment)
-- psycopg2-binary (for PostgreSQL support)
+- **`requirements.txt`**: Core production dependencies (Flask, SQLAlchemy, scikit-learn, basic plotting)
+The app gracefully handles missing optional dependencies (like PDF export libraries).
 
-## Deployment on Render
+## Deployment
 
-### Setting Up on Render
-
-1. Create a new Web Service on Render
-2. Connect your GitHub repository
-3. Use the following settings:
-   - **Name**: statistical-model-suggester (or your preferred name)
-   - **Environment**: Python
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn app:app`
-
-### Environment Variables
-
-Set the following environment variables in Render:
-
+### Local Development
+```bash
+export FLASK_SECRET_KEY='your-secret-key-here'
+python app.py
+# Visit: http://localhost:8084
 ```
+
+### Production (Render.com)
+
+1. **Create a Web Service** on Render and connect your GitHub repository
+2. **Build Command**: `pip install -r requirements.txt && python render_build.py`
+3. **Start Command**: `gunicorn app:app`
+4. **Add a PostgreSQL database** and Render will set `DATABASE_URL` automatically
+
+**Required Environment Variables:**
+```bash
 FLASK_ENV=production
-FLASK_DEBUG=0
 SECRET_KEY=<your-secure-random-key>
 ADMIN_USERNAME=<your-admin-username>
 ADMIN_EMAIL=<your-admin-email>
 ADMIN_PASSWORD=<your-secure-admin-password>
 ```
 
-For email functionality:
-```
-MAIL_SERVER=<your-smtp-server>
-MAIL_PORT=<your-smtp-port>
-MAIL_USE_TLS=True
-MAIL_USERNAME=<your-email-username>
-MAIL_PASSWORD=<your-email-password>
-MAIL_DEFAULT_SENDER=<your-default-sender-email>
+**Optional (for email notifications):**
+```bash
+MAIL_SERVER=<smtp-server>
+MAIL_USERNAME=<email>
+MAIL_PASSWORD=<password>
 ```
 
-For AI features (optional):
-```
-HUGGINGFACE_API_KEY=<your-huggingface-api-key>
-HUGGINGFACE_MODEL=<your-preferred-model>
+**Optional (for AI features):**
+```bash
 AI_ENHANCEMENT_ENABLED=true
+HUGGINGFACE_API_KEY=<your-key>
 ```
 
-### Database Setup
+## Project Structure
+```
+├── app.py                 # Main Flask application
+├── models.py             # Database models
+├── requirements.txt      # Core dependencies
+├── requirements-dev.txt  # Development tools
+├── routes/              # Route handlers
+├── templates/           # HTML templates
+├── static/             # CSS, JS, images
+├── utils/              # Helper functions
+├── tests/              # Test suite
+└── data/               # Model database
+```
 
-1. Create a PostgreSQL database on Render
-2. Render will automatically add the `DATABASE_URL` environment variable to your web service
-
-### Troubleshooting Deployment
-
-- Check application logs in Render dashboard
-- Verify all environment variables are set correctly
-- Ensure model_database.json exists and is valid JSON
-- Check for any Python dependencies that might be missing from requirements.txt
+## Testing
+```bash
+pip install -r requirements-dev.txt
+python -m pytest tests/ -v
+```
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+MIT License - see LICENSE file for details.

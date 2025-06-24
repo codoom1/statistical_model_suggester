@@ -57,10 +57,9 @@ def create_app():
     
     # Initialize mail
     init_mail(app)
-    
-    # Initialize login manager
+      # Initialize login manager
     login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'
+    login_manager.login_view = 'auth.login'  # type: ignore
     login_manager.login_message_category = 'info'
     login_manager.init_app(app)
 
@@ -72,41 +71,42 @@ def create_app():
             return db.session.get(User, int(user_id))
         except Exception as e:
             logger.error(f"Error loading user: {e}")
-            return None
-
-    # Create database tables
+            return None    # Create database tables
     with app.app_context():
         logger.debug("Creating database tables...")
         try:
             db.create_all()
             logger.debug("Database tables created successfully")
             
-            # Create admin user if it doesn't exist
-            admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
-            admin_email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
-            admin_password = os.environ.get('ADMIN_PASSWORD')
-            
-            # Check if admin credentials are properly configured
-            if not admin_password:
-                logger.warning("ADMIN_PASSWORD environment variable not set. Using default password for admin account.")
-                logger.warning("This is insecure. Please set ADMIN_PASSWORD in your environment variables.")
-                admin_password = 'admin123'  # Default password, should be changed
-            
-            # Check if admin user exists
-            admin_user = User.query.filter_by(username=admin_username).first()
-            if not admin_user:
-                logger.info(f"Creating admin user '{admin_username}'")
-                admin_user = User(
-                    username=admin_username,
-                    email=admin_email,
-                    _is_admin=True
-                )
-                admin_user.set_password(admin_password)
-                db.session.add(admin_user)
-                db.session.commit()
-                logger.info("Admin user created successfully")
-            else:
-                logger.info(f"Admin user '{admin_username}' already exists")
+            # Only create admin user if not in testing mode
+            if not os.environ.get('TESTING'):
+                # Create admin user if it doesn't exist
+                admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
+                admin_email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
+                admin_password = os.environ.get('ADMIN_PASSWORD')
+                
+                # Check if admin credentials are properly configured
+                if not admin_password:
+                    logger.warning("ADMIN_PASSWORD environment variable not set. Using default password for admin account.")
+                    logger.warning("This is insecure. Please set ADMIN_PASSWORD in your environment variables.")
+                    admin_password = 'admin123'  # Default password, should be changed
+                
+                # Check if admin user exists (check both username and email)
+                admin_user = User.query.filter(
+                    (User.username == admin_username) | (User.email == admin_email)
+                ).first()
+                if not admin_user:
+                    logger.info(f"Creating admin user '{admin_username}'")
+                    admin_user = User()
+                    admin_user.username = admin_username
+                    admin_user.email = admin_email
+                    admin_user._is_admin = True
+                    admin_user.set_password(admin_password)
+                    db.session.add(admin_user)
+                    db.session.commit()
+                    logger.info("Admin user created successfully")
+                else:
+                    logger.info(f"Admin user '{admin_username}' already exists")
                 
         except Exception as e:
             logger.error(f"Error creating database tables or admin user: {e}")
@@ -188,7 +188,7 @@ def create_app():
 
     # Load model database
     try:
-        model_db_path = os.path.join(os.path.dirname(__file__), 'model_database.json')
+        model_db_path = os.path.join(os.path.dirname(__file__), 'data', 'model_database.json')
         logger.debug(f"Loading model database from {model_db_path}")
         
         if not os.path.exists(model_db_path):
@@ -221,6 +221,25 @@ def create_app():
         if request.path.startswith('/static/'):
             logger.debug(f"Serving static file: {request.path}")
 
+    # Health check endpoint for Docker and monitoring
+    @app.route('/health')
+    def health_check():
+        try:            # Quick database check
+            db.session.execute(db.text('SELECT 1'))
+            return {
+                'status': 'healthy',
+                'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                'service': 'statistical-model-suggester'
+            }, 200
+        except Exception as e:
+            logger.error(f"Health check failed: {e}")
+            return {
+                'status': 'unhealthy',
+                'error': str(e),
+                'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                'service': 'statistical-model-suggester'
+            }, 503
+
     return app
 
 # Create the app instance at the module level for Gunicorn
@@ -233,4 +252,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     print(f"Starting application on port {args.port}")
-    app.run(host='0.0.0.0', debug=os.environ.get('FLASK_DEBUG', 'True').lower() == 'true', port=args.port) 
+    app.run(host='0.0.0.0', debug=os.environ.get('FLASK_DEBUG', 'True').lower() == 'true', port=args.port)

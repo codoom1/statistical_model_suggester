@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import json
+import os
 import random
 from flask import Flask, current_app
 from routes.main_routes import get_model_recommendation
@@ -8,9 +9,9 @@ from routes.main_routes import get_model_recommendation
 def main():
     """Test clustering model recommendation"""
     app = Flask(__name__)
-    
-    # Load model database
-    with open('model_database.json') as f:
+      # Load model database
+    model_db_path = os.path.join('data', 'model_database.json')
+    with open(model_db_path) as f:
         model_database = json.load(f)
     
     with app.app_context():

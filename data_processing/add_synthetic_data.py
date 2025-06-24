@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import json
+import os
 
 # Load model database
-with open('model_database.json', 'r') as f:
+model_db_path = os.path.join('..', 'data', 'model_database.json')
+with open(model_db_path, 'r') as f:
     models = json.load(f)
 
 # Define synthetic data examples and analysis code for common model types
@@ -531,7 +533,7 @@ for model_name, example in synthetic_data_examples.items():
         models[model_name]["synthetic_data"] = example["synthetic_data"]
 
 # Save updated model database
-with open('model_database.json', 'w') as f:
+with open(model_db_path, 'w') as f:
     json.dump(models, f, indent=4)
 
 print("Completed adding synthetic data examples to the first batch of models.")

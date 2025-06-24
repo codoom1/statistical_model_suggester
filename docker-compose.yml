@@ -1,0 +1,31 @@
+# Docker Compose for development
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/sms_dev
+      - SECRET_KEY=dev-secret-key
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    command: flask run --host=0.0.0.0
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: sms_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

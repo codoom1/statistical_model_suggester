@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import json
 import re
+import os
 
 # Load model database
-with open('model_database.json', 'r') as f:
+model_db_path = os.path.join('..', 'data', 'model_database.json')
+with open(model_db_path, 'r') as f:
     models = json.load(f)
 
 # Generate generic R output for different model types
@@ -639,7 +641,7 @@ for model_name, model in models.items():
         print(f"Added results to {model_name}")
 
 # Save the updated model database
-with open('model_database.json', 'w') as f:
+with open(model_db_path, 'w') as f:
     json.dump(models, f, indent=4)
 
 print(f"\nDone! Added results to {count} models.") 

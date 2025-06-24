@@ -14,7 +14,9 @@ else:
 print(f"Generating results for model: {target_model}")
 
 # Load model database
-with open('model_database.json', 'r') as f:
+import os
+model_db_path = os.path.join('..', 'data', 'model_database.json')
+with open(model_db_path, 'r') as f:
     models = json.load(f)
 
 if target_model not in models:
@@ -191,10 +193,9 @@ try:
         "text_output": output_text,
         "plots": plot_data
     }
-    
-    # Save the updated model
+      # Save the updated model
     models[target_model] = model
-    with open('model_database.json', 'w') as f:
+    with open(model_db_path, 'w') as f:
         json.dump(models, f, indent=4)
     
     print("\nUpdated model database with results.")

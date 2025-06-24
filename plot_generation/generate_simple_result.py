@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import json
+import os
 
 # Load model database
-with open('model_database.json', 'r') as f:
+model_db_path = os.path.join('..', 'data', 'model_database.json')
+with open(model_db_path, 'r') as f:
     models = json.load(f)
 
 # Add premade results for Linear Regression
@@ -194,7 +196,7 @@ Accuracy: 0.92
     print("Added results for Random Forest")
 
 # Save the updated model database
-with open('model_database.json', 'w') as f:
+with open(model_db_path, 'w') as f:
     json.dump(models, f, indent=4)
 
 print("\nDone! Added premade results to models.") 

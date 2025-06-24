@@ -36,8 +36,8 @@ from utils.diagnostic_plots.kaplan_meier import generate_kaplan_meier_plots
 from utils.diagnostic_plots.cox_proportional_hazards import generate_cox_ph_plots
 from utils.diagnostic_plots.repeated_measures_anova import generate_repeated_measures_anova_plots
 from utils.diagnostic_plots.elastic_net_regression import generate_elastic_net_plots
-from utils.diagnostic_plots.lasso_regression import generate_lasso_plots
-from utils.diagnostic_plots.ridge_regression import generate_ridge_plots
+from utils.diagnostic_plots.lasso_regression import generate_lasso_regression_plots
+from utils.diagnostic_plots.ridge_regression import generate_ridge_regression_plots
 from utils.diagnostic_plots.multidimensional_scaling import generate_mds_plots
 from utils.diagnostic_plots.bayesian_additive_regression_trees import generate_bart_plots
 from utils.diagnostic_plots.k_nearest_neighbors import generate_knn_plots
@@ -718,13 +718,13 @@ def generate_plots_for_model(model_name, model_details, output_dir):
                     print(f"Generated linear regression plots for {model_name} using synthetic data")
                 else:
                     # Use sample data
-                    X, y = generate_sample_data('linear')
+                    X, y = generate_sample_data('linear')  # type: ignore
                     plots = generate_linear_regression_plots(X, y)
                     print(f"Generated linear regression plots for {model_name} using sample data")
             except Exception as e:
                 print(f"Error with synthetic data: {e}")
                 # Use sample data
-                X, y = generate_sample_data('linear')
+                X, y = generate_sample_data('linear')  # type: ignore
                 plots = generate_linear_regression_plots(X, y)
                 print(f"Generated linear regression plots for {model_name} using sample data")
                 
@@ -960,14 +960,14 @@ def generate_plots_for_model(model_name, model_details, output_dir):
         elif "lasso regression" in model_name_lower:
             try:
                 print(f"Generating Lasso Regression plots for {model_name}")
-                plots = generate_lasso_plots(None)  # Will need appropriate sample data
+                plots = generate_lasso_regression_plots(None)  # Will need appropriate sample data
             except Exception as e:
                 print(f"Error generating Lasso Regression plots: {e}")
                 
         elif "ridge regression" in model_name_lower:
             try:
                 print(f"Generating Ridge Regression plots for {model_name}")
-                plots = generate_ridge_plots(None)  # Will need appropriate sample data
+                plots = generate_ridge_regression_plots(None)  # Will need appropriate sample data
             except Exception as e:
                 print(f"Error generating Ridge Regression plots: {e}")
                 
@@ -1205,9 +1205,11 @@ def read_model_database(filepath):
 
 def main():
     parser = argparse.ArgumentParser(description='Generate diagnostic plots for statistical models')
-    parser.add_argument('--database', type=str, default='model_database.json',
+    parser.add_argument('--database', type=str, 
+                        default=os.path.join(os.path.dirname(__file__), '..', 'data', 'model_database.json'),
                         help='Path to the model database JSON file')
-    parser.add_argument('--output', type=str, default='static/diagnostic_plots',
+    parser.add_argument('--output', type=str, 
+                        default=os.path.join(os.path.dirname(__file__), '..', 'static', 'diagnostic_plots'),
                         help='Directory to save the plots')
     parser.add_argument('--model', type=str, 
                         help='Generate plots only for this model name (optional)')

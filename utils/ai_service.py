@@ -2,6 +2,7 @@ import os
 import requests
 import json
 import logging
+from typing import Union
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ def is_ai_enabled() -> bool:
     logger.debug(f"AI_ENHANCEMENT_ENABLED raw value: '{ai_enabled_raw}', Parsed: {enabled}")
     return enabled
 
-def get_huggingface_config() -> tuple[str | None, str]:
+def get_huggingface_config() -> tuple[Union[str, None], str]:
     """Get Hugging Face API key and model from environment variables."""
     api_key = os.environ.get('HUGGINGFACE_API_KEY')
     model = os.environ.get('HUGGINGFACE_MODEL', DEFAULT_MODEL)
@@ -29,7 +30,7 @@ def get_huggingface_config() -> tuple[str | None, str]:
     logger.debug(f"Hugging Face Config - API Key Present: {'Yes' if api_key else 'No'}, Model: {model}")
     return api_key, model
 
-def call_huggingface_api(prompt: str, model: str | None = None) -> str:
+def call_huggingface_api(prompt: str, model: Union[str, None] = None) -> str:
     """
     Call the Hugging Face Inference API.
 

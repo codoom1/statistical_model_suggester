@@ -1,31 +1,77 @@
-Flask==3.0.2
-Werkzeug==3.0.1
-scikit-learn==1.6.1
-statsmodels==0.14.1
-xgboost==2.0.3
-lifelines==0.27.8
-flask-login==0.6.3
-flask-sqlalchemy==3.1.1
-flask-wtf==1.2.1
-flask-mail==0.9.1
-flask-migrate==4.1.0
-email-validator==2.1.0.post1
-numpy==1.26.4
-pandas==2.2.1
-python-dotenv==1.0.1
-gunicorn==21.2.0
-python-docx==1.1.0
-reportlab==4.1.0
-transformers==4.39.3
-requests==2.31.0
-openai==1.10.0
-psycopg2-binary==2.9.9
-matplotlib==3.8.3
-scipy==1.12.0
-seaborn==0.13.1
-pillow==10.2.0
-itsdangerous==2.1.2
-# Required for rendering plots in web interface
-plotly==5.18.0
-# Required for Hugging Face models
-torch==2.1.2
+# Core Flask Framework
+Flask>=3.0.0
+Werkzeug>=3.0.0
+
+# Flask Extensions
+flask-login>=0.6.0
+flask-sqlalchemy>=3.1.0
+flask-wtf>=1.2.0
+flask-mail>=0.9.0
+flask-migrate>=4.0.0
+
+# Database
+psycopg2-binary>=2.9.0,<3.0.0
+SQLAlchemy>=2.0.0,<3.0.0
+alembic>=1.16.0,<2.0.0
+
+# Essential Data Science (required for core app)
+scikit-learn>=1.5.0,<1.7.0
+numpy>=1.26.0,<2.0.0
+pandas>=2.2.0,<3.0.0
+scipy>=1.10.0,<2.0.0
+
+# Basic Plotting (core functionality)
+matplotlib>=3.8.0,<4.0.0
+
+# Basic Document Generation
+python-docx>=1.2.0,<2.0.0
+reportlab>=4.4.0,<5.0.0
+lxml>=5.4.0,<6.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.30.0
+itsdangerous>=2.0.0
+email-validator>=2.0.0
+click>=8.0.0
+blinker>=1.7.0
+dnspython>=2.7.0,<3.0.0
+
+# Web Server
+gunicorn>=21.2.0,<22.0.0
+
+# Template Engine
+Jinja2>=3.1.0,<4.0.0
+MarkupSafe>=3.0.0,<4.0.0
+
+# Forms
+WTForms>=3.2.0,<4.0.0
+
+# Development and Testing
+pytest>=8.4.0,<9.0.0
+pytest-flask>=1.3.0,<2.0.0
+pytest-cov>=6.2.0,<7.0.0
+coverage>=7.9.0,<8.0.0
+
+# Build and Packaging
+packaging>=25.0,<26.0.0
+setuptools>=65.0
+wheel
+
+# Compatibility
+typing_extensions>=4.14.0,<5.0.0
+
+# Additional utilities
+certifi>=2025.6.0,<2026.0.0
+charset-normalizer>=3.4.0,<4.0.0
+idna>=3.10,<4.0.0
+urllib3>=2.5.0,<3.0.0
+iniconfig>=2.1.0,<3.0.0
+pluggy>=1.6.0,<2.0.0
+Mako>=1.3.0,<2.0.0
+Pygments>=2.19.0,<3.0.0
+
+# Development and CI dependencies
+flake8
+bandit
+safety

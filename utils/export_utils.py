@@ -7,11 +7,17 @@ import tempfile
 from docx import Document
 from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, ListItem, ListFlowable
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+
+# Optional imports for PDF generation
+try:
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, ListItem, ListFlowable
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+    REPORTLAB_AVAILABLE = True
+except ImportError:
+    REPORTLAB_AVAILABLE = False
 
 
 def export_to_word(questionnaire, research_topic, research_description, target_audience, questionnaire_purpose):
@@ -25,15 +31,14 @@ def export_to_word(questionnaire, research_topic, research_description, target_a
         target_audience (str): Target audience for the questionnaire
         questionnaire_purpose (str): Purpose of the questionnaire
         
-    Returns:
-        str: Path to the generated Word document
+    Returns:        str: Path to the generated Word document
     """
     doc = Document()
     
     # Set up document styles
     style = doc.styles['Normal']
-    style.font.name = 'Arial'
-    style.font.size = Pt(11)
+    style.font.name = 'Arial'  # type: ignore
+    style.font.size = Pt(11)  # type: ignore
     
     # Add title
     title = doc.add_heading(research_topic, level=1)
@@ -145,6 +150,9 @@ def export_to_pdf(questionnaire, research_topic, research_description, target_au
     Returns:
         str: Path to the generated PDF document
     """
+    if not REPORTLAB_AVAILABLE:
+        raise ImportError("ReportLab is required for PDF export but is not installed. Please install reportlab>=4.4.0")
+    
     # Create a temporary file
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
     temp_file.close()
