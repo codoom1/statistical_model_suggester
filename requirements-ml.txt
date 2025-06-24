@@ -1,0 +1,25 @@
+# Heavy ML Dependencies (optional for production)
+# These packages are large and may not be needed for basic functionality
+
+# Advanced Machine Learning
+statsmodels>=0.14.0,<0.15.0
+xgboost>=2.0.0,<3.0.0
+lifelines>=0.27.0,<0.28.0
+
+# Advanced Visualization
+seaborn>=0.13.0,<1.0.0
+plotly>=5.18.0,<6.0.0
+
+# Image Processing
+pillow>=11.0.0,<12.0.0
+
+# Document Generation (Advanced)
+reportlab>=4.4.0,<5.0.0
+
+# AI and ML Models (Very Heavy)
+transformers>=4.39.0,<5.0.0
+torch>=2.1.0,<3.0.0
+openai>=1.10.0,<2.0.0
+
+# Compatibility
+typing_extensions>=4.14.0,<5.0.0
