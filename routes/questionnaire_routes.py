@@ -6,10 +6,18 @@ allowing users to create, preview, and edit questionnaires.
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, send_file
 from flask_login import login_required, current_user
 from utils.questionnaire_generator import generate_questionnaire
-from utils.export_utils import export_to_word, export_to_pdf
+from utils.export_utils import export_to_word
 from models import db, Questionnaire
 from datetime import datetime, timezone
 import logging
+
+# Try to import PDF export functionality
+try:
+    from utils.export_utils import export_to_pdf
+    PDF_EXPORT_AVAILABLE = True
+except ImportError:
+    PDF_EXPORT_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 questionnaire_bp = Blueprint('questionnaire', __name__, url_prefix='/questionnaire')
 @questionnaire_bp.route('/')
@@ -310,6 +318,11 @@ def export_word():
 @questionnaire_bp.route('/export/pdf')
 def export_pdf():
     """Export questionnaire to PDF document."""
+    # Check if PDF export is available
+    if not PDF_EXPORT_AVAILABLE:
+        flash('PDF export is not available. Please install reportlab package.', 'error')
+        return redirect(url_for('questionnaire.preview'))
+    
     # Check if questionnaire data exists in session
     if 'questionnaire' not in session:
         flash('Please design a questionnaire first.', 'error')

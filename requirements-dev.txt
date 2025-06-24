@@ -28,6 +28,7 @@ matplotlib>=3.8.0,<4.0.0
 
 # Document Generation
 python-docx>=1.2.0,<2.0.0
+reportlab>=4.4.0,<5.0.0
 lxml>=5.4.0,<6.0.0
 
 # Utilities
