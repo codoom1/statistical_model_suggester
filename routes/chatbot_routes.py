@@ -1,16 +1,17 @@
 """Authenticated routes for the AI statistical-methods assistant."""
 
+import hashlib
 import logging
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy.exc import SQLAlchemyError
 
 from models import db
 from utils.ai_service import (
-    HuggingFaceError,
-    call_huggingface_api,
-    get_huggingface_config,
+    OpenAIServiceError,
+    call_openai_api,
+    get_openai_config,
     is_ai_enabled,
 )
 from utils.ai_usage import consume_user_ai_quota, hourly_ai_limit
@@ -88,11 +89,15 @@ def ask_question():
     )
 
     try:
-        response = call_huggingface_api(
+        safety_identifier = hashlib.sha256(
+            f"{current_app.config['SECRET_KEY']}:{current_user.id}".encode()
+        ).hexdigest()
+        response = call_openai_api(
             prompt,
             system_prompt=system_prompt,
+            safety_identifier=safety_identifier,
         )
-    except HuggingFaceError as exc:
+    except OpenAIServiceError as exc:
         logger.warning(
             "AI request failed for user %s with status %s.",
             current_user.id,
@@ -120,7 +125,7 @@ def test_config():
     if not current_user.is_admin:
         return jsonify(success=False, error="Administrator access required."), 403
 
-    api_key, model = get_huggingface_config()
+    api_key, model = get_openai_config()
     return jsonify(
         success=True,
         config={

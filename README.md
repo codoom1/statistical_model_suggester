@@ -97,17 +97,20 @@ The sender domain must be verified in Resend. For local SMTP instead, set
 `EMAIL_PROVIDER=smtp` and configure `MAIL_SERVER`, `MAIL_PORT`,
 `MAIL_USE_TLS`, `MAIL_USERNAME`, and `MAIL_PASSWORD`.
 
-**Optional Hugging Face Inference Providers integration:**
+**Optional OpenAI integration:**
 ```bash
 AI_ENHANCEMENT_ENABLED=true
-HUGGINGFACE_API_KEY=<token-with-inference-provider-permission>
-HUGGINGFACE_MODEL=Qwen/Qwen2.5-7B-Instruct:fastest
+OPENAI_API_KEY=<your-openai-project-api-key>
+OPENAI_MODEL=gpt-5.6-luna
+OPENAI_REASONING_EFFORT=low
 AI_REQUESTS_PER_USER_PER_HOUR=20
 AI_REQUEST_TIMEOUT_SECONDS=45
+AI_MAX_OUTPUT_TOKENS=400
 ```
 
-AI requests require an authenticated user and are limited per user with
-durable database usage records. After deploying this change, run
+The OpenAI key is used only by the server and must never be added to source
+control or browser code. AI requests require an authenticated user and are
+limited per user with durable database usage records. After deploying this change, run
 `flask --app app init-db` once so the `ai_usage_events` table exists.
 
 ## Project Structure

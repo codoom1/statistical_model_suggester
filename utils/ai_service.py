@@ -1,16 +1,23 @@
-"""Hugging Face Inference Providers integration."""
+"""Server-side OpenAI Responses API integration."""
 
 import logging
 import os
 from typing import Optional
 
-import requests
+from openai import (
+    APIConnectionError,
+    APIStatusError,
+    APITimeoutError,
+    AuthenticationError,
+    OpenAI,
+    PermissionDeniedError,
+    RateLimitError,
+)
 
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "Qwen/Qwen2.5-7B-Instruct:fastest"
-DEFAULT_API_URL = "https://router.huggingface.co/v1/chat/completions"
+DEFAULT_MODEL = "gpt-5.6-luna"
 DEFAULT_SYSTEM_PROMPT = (
     "You are a careful statistical methods assistant. Give concise, accurate "
     "answers, state important assumptions, and do not invent application "
@@ -18,8 +25,8 @@ DEFAULT_SYSTEM_PROMPT = (
 )
 
 
-class HuggingFaceError(RuntimeError):
-    """Raised when the configured AI provider cannot complete a request."""
+class OpenAIServiceError(RuntimeError):
+    """Raised when OpenAI cannot complete an application request."""
 
     def __init__(self, message: str, status_code: Optional[int] = None):
         super().__init__(message)
@@ -31,12 +38,11 @@ def is_ai_enabled() -> bool:
     return os.environ.get("AI_ENHANCEMENT_ENABLED", "false").lower() == "true"
 
 
-def get_huggingface_config() -> tuple[Optional[str], str]:
-    """Return the configured token and Inference Providers model."""
+def get_openai_config() -> tuple[Optional[str], str]:
+    """Return the configured OpenAI API key and model without exposing the key."""
     return (
-        os.environ.get("HUGGINGFACE_API_KEY", "").strip() or None,
-        os.environ.get("HUGGINGFACE_MODEL", DEFAULT_MODEL).strip()
-        or DEFAULT_MODEL,
+        os.environ.get("OPENAI_API_KEY", "").strip() or None,
+        os.environ.get("OPENAI_MODEL", DEFAULT_MODEL).strip() or DEFAULT_MODEL,
     )
 
 
@@ -48,36 +54,33 @@ def _timeout_seconds() -> float:
         return 45.0
 
 
-def _error_message(response: requests.Response) -> str:
+def _max_output_tokens() -> int:
+    raw_limit = os.environ.get("AI_MAX_OUTPUT_TOKENS", "400")
     try:
-        payload = response.json()
+        return min(max(int(raw_limit), 100), 1_500)
     except ValueError:
-        return response.text[:300]
-
-    if isinstance(payload, dict):
-        error = payload.get("error")
-        if isinstance(error, dict):
-            return str(error.get("message") or error.get("type") or error)[:300]
-        if error:
-            return str(error)[:300]
-        if payload.get("message"):
-            return str(payload["message"])[:300]
-    return "The AI provider returned an error."
+        return 400
 
 
-def call_huggingface_api(
+def _reasoning_effort() -> str:
+    configured = os.environ.get("OPENAI_REASONING_EFFORT", "low").strip().lower()
+    return configured if configured in {"none", "low", "medium", "high"} else "low"
+
+
+def call_openai_api(
     prompt: str,
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
+    safety_identifier: Optional[str] = None,
 ) -> str:
-    """Generate a chat response through Hugging Face Inference Providers."""
+    """Generate text through OpenAI's Responses API."""
     if not is_ai_enabled():
-        raise HuggingFaceError("AI features are currently disabled.", 503)
+        raise OpenAIServiceError("AI features are currently disabled.", 503)
 
-    api_key, configured_model = get_huggingface_config()
+    api_key, configured_model = get_openai_config()
     if not api_key:
-        raise HuggingFaceError(
-            "HUGGINGFACE_API_KEY is required when AI features are enabled.",
+        raise OpenAIServiceError(
+            "OPENAI_API_KEY is required when AI features are enabled.",
             503,
         )
 
@@ -85,66 +88,48 @@ def call_huggingface_api(
     if not cleaned_prompt:
         raise ValueError("An AI prompt is required.")
 
-    target_model = (model or configured_model).strip()
-    api_url = os.environ.get("HUGGINGFACE_API_URL", DEFAULT_API_URL).strip()
-    payload = {
-        "model": target_model,
-        "messages": [
-            {
-                "role": "system",
-                "content": system_prompt or DEFAULT_SYSTEM_PROMPT,
-            },
-            {"role": "user", "content": cleaned_prompt},
-        ],
-        "max_tokens": 300,
-        "temperature": 0.3,
-        "top_p": 0.9,
-        "stream": False,
+    request_options = {
+        "model": (model or configured_model).strip(),
+        "instructions": system_prompt or DEFAULT_SYSTEM_PROMPT,
+        "input": cleaned_prompt,
+        "max_output_tokens": _max_output_tokens(),
+        "reasoning": {"effort": _reasoning_effort()},
+        "store": False,
     }
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
+    if safety_identifier:
+        request_options["safety_identifier"] = safety_identifier
 
+    client = OpenAI(
+        api_key=api_key,
+        timeout=_timeout_seconds(),
+        max_retries=1,
+    )
     try:
-        response = requests.post(
-            api_url,
-            headers=headers,
-            json=payload,
-            timeout=(5, _timeout_seconds()),
-        )
-    except requests.exceptions.Timeout as exc:
-        raise HuggingFaceError("The AI provider timed out.", 504) from exc
-    except requests.exceptions.ConnectionError as exc:
-        raise HuggingFaceError("Could not connect to the AI provider.", 503) from exc
-    except requests.exceptions.RequestException as exc:
-        raise HuggingFaceError("The AI provider request failed.", 502) from exc
-
-    if not response.ok:
-        provider_message = _error_message(response)
-        logger.warning(
-            "Hugging Face request failed with status %s: %s",
-            response.status_code,
-            provider_message,
-        )
-        if response.status_code in {402, 429}:
-            message = "AI usage limits have been reached. Please try again later."
-        elif response.status_code in {401, 403}:
-            message = "The AI provider credentials or model access are invalid."
-        else:
-            message = "The AI provider could not complete the request."
-        raise HuggingFaceError(message, response.status_code)
-
-    try:
-        result = response.json()
-        choices = result["choices"]
-        content = choices[0]["message"]["content"]
-    except (ValueError, KeyError, IndexError, TypeError) as exc:
-        logger.warning("Unexpected Hugging Face response shape.")
-        raise HuggingFaceError(
-            "The AI provider returned an unexpected response.", 502
+        response = client.responses.create(**request_options)
+    except APITimeoutError as exc:
+        raise OpenAIServiceError("The AI provider timed out.", 504) from exc
+    except APIConnectionError as exc:
+        raise OpenAIServiceError(
+            "Could not connect to the AI provider.", 503
+        ) from exc
+    except RateLimitError as exc:
+        raise OpenAIServiceError(
+            "AI usage limits have been reached. Please try again later.",
+            429,
+        ) from exc
+    except (AuthenticationError, PermissionDeniedError) as exc:
+        raise OpenAIServiceError(
+            "The OpenAI credentials or model access are invalid.",
+            getattr(exc, "status_code", 401),
+        ) from exc
+    except APIStatusError as exc:
+        logger.warning("OpenAI request failed with status %s.", exc.status_code)
+        raise OpenAIServiceError(
+            "The AI provider could not complete the request.",
+            exc.status_code,
         ) from exc
 
+    content = response.output_text
     if not isinstance(content, str) or not content.strip():
-        raise HuggingFaceError("The AI provider returned an empty response.", 502)
+        raise OpenAIServiceError("The AI provider returned an empty response.", 502)
     return content.strip()

@@ -5,7 +5,7 @@ from functools import wraps
 from datetime import datetime, timedelta, timezone
 from utils.email_service import send_expert_approved_email, send_expert_rejected_email
 from utils.ai_service import (
-    call_huggingface_api, is_ai_enabled, HuggingFaceError, get_huggingface_config
+    call_openai_api, is_ai_enabled, OpenAIServiceError, get_openai_config
 )
 import re
 admin = Blueprint('admin', __name__, url_prefix='/admin')
@@ -237,7 +237,7 @@ def assign_consultation(consultation_id):
 @admin_required
 def ai_settings():
     """Display non-secret AI integration status."""
-    current_api_key, current_model = get_huggingface_config()
+    current_api_key, current_model = get_openai_config()
     current_enabled = is_ai_enabled()
     current_settings = {
         'api_key_configured': bool(current_api_key),
@@ -257,7 +257,7 @@ def ai_settings():
             if current_enabled and current_api_key
             else 'AI enhancement is disabled.'
             if not current_enabled
-            else 'HUGGINGFACE_API_KEY is missing.'
+            else 'OPENAI_API_KEY is missing.'
         ),
         'credit_warning': False,
     }
@@ -287,7 +287,7 @@ def test_ai_integration():
         ), 400
 
     try:
-        enhanced_text = call_huggingface_api(
+        enhanced_text = call_openai_api(
             test_prompt,
             system_prompt=(
                 'You are an expert questionnaire designer. Improve the user '
@@ -300,7 +300,7 @@ def test_ai_integration():
             'original': test_prompt,
             'enhanced': enhanced_text
         })
-    except HuggingFaceError as exc:
+    except OpenAIServiceError as exc:
         status_code = exc.status_code if exc.status_code in {402, 429, 503, 504} else 502
         return jsonify({'success': False, 'error': str(exc)}), status_code
 

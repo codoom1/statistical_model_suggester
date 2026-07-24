@@ -2,60 +2,73 @@
 
 from unittest.mock import Mock, patch
 
+import httpx
+from openai import RateLimitError
 import pytest
 
 from models import AIUsageEvent
 from utils.ai_service import (
-    DEFAULT_API_URL,
-    HuggingFaceError,
-    call_huggingface_api,
+    OpenAIServiceError,
+    call_openai_api,
 )
 from utils.email_service import RESEND_API_URL, send_email
 
 
-def test_hugging_face_uses_current_chat_completions_shape(monkeypatch):
+def test_openai_uses_responses_api(monkeypatch):
     monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
-    monkeypatch.setenv("HUGGINGFACE_API_KEY", "hf_test_token")
-    monkeypatch.setenv("HUGGINGFACE_MODEL", "test/model:fastest")
-    response = Mock(
-        ok=True,
-        status_code=200,
-    )
-    response.json.return_value = {
-        "choices": [{"message": {"content": "Use logistic regression."}}]
-    }
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-test")
+    response = Mock(output_text="Use logistic regression.")
+    client = Mock()
+    client.responses.create.return_value = response
 
-    with patch("utils.ai_service.requests.post", return_value=response) as post:
-        result = call_huggingface_api("Which model should I use?")
+    with patch("utils.ai_service.OpenAI", return_value=client) as openai_client:
+        result = call_openai_api(
+            "Which model should I use?",
+            safety_identifier="user-7",
+        )
 
     assert result == "Use logistic regression."
-    args, kwargs = post.call_args
-    assert args[0] == DEFAULT_API_URL
-    assert kwargs["headers"]["Authorization"] == "Bearer hf_test_token"
-    assert kwargs["json"]["model"] == "test/model:fastest"
-    assert kwargs["json"]["messages"][1]["role"] == "user"
-    assert kwargs["timeout"][1] <= 55
+    openai_client.assert_called_once_with(
+        api_key="sk-test",
+        timeout=45.0,
+        max_retries=1,
+    )
+    kwargs = client.responses.create.call_args.kwargs
+    assert kwargs["model"] == "gpt-test"
+    assert kwargs["input"] == "Which model should I use?"
+    assert kwargs["reasoning"] == {"effort": "low"}
+    assert kwargs["max_output_tokens"] == 400
+    assert kwargs["safety_identifier"] == "user-7"
+    assert kwargs["store"] is False
 
 
-def test_hugging_face_requires_token_when_enabled(monkeypatch):
+def test_openai_requires_key_when_enabled(monkeypatch):
     monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
-    monkeypatch.delenv("HUGGINGFACE_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
-    with pytest.raises(HuggingFaceError, match="HUGGINGFACE_API_KEY") as error:
-        call_huggingface_api("Test")
+    with pytest.raises(OpenAIServiceError, match="OPENAI_API_KEY") as error:
+        call_openai_api("Test")
 
     assert error.value.status_code == 503
 
 
-def test_hugging_face_maps_provider_rate_limit(monkeypatch):
+def test_openai_maps_provider_rate_limit(monkeypatch):
     monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
-    monkeypatch.setenv("HUGGINGFACE_API_KEY", "hf_test_token")
-    response = Mock(ok=False, status_code=429, text="")
-    response.json.return_value = {"error": {"message": "Too many requests"}}
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    request = httpx.Request("POST", "https://api.openai.com/v1/responses")
+    response = httpx.Response(429, request=request)
 
-    with patch("utils.ai_service.requests.post", return_value=response):
-        with pytest.raises(HuggingFaceError, match="usage limits") as error:
-            call_huggingface_api("Test")
+    with patch("utils.ai_service.OpenAI") as openai_client:
+        openai_client.return_value.responses.create.side_effect = (
+            RateLimitError(
+                "Too many requests",
+                response=response,
+                body=None,
+            )
+        )
+        with pytest.raises(OpenAIServiceError, match="usage limits") as error:
+            call_openai_api("Test")
 
     assert error.value.status_code == 429
 
@@ -122,12 +135,12 @@ def test_chatbot_requires_authentication(client, monkeypatch):
 
 def test_chatbot_enforces_durable_user_quota(client, test_user, monkeypatch):
     monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
-    monkeypatch.setenv("HUGGINGFACE_API_KEY", "hf_test_token")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
     monkeypatch.setenv("AI_REQUESTS_PER_USER_PER_HOUR", "1")
     _login(client, test_user)
 
     with patch(
-        "routes.chatbot_routes.call_huggingface_api",
+        "routes.chatbot_routes.call_openai_api",
         return_value="Use a generalized linear model.",
     ) as generate:
         first = client.post(
@@ -148,13 +161,13 @@ def test_chatbot_enforces_durable_user_quota(client, test_user, monkeypatch):
 
 def test_admin_ai_page_never_renders_api_key(client, admin_user, monkeypatch):
     monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
-    monkeypatch.setenv("HUGGINGFACE_API_KEY", "hf_do_not_render_this_secret")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk_do_not_render_this_secret")
     _login(client, admin_user)
 
     response = client.get("/admin/ai_settings")
 
     assert response.status_code == 200
-    assert b"hf_do_not_render_this_secret" not in response.data
+    assert b"sk_do_not_render_this_secret" not in response.data
     assert b"Configured" in response.data
 
 
