@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 import random
 from collections import OrderedDict
+from urllib.parse import unquote
 main = Blueprint('main', __name__)
 # -----------------------------------------------------------------------------
 # MODEL GROUPING FOR NAVIGATION DROPDOWN
@@ -664,6 +665,9 @@ def history():
 def models_in_group(group_name):
     """Display models belonging to a specific group."""
     model_database = current_app.config.get('MODEL_DATABASE', {})
+    # Some clients and previously rendered links can encode the path segment
+    # twice, leaving a literal ``%20`` after Flask's first URL decode.
+    group_name = unquote(group_name)
     # Validate group_name
     if group_name not in MODEL_GROUPS:
         flash(f"Invalid model group: {group_name}", "danger")
