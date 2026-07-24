@@ -101,7 +101,8 @@ The sender domain must be verified in Resend. For local SMTP instead, set
 ```bash
 AI_ENHANCEMENT_ENABLED=true
 OPENAI_API_KEY=<your-openai-project-api-key>
-OPENAI_MODEL=gpt-5.6-luna
+OPENAI_MODEL=gpt-5-mini
+OPENAI_FALLBACK_MODEL=gpt-5-mini
 OPENAI_REASONING_EFFORT=low
 AI_REQUESTS_PER_USER_PER_HOUR=20
 AI_REQUEST_TIMEOUT_SECONDS=45
