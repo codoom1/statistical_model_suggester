@@ -33,7 +33,22 @@ class TestMainRoutes:
         assert response.status_code == 200
         assert b'All Statistical Models' in response.data
         assert b'Linear Regression' in response.data
-        assert b'Logistic Regression' in response.data
+        assert b'ARIMA' in response.data
+        assert b'Random Forest' in response.data
+
+    def test_generic_model_links_open_full_catalog(
+        self,
+        client,
+        sample_analysis_data,
+    ):
+        """Generic model links do not restrict visitors to regressions."""
+        home_response = client.get('/')
+        results_response = client.post('/results', data=sample_analysis_data)
+
+        assert home_response.status_code == 200
+        assert results_response.status_code == 200
+        assert home_response.data.count(b'href="/models"') >= 3
+        assert b'href="/models"' in results_response.data
 
     def test_double_encoded_model_detail_urls(self, client, monkeypatch):
         """Encoded model links work across detail and interpretation routes."""
