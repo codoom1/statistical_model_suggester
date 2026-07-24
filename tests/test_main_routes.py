@@ -26,6 +26,30 @@ class TestMainRoutes:
         assert b'Invalid model group' not in response.data
         assert b'Linear Regression' in response.data
 
+    def test_models_index(self, client):
+        """The all-models page lists models from the configured database."""
+        response = client.get('/models')
+
+        assert response.status_code == 200
+        assert b'All Statistical Models' in response.data
+        assert b'Linear Regression' in response.data
+        assert b'ARIMA' in response.data
+        assert b'Random Forest' in response.data
+
+    def test_generic_model_links_open_full_catalog(
+        self,
+        client,
+        sample_analysis_data,
+    ):
+        """Generic model links do not restrict visitors to regressions."""
+        home_response = client.get('/')
+        results_response = client.post('/results', data=sample_analysis_data)
+
+        assert home_response.status_code == 200
+        assert results_response.status_code == 200
+        assert home_response.data.count(b'href="/models"') >= 3
+        assert b'href="/models"' in results_response.data
+
     def test_double_encoded_model_detail_urls(self, client, monkeypatch):
         """Encoded model links work across detail and interpretation routes."""
         interpretation_module = ModuleType('utils.interpretation')
@@ -107,7 +131,7 @@ class TestMainRoutes:
         response2 = client.post('/results', data=test_data)
         assert response1.status_code == 200
         assert response2.status_code == 200
-        # Responses should be consistent (same model recommended)
+        assert response1.data == response2.data
     def test_different_analysis_goals(self, client):
         """Test different analysis goals produce appropriate models."""
         base_data = {

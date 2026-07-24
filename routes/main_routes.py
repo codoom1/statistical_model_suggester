@@ -3,7 +3,6 @@ from flask_login import login_required, current_user
 from models import db, User, Analysis, get_model_details
 from datetime import datetime
 import json
-import random
 from collections import OrderedDict
 from urllib.parse import unquote
 main = Blueprint('main', __name__)
@@ -304,11 +303,6 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
         if model_name == 'Linear Regression':
             score -= 0.25
             current_app.logger.debug(f"  - Linear Regression penalty: -0.25 → {score}")
-        # Add a small random component to break ties between similar models
-        # Increase the random component to improve diversity in recommendations
-        random_component = random.uniform(0, 0.2)
-        score += random_component
-        current_app.logger.debug(f"  + Random component: +{random_component:.4f} → {score:.4f}")
         # Give a strong bonus to clustering models when the goal is clustering
         if (analysis_goal == 'explore' or analysis_goal == 'cluster') and model_name in clustering_models:
             score += 10.0  # Very significant boost to ensure clustering models win for cluster analysis
@@ -326,7 +320,10 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
     # First, identify the best matching model
     if model_scores:
         # Sort models by score
-        sorted_models = sorted(model_scores.items(), key=lambda x: x[1], reverse=True)
+        sorted_models = sorted(
+            model_scores.items(),
+            key=lambda item: (-item[1], item[0]),
+        )
         # Log top model scores for debugging
         current_app.logger.debug(f"TOP MODEL SCORES:")
         for model, score in sorted_models[:5]:  # Show top 5 models
@@ -668,6 +665,39 @@ def history():
             return redirect(url_for('auth.login', next=url_for('main.history')))
     except Exception as e:
         return render_template('error.html', error=str(e))
+@main.route('/models')
+def models_index():
+    """Display every available statistical model."""
+    model_database = current_app.config.get('MODEL_DATABASE', {})
+    grouped_models = []
+    included_models = set()
+    for group_name, model_names in MODEL_GROUPS.items():
+        group_models = [
+            (name, model_database[name])
+            for name in model_names
+            if name in model_database and name not in included_models
+        ]
+        if group_models:
+            grouped_models.append((group_name, sorted(group_models)))
+            included_models.update(name for name, _details in group_models)
+
+    uncategorized_models = sorted(
+        (name, details)
+        for name, details in model_database.items()
+        if name not in included_models
+    )
+    if uncategorized_models:
+        grouped_models.append(('Additional Methods', uncategorized_models))
+
+    return render_template(
+        'models_list.html',
+        models=sorted(model_database.items()),
+        group_name='All Statistical Models',
+        grouped_models=grouped_models,
+        is_all_models=True,
+    )
+
+
 @main.route('/models/<group_name>')
 def models_in_group(group_name):
     """Display models belonging to a specific group."""
@@ -691,7 +721,8 @@ def models_in_group(group_name):
     return render_template(
         'models_list.html',
         models=sorted_models,
-        group_name=group_name # Pass group name for the title
+        group_name=group_name,
+        is_all_models=False,
     )
 @main.route('/model/<model_name>')
 def model_details(model_name):

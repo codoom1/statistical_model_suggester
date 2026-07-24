@@ -1,320 +1,197 @@
 {% extends "base.html" %}
 
-{% block title %}Statistical Model Suggester{% endblock %}
-
+{% block title %}Statistical Model Suggester — Choose a model with confidence{% endblock %}
+{% block page_context %}Choose an appropriate statistical model based on research goal, outcome type, predictors, sample size, distribution, missingness, and data structure.{% endblock %}
 {% block container_start %}{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Reset navbar margin for homepage */
-.navbar {
-    margin-bottom: 0 !important;
-    background-color: #8b1a1d !important; /* Dark red color similar to the reference image */
-    box-shadow: none;
-    border-bottom: none;
-}
-
-/* Reset body background */
-body {
-    background-color: transparent !important;
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
-.hero {
+.home-hero {
     position: relative;
-    width: 100%;
-    min-height: 400px; /* Adjusted height to match reference image */
-    display: flex;
-    align-items: center;
-    justify-content: flex-start; /* Left align content similar to reference */
-    margin: 0;
-    padding: 0;
-    background-color: #1a1a1a;
     overflow: hidden;
-}
-
-.hero-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    margin: 0;
-    padding: 0;
-    background-image: url("{{ url_for('static', filename='images/stats-background.png') }}"), linear-gradient(to bottom, #1a1a1a, #333);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    z-index: 1;
-}
-
-.container-fluid {
-    padding: 0;
-    margin: 0;
-    width: 100%;
-}
-
-.hero-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7); /* Darkened overlay to match reference image */
-    z-index: 2;
-}
-
-.hero-content {
-    position: relative;
-    z-index: 3;
+    padding: clamp(4.5rem, 9vw, 7.5rem) 0;
     color: white;
-    text-align: left; /* Left aligned like reference image */
-    padding: 2rem 3rem; /* Increased left padding to match reference */
-    max-width: 1200px;
-    width: 100%;
+    background:
+        radial-gradient(circle at 82% 22%, rgba(45,212,191,.18), transparent 24rem),
+        linear-gradient(125deg, #0b1f33 0%, #102a43 58%, #124b55 100%);
 }
-
-.hero h1 {
-    color: white !important;
-    font-size: 4rem; /* Slightly adjusted font size */
-    font-weight: 300;
-    margin-bottom: 1rem;
-    line-height: 1.2;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+.home-hero::after {
+    position: absolute;
+    right: -5rem;
+    bottom: -13rem;
+    width: 38rem;
+    height: 38rem;
+    content: "";
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50%;
+    box-shadow: 0 0 0 4rem rgba(255,255,255,.025), 0 0 0 8rem rgba(255,255,255,.018);
 }
-
-.hero p {
-    color: white !important;
-    font-size: 1.5rem;
-    font-weight: 300;
-    margin-bottom: 2rem;
-    opacity: 0.9;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-    max-width: 80%; /* Constrain text width */
-}
-
-.hero .btn {
-    border-radius: 2px; /* Squared buttons more like reference */
-    padding: 0.5rem 1.5rem;
-    text-transform: uppercase;
-    font-weight: 500;
-    font-size: 0.9rem;
-    letter-spacing: 0.5px;
-}
-
-.hero .btn-light {
-    background-color: #ffffff;
-    border-color: #ffffff;
-    color: #333;
-}
-
-.hero .btn-outline-light {
-    border-color: #ffffff;
-    color: #ffffff;
-}
-
-.consultation-section {
-    padding: 5rem 0;
-    background-color: #f8f9fa;
-}
-
-.consultation-card {
-    background: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    padding: 2rem;
-    height: 100%;
-    transition: all 0.2s ease-in-out;
-    will-change: transform;
-}
-
-.consultation-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.consultation-icon {
-    font-size: 2.5rem;
-    color: #007bff;
-    margin-bottom: 1.5rem;
-}
-
-.consultation-title {
-    font-size: 1.5rem;
-    font-weight: 500;
-    margin-bottom: 1rem;
-    color: #212529;
-}
-
-.consultation-description {
-    color: #6c757d;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-}
-.stats-section {
-    padding: 4rem 0;
-    background-color: rgba(255, 255, 255, 0.17);
-    color: #8b1a1d;
-}
-
-.stat-item {
-    text-align: center;
-    padding: 2rem;
-}
-
-.stat-number {
-    font-size: 3rem;
-    font-weight: 600;
-    color: #007bff;
-    margin-bottom: 0.5rem;
-}
-
-.stat-label {
-    font-size: 1.1rem;
-    color: #6c757d;
-}
-
-/* Adjust hero section styles for smaller screens */
-@media (max-width: 768px) {
-    .hero {
-        min-height: 300px;
-    }
-    
-    .hero h1 {
-        font-size: 3rem;
-    }
-    
-    .hero p {
-        font-size: 1.2rem;
-    }
-}
+.hero-grid { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr); gap: clamp(2.5rem, 7vw, 6rem); align-items: center; }
+.hero-kicker { display: inline-flex; gap: .5rem; align-items: center; margin-bottom: 1.25rem; color: #9ce9df; font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.home-hero h1 { max-width: 760px; margin-bottom: 1.4rem; color: white; font-size: clamp(2.7rem, 6vw, 5rem); line-height: 1.02; letter-spacing: -.055em; }
+.home-hero .lead { max-width: 660px; margin-bottom: 2rem; color: #c6d8e4; font-size: clamp(1.05rem, 2vw, 1.25rem); }
+.hero-actions { display: flex; flex-wrap: wrap; gap: .8rem; }
+.hero-actions .btn { padding: .8rem 1.15rem; }
+.hero-proof { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: 2rem; color: #b8cbd8; font-size: .88rem; }
+.hero-proof i { color: #5eead4; }
+.method-card { padding: 1.4rem; color: #d8e7ef; background: rgba(255,255,255,.075); border: 1px solid rgba(255,255,255,.14); border-radius: 1.35rem; backdrop-filter: blur(12px); }
+.method-card h2 { margin-bottom: 1.2rem; color: white; font-size: .9rem; letter-spacing: .1em; text-transform: uppercase; }
+.method-step { display: grid; grid-template-columns: 2.2rem 1fr; gap: .8rem; padding: .9rem 0; border-top: 1px solid rgba(255,255,255,.1); }
+.method-step:first-of-type { border-top: 0; }
+.method-step span { display: grid; width: 2rem; height: 2rem; place-items: center; color: #0b1f33; background: #99f6e4; border-radius: .55rem; font-size: .8rem; font-weight: 850; }
+.method-step strong { display: block; color: white; }
+.method-step small { color: #a9c0ce; }
+.home-section { padding: clamp(4rem, 7vw, 6rem) 0; }
+.section-heading { display: flex; justify-content: space-between; gap: 2rem; align-items: end; margin-bottom: 2.25rem; }
+.section-heading h2 { max-width: 620px; margin: 0; font-size: clamp(2rem, 4vw, 3rem); }
+.section-heading p { max-width: 520px; margin: 0; color: var(--muted); }
+.journey-card { height: 100%; padding: 1.5rem; background: white; border: 1px solid var(--line); border-radius: 1rem; transition: transform .2s ease, box-shadow .2s ease; }
+.journey-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+.journey-icon { display: grid; width: 3rem; height: 3rem; margin-bottom: 1.2rem; place-items: center; color: var(--teal-700); background: var(--teal-50); border-radius: .8rem; font-size: 1.35rem; }
+.journey-card h3 { font-size: 1.15rem; }
+.journey-card p { color: var(--muted); }
+.journey-card a { font-weight: 750; text-decoration: none; }
+.trust-band { padding: 2rem 0; background: var(--warm); border-block: 1px solid #ebe3d4; }
+.trust-stat { text-align: center; }
+.trust-stat strong { display: block; color: var(--navy-950); font-size: 1.8rem; }
+.trust-stat span { color: var(--muted); font-size: .9rem; }
+.principle { display: flex; gap: 1rem; padding: 1.25rem; }
+.principle i { color: var(--teal-700); font-size: 1.3rem; }
+.principle h3 { margin-bottom: .35rem; font-size: 1.05rem; }
+.principle p { margin: 0; color: var(--muted); font-size: .95rem; }
+.cta-panel { padding: clamp(2rem, 5vw, 4rem); color: white; background: var(--navy-900); border-radius: 1.5rem; box-shadow: var(--shadow-md); }
+.cta-panel h2 { max-width: 700px; color: white; font-size: clamp(2rem, 4vw, 3rem); }
+.cta-panel p { max-width: 640px; color: #bed2df; }
+@media (max-width: 991.98px) { .hero-grid { grid-template-columns: 1fr; } .method-card { max-width: 650px; } }
+@media (max-width: 767.98px) { .section-heading { display: block; } .section-heading p { margin-top: 1rem; } .hero-proof { display: grid; gap: .5rem; } }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Full width hero section -->
-<div class="container-fluid px-0">
-    <section class="hero" id="hero-section">
-        <div class="hero-background"></div>
-        <div class="hero-overlay"></div>
-        <div class="container">
-            <div class="hero-content">
-                <h1>Statistical Model Suggester</h1>
-                <p class="lead">Providing expert statistical guidance and model recommendations for your research needs</p>
-                <div class="d-flex gap-3">
+<section class="home-hero">
+    <div class="container-xl">
+        <div class="hero-grid">
+            <div>
+                <div class="hero-kicker"><i class="bi bi-check2-circle"></i> Evidence-aware model selection</div>
+                <h1>Choose the right statistical model—with reasons you can defend.</h1>
+                <p class="lead">Translate your research question and data structure into a focused recommendation, practical alternatives, assumptions, diagnostics, and implementation guidance.</p>
+                <div class="hero-actions">
                     <a href="{{ url_for('main.analysis_form') }}" class="btn btn-light btn-lg">
-                        <i class="bi bi-graph-up me-2"></i>Start Your Analysis
+                        Start model selection <i class="bi bi-arrow-right ms-2"></i>
                     </a>
-                    <a href="{{ url_for('main.models_in_group', group_name='Regression Models') }}" class="btn btn-outline-light btn-lg">
-                        <i class="bi bi-database me-2"></i>Browse Models
+                    <a href="{{ url_for('main.models_index') }}" class="btn btn-outline-light btn-lg">
+                        Browse the model library
                     </a>
                 </div>
+                <div class="hero-proof">
+                    <span><i class="bi bi-check2 me-1"></i>No statistical jargon required</span>
+                    <span><i class="bi bi-check2 me-1"></i>Assumptions made visible</span>
+                    <span><i class="bi bi-check2 me-1"></i>Python and R examples</span>
+                </div>
             </div>
+            <aside class="method-card" aria-label="How recommendations are built">
+                <h2>From question to model</h2>
+                <div class="method-step">
+                    <span>01</span>
+                    <div><strong>Define the analytical goal</strong><small>Prediction, inference, classification, clustering, or time series.</small></div>
+                </div>
+                <div class="method-step">
+                    <span>02</span>
+                    <div><strong>Describe the data</strong><small>Outcome, predictors, sample size, missingness, and dependence.</small></div>
+                </div>
+                <div class="method-step">
+                    <span>03</span>
+                    <div><strong>Compare compatible methods</strong><small>Review the leading recommendation and credible alternatives.</small></div>
+                </div>
+                <div class="method-step">
+                    <span>04</span>
+                    <div><strong>Validate before reporting</strong><small>Check assumptions, diagnostics, limitations, and interpretation.</small></div>
+                </div>
+            </aside>
         </div>
-    </section>
-</div>
+    </div>
+</section>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const hero = document.getElementById('hero-section');
-    const heroBackground = document.querySelector('.hero-background');
-    
-    // Lazy-load the background image
-    const img = new Image();
-    img.src = "{{ url_for('static', filename='images/stats-background.png') }}";
-    img.loading = "lazy";
-    
-    img.onload = function() {
-        console.log('Background image loaded successfully');
-        heroBackground.style.backgroundImage = `url('${img.src}'), linear-gradient(to bottom, #1a1a1a, #333)`;
-        heroBackground.style.backgroundSize = 'cover';
-        heroBackground.style.backgroundPosition = 'center';
-        heroBackground.style.margin = '0';
-        heroBackground.style.padding = '0';
-        hero.classList.add('image-loaded');
-    };
-    
-    img.onerror = function(e) {
-        console.error('Background image failed to load:', e);
-        hero.classList.add('no-image');
-    };
-});
-</script>
-
-<!-- Container for the rest of the content -->
-<div class="container">
-    <section class="consultation-section">
-        <h2 class="text-center mb-5">Our Services</h2>
+<section class="trust-band" aria-label="Platform overview">
+    <div class="container-xl">
         <div class="row g-4">
-            <div class="col-md-6 col-lg-3">
-                <div class="consultation-card">
-                    <i class="bi bi-cpu consultation-icon" style="color: #6f42c1;"></i>
-                    <h3 class="consultation-title">Model Selection</h3>
-                    <p class="consultation-description">Get personalized recommendations for the most appropriate statistical models based on your data characteristics and research goals.</p>
-                    <a href="{{ url_for('main.analysis_form') }}" class="btn btn-purple">Get Started</a>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="consultation-card">
-                    <i class="bi bi-people consultation-icon" style="color: #6f42c1;"></i>
-                    <h3 class="consultation-title">Expert Consultation</h3>
-                    <p class="consultation-description">Connect with qualified statisticians for personalized guidance and validation of your analysis approach.</p>
-                    <a href="{{ url_for('expert.experts_list') }}" class="btn btn-purple">Find Experts</a>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="consultation-card">
-                    <i class="bi bi-book consultation-icon" style="color: #6f42c1;"></i>
-                    <h3 class="consultation-title">Educational Resources</h3>
-                    <p class="consultation-description">Access comprehensive documentation, tutorials, and examples for each statistical model in our database.</p>
-                    <a href="{{ url_for('main.models_in_group', group_name='Regression Models') }}" class="btn btn-purple">Learn More</a>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="consultation-card">
-                    <i class="bi bi-clipboard-check consultation-icon" style="color: #6f42c1;"></i>
-                    <h3 class="consultation-title">Questionnaire Designer</h3>
-                    <p class="consultation-description">Create professional research questionnaires tailored to your specific needs with our AI-powered questionnaire generator.</p>
-                    <a href="{{ url_for('questionnaire.index') }}" class="btn btn-purple">Create Now</a>
-                </div>
-            </div>
+            <div class="col-4 trust-stat"><strong>{{ stats.models_count }}</strong><span>documented models</span></div>
+            <div class="col-4 trust-stat"><strong>{{ stats.access_hours }}</strong><span>self-guided access</span></div>
+            <div class="col-4 trust-stat"><strong>5+</strong><span>implementation ecosystems</span></div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section class="stats-section">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="stat-item">
-                    <div class="mb-3">
-                        <i class="bi bi-bar-chart-line-fill" style="font-size: 3rem; color: #007bff;"></i>
-                    </div>
-                    <div class="stat-number">{{ stats.models_count }}</div>
-                    <div class="stat-label">Statistical Models</div>
-                </div>
+<section class="home-section">
+    <div class="container-xl">
+        <div class="section-heading">
+            <div>
+                <div class="page-eyebrow">A clearer analytical workflow</div>
+                <h2>Support for the decisions around the model—not just its name.</h2>
             </div>
-            <div class="col-md-4">
-                <div class="stat-item">
-                    <div class="mb-3">
-                        <i class="bi bi-clock-history" style="font-size: 3rem; color: #007bff;"></i>
-                    </div>
-                    <div class="stat-number">{{ stats.access_hours }}</div>
-                    <div class="stat-label">Hours of Model Access</div>
-                </div>
+            <p>Move from an initial question to a method you can explain, implement, check, and communicate to collaborators.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-xl-3">
+                <article class="journey-card">
+                    <div class="journey-icon"><i class="bi bi-signpost-split"></i></div>
+                    <h3>Model selection</h3>
+                    <p>Answer guided questions about your goal and data to narrow the candidate set.</p>
+                    <a href="{{ url_for('main.analysis_form') }}">Find a model <i class="bi bi-arrow-right"></i></a>
+                </article>
             </div>
-            <div class="col-md-4">
-                <div class="stat-item">
-                    <div class="mb-3">
-                        <i class="bi bi-patch-check-fill" style="font-size: 3rem; color: #007bff;"></i>
-                    </div>
-                    <div class="stat-number">{{ stats.verification_rate }}</div>
-                    <div class="stat-label">Expert Verified Rate</div>
-                </div>
+            <div class="col-md-6 col-xl-3">
+                <article class="journey-card">
+                    <div class="journey-icon"><i class="bi bi-collection"></i></div>
+                    <h3>Model library</h3>
+                    <p>Compare assumptions, use cases, variable types, code, and interpretation guidance.</p>
+                    <a href="{{ url_for('main.models_index') }}">Explore models <i class="bi bi-arrow-right"></i></a>
+                </article>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <article class="journey-card">
+                    <div class="journey-icon"><i class="bi bi-ui-checks-grid"></i></div>
+                    <h3>Questionnaire design</h3>
+                    <p>Build research instruments that align measures with the intended analysis.</p>
+                    <a href="{{ url_for('questionnaire.index') }}">Design a questionnaire <i class="bi bi-arrow-right"></i></a>
+                </article>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <article class="journey-card">
+                    <div class="journey-icon"><i class="bi bi-people"></i></div>
+                    <h3>Expert review</h3>
+                    <p>Bring in a statistician when design, assumptions, or interpretation need deeper judgment.</p>
+                    <a href="{{ url_for('expert.experts_list') }}">Find an expert <i class="bi bi-arrow-right"></i></a>
+                </article>
             </div>
         </div>
-    </section>
-</div>
+    </div>
+</section>
+
+<section class="home-section pt-0">
+    <div class="container-xl">
+        <div class="row g-4 mb-5">
+            <div class="col-lg-4 principle">
+                <i class="bi bi-eye"></i>
+                <div><h3>Transparent criteria</h3><p>Recommendations connect directly to the characteristics you provide.</p></div>
+            </div>
+            <div class="col-lg-4 principle">
+                <i class="bi bi-diagram-3"></i>
+                <div><h3>Alternatives included</h3><p>See other compatible approaches instead of a false single-answer result.</p></div>
+            </div>
+            <div class="col-lg-4 principle">
+                <i class="bi bi-clipboard2-pulse"></i>
+                <div><h3>Validation first</h3><p>Use assumptions and diagnostics before drawing substantive conclusions.</p></div>
+            </div>
+        </div>
+        <div class="cta-panel">
+            <div class="page-eyebrow text-info">Start with your research question</div>
+            <h2>Get a focused recommendation in a few guided steps.</h2>
+            <p class="mb-4">You do not need to know the model name in advance. Describe what you want to learn and what your data look like.</p>
+            <a href="{{ url_for('main.analysis_form') }}" class="btn btn-light btn-lg">Start model selection</a>
+        </div>
+    </div>
+</section>
 {% endblock %}
 
-{% block container_end %}{% endblock %} 
+{% block container_end %}{% endblock %}

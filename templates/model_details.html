@@ -4,41 +4,23 @@
 
 {% block extra_css %}
 <style>
+    .model-detail-shell { max-width: 1080px; margin: 0 auto; }
+    .model-detail-breadcrumb { margin-bottom: 1rem; color: var(--muted); font-size: .9rem; }
+    .model-detail-breadcrumb a { font-weight: 700; text-decoration: none; }
+    .model-detail-header {
+        padding: clamp(1.75rem, 4vw, 3rem) !important;
+        background: linear-gradient(125deg, #102a43, #124b55) !important;
+    }
+    .model-detail-header h1 { color: white; font-size: clamp(2.2rem, 5vw, 3.7rem); }
+    .model-detail-header p { max-width: 700px; margin: .7rem 0 0; color: #c6d8e4; }
+    .model-detail-body { padding: clamp(1.25rem, 3vw, 2.25rem); }
     .model-card { margin-bottom: 20px; }
     .implementation-tab { padding: 15px; }
     .resource-link { margin-bottom: 10px; }
-    /* Basic nav styling for search bar */
-    .search-nav {
-        background-color: #8b1a1d;
-        padding: 10px 0;
-        margin-bottom: 20px;
-    }
-    .search-nav .container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .search-nav a {
-        color: white;
-        text-decoration: none;
-        font-weight: bold;
-    }
-    .search-nav a:hover {
-        text-decoration: underline;
-    }
-    #page-search-form {
-        display: flex;
-        align-items: center;
-    }
-    #page-search-input {
-        max-width: 200px;
-    }
-
-    /* Style implementation tabs to stand out */
     .nav-tabs .nav-link {
         background-color: white;
-        border: 1px solid #0e7dec;
-        color: white;
+        border: 1px solid var(--line);
+        color: var(--navy-700);
         margin-right: 0.25rem;
         border-top-left-radius: .25rem;
         border-top-right-radius: .25rem;
@@ -53,18 +35,27 @@
         border: 1px solid #dee2e6;
         border-top: none;
     }
+    pre { padding: 1rem; background: #0b1f33 !important; border-radius: .7rem; }
+    pre code { color: #d6e7ef; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="model-detail-shell py-3">
+    <div class="model-detail-breadcrumb">
+        <a href="{{ url_for('main.models_index') }}">Model library</a>
+        <i class="bi bi-chevron-right mx-1"></i>
+        <span>{{ model_name }}</span>
+    </div>
     <div class="row justify-content-center">
-        <div class="col-md-10">
+        <div class="col-12">
             <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">{{ model_name }}</h4>
+                <div class="card-header model-detail-header">
+                    <div class="page-eyebrow text-info">Statistical model reference</div>
+                    <h1 class="mb-0">{{ model_name }}</h1>
+                    <p>Review when to use this method, its data requirements, implementation patterns, and interpretation guidance.</p>
                 </div>
-                <div class="card-body">
+                <div class="card-body model-detail-body">
                     <!-- Model Overview -->
                     <div class="mb-4">
                         <h5>Description</h5>
@@ -317,7 +308,7 @@
 
                     <div class="text-center mt-4">
                         <a href="/" class="btn btn-primary">Back to Home</a>
-                        <a href="/models" class="btn btn-secondary">View All Models</a>
+                        <a href="{{ url_for('main.models_index') }}" class="btn btn-secondary">View All Models</a>
                     </div>
                 </div>
             </div>
@@ -325,6 +316,5 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/page_search.js') }}"></script>
-{% endblock %} 
+{% endblock %}

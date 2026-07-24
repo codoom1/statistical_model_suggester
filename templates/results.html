@@ -1,126 +1,100 @@
 {% extends "base.html" %}
 
-{% block title %}Model Recommendation Results{% endblock %}
+{% block title %}Your model recommendation — Statistical Model Suggester{% endblock %}
+{% block page_context %}Recommendation result: {{ recommended_model }} for the research question {{ research_question }}. Review the rationale, alternatives, assumptions, and model documentation.{% endblock %}
+
+{% block extra_css %}
+<style>
+.result-shell { max-width: 1080px; margin: 0 auto; }
+.result-hero { position: relative; overflow: hidden; padding: clamp(2rem, 5vw, 3.5rem); color: white; background: linear-gradient(125deg, #102a43, #124b55); border-radius: 1.5rem; box-shadow: var(--shadow-md); }
+.result-hero::after { position: absolute; right: -5rem; bottom: -8rem; width: 20rem; height: 20rem; content: ""; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; box-shadow: 0 0 0 3rem rgba(255,255,255,.025); }
+.result-hero > * { position: relative; z-index: 1; }
+.result-label { display: inline-flex; align-items: center; gap: .45rem; margin-bottom: 1rem; color: #99f6e4; font-size: .78rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+.result-hero h1 { max-width: 760px; margin-bottom: 1rem; color: white; font-size: clamp(2.25rem, 5vw, 3.8rem); }
+.result-question { max-width: 780px; margin: 0; color: #c8dbe6; font-size: 1.05rem; }
+.result-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 1.5rem; margin-top: 1.5rem; }
+.result-panel { padding: 1.6rem; background: white; border: 1px solid var(--line); border-radius: 1rem; box-shadow: var(--shadow-sm); }
+.result-panel h2 { margin-bottom: 1rem; font-size: 1.25rem; }
+.rationale { color: #29485b; }
+.rationale ul { padding-left: 1.2rem; }
+.next-actions { display: grid; gap: .65rem; }
+.next-actions .btn { display: flex; justify-content: space-between; align-items: center; padding: .75rem .9rem; text-align: left; }
+.caution-note { margin-top: 1rem; padding: .9rem; color: #6d5724; background: #fff9e8; border: 1px solid #f2dfa5; border-radius: .75rem; font-size: .85rem; }
+.alternative-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.alternative-card { display: flex; min-height: 210px; flex-direction: column; padding: 1.25rem; color: inherit; background: white; border: 1px solid var(--line); border-radius: .9rem; text-decoration: none; transition: .2s ease; }
+.alternative-card:hover { color: inherit; border-color: #8bd8cf; box-shadow: var(--shadow-sm); transform: translateY(-2px); }
+.alternative-card h3 { font-size: 1.05rem; }
+.alternative-card p { color: var(--muted); font-size: .9rem; }
+.alternative-card span { margin-top: auto; color: var(--teal-700); font-size: .85rem; font-weight: 750; }
+.result-footer-actions { display: flex; flex-wrap: wrap; gap: .7rem; justify-content: center; margin-top: 2rem; }
+@media (max-width: 900px) { .result-layout { grid-template-columns: 1fr; } }
+@media (max-width: 650px) { .alternative-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0">Model Recommendation</h4>
-                </div>
-                <div class="card-body">
-                    <!-- Research Question -->
-                    <div class="mb-4">
-                        <h5>Research Question</h5>
-                        <p>{{ research_question }}</p>
-                    </div>
+<div class="result-shell py-3">
+    <header class="result-hero">
+        <div class="result-label"><i class="bi bi-check2-circle"></i> Leading recommendation</div>
+        <h1>{{ recommended_model }}</h1>
+        <p class="result-question"><strong class="text-white">Your question:</strong> {{ research_question }}</p>
+    </header>
 
-                    <!-- Recommended Model -->
-                    <div class="mb-4">
-                        <h5>Recommended Model: {{ recommended_model }}</h5>
-                        <div class="alert alert-info">
-                            {{ explanation | safe }}
-                        </div>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <a href="{{ url_for('main.model_details', model_name=recommended_model) }}" class="btn btn-primary">
-                                <i class="bi bi-info-circle me-1"></i> View Model Details
-                            </a>
-                            
-                            {% if recommended_model in MODEL_DATABASE and MODEL_DATABASE[recommended_model] is defined and MODEL_DATABASE[recommended_model].synthetic_data is defined %}
-                            <a href="{{ url_for('main.model_details', model_name=recommended_model) }}#synthetic-data" class="btn btn-success">
-                                <i class="bi bi-file-code me-1"></i> See Synthetic Data Example
-                            </a>
-                            {% endif %}
-                            
-                            <a href="{{ url_for('main.model_interpretation', model_name=recommended_model) }}" class="btn btn-warning">
-                                <i class="bi bi-book me-1"></i> Interpretation Guide
-                            </a>
-                        </div>
-                    </div>
+    <div class="result-layout">
+        <section class="result-panel">
+            <div class="page-eyebrow">Why it fits</div>
+            <h2>Recommendation rationale</h2>
+            <div class="rationale">{{ explanation | safe }}</div>
+        </section>
 
-                    <!-- Alternative Models -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="mb-0">Alternative Models</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                {% if alternative_models %}
-                                    {% for model_name in alternative_models %}
-                                        {% if model_name in MODEL_DATABASE %}
-                                            <div class="col-md-6 mb-3">
-                                                <div class="card h-100 border-primary">
-                                                    <div class="card-header bg-light">
-                                                        <span class="badge bg-info float-end">Recommended Alternative</span>
-                                                    </div>
-                                                    <div class="card-body">
-                                                        <h6>{{ model_name }}</h6>
-                                                        <p class="small">{{ MODEL_DATABASE[model_name].description }}</p>
-                                                        <div class="mt-auto">
-                                                            <a href="{{ url_for('main.model_details', model_name=model_name) }}" class="btn btn-sm btn-outline-primary">
-                                                                View Details
-                                                            </a>
-                                                            
-                                                            {% if model_name in MODEL_DATABASE and MODEL_DATABASE[model_name] is defined and MODEL_DATABASE[model_name].synthetic_data is defined %}
-                                                            <a href="{{ url_for('main.model_details', model_name=model_name) }}#synthetic-data" class="btn btn-sm btn-outline-success ms-1">
-                                                                Sample Code
-                                                            </a>
-                                                            {% endif %}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                {% else %}
-                                    <div class="col-12">
-                                        <div class="alert alert-info">
-                                            No specific alternative models were found for your analysis requirements. The recommended model is the best fit.
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            {% if alternative_models|length < 2 %}
-                            <hr class="mt-4 mb-4">
-                            <h6 class="mb-3">Other Models to Consider</h6>
-                            <div class="row">
-                                {% set count = namespace(value=0) %}
-                                {% for model_name, model_info in MODEL_DATABASE.items() %}
-                                    {% if model_name != recommended_model and 
-                                       model_name not in alternative_models and
-                                       (analysis_goal in model_info.analysis_goals) and
-                                       (dependent_variable_type in model_info.dependent_variable) and
-                                       count.value < 2 %}
-                                        <div class="col-md-6 mb-3">
-                                            <div class="card h-100">
-                                                <div class="card-body">
-                                                    <h6>{{ model_name }}</h6>
-                                                    <p class="small">{{ model_info.description }}</p>
-                                                    <a href="{{ url_for('main.model_details', model_name=model_name) }}" class="btn btn-sm btn-outline-secondary">
-                                                        View Details
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% set count.value = count.value + 1 %}
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="text-center mt-4">
-                        <a href="{{ url_for('main.analysis_form') }}" class="btn btn-primary">Start New Analysis</a>
-                        <a href="{{ url_for('main.history') }}" class="btn btn-secondary">View History</a>
-                        <a href="{{ url_for('main.models_in_group', group_name='Regression Models') }}" class="btn btn-info">Browse Models</a>
-                    </div>
-                </div>
+        <aside class="result-panel">
+            <div class="page-eyebrow">Continue your review</div>
+            <h2>Next steps</h2>
+            <div class="next-actions">
+                <a href="{{ url_for('main.model_details', model_name=recommended_model) }}" class="btn btn-primary">
+                    Model details <i class="bi bi-arrow-right"></i>
+                </a>
+                <a href="{{ url_for('main.model_interpretation', model_name=recommended_model) }}" class="btn btn-outline-primary">
+                    Interpretation guide <i class="bi bi-book"></i>
+                </a>
+                {% if recommended_model in MODEL_DATABASE and MODEL_DATABASE[recommended_model] is defined and MODEL_DATABASE[recommended_model].synthetic_data is defined %}
+                <a href="{{ url_for('main.model_details', model_name=recommended_model) }}#synthetic-data" class="btn btn-outline-secondary">
+                    Worked example <i class="bi bi-code-square"></i>
+                </a>
+                {% endif %}
             </div>
+            <div class="caution-note"><i class="bi bi-exclamation-triangle me-1"></i>Confirm assumptions and diagnostics before interpreting estimates or predictions.</div>
+        </aside>
+    </div>
+
+    <section class="result-panel mt-4">
+        <div class="page-eyebrow">Compare before deciding</div>
+        <h2>Compatible alternatives</h2>
+        <p class="text-muted">These methods may also fit parts of your design. Compare their assumptions, interpretability, and validation requirements.</p>
+
+        <div class="alternative-grid mt-4">
+            {% if alternative_models %}
+                {% for model_name in alternative_models %}
+                    {% if model_name in MODEL_DATABASE %}
+                    <a href="{{ url_for('main.model_details', model_name=model_name) }}" class="alternative-card">
+                        <h3>{{ model_name }}</h3>
+                        <p>{{ MODEL_DATABASE[model_name].description }}</p>
+                        <span>Review this model <i class="bi bi-arrow-right"></i></span>
+                    </a>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+            <div class="alert alert-info mb-0">No close alternatives matched all the information provided. Review the leading model carefully and consult a statistician for high-stakes work.</div>
+            {% endif %}
         </div>
+    </section>
+
+    <div class="result-footer-actions">
+        <a href="{{ url_for('main.analysis_form') }}" class="btn btn-primary"><i class="bi bi-arrow-repeat me-1"></i>Start another selection</a>
+        <a href="{{ url_for('main.models_index') }}" class="btn btn-outline-primary">Browse all models</a>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('main.history') }}" class="btn btn-outline-secondary">Analysis history</a>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

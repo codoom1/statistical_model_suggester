@@ -5,27 +5,29 @@
 /* Chat icon */
 .chat-icon-container {
     position: fixed;
-    bottom: 100px;
-    right: 30px;
+    bottom: 82px;
+    right: 20px;
     z-index: 1000;
 }
 
 #chat-icon {
-    width: 60px;
-    height: 60px;
-    background-color: #3498db;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    background-color: #0f766e;
+    border: 0;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 30px rgba(16, 42, 67, 0.22);
     transition: transform 0.3s, background-color 0.3s;
 }
 
 #chat-icon:hover {
-    transform: scale(1.05);
-    background-color: #2980b9;
+    transform: translateY(-2px);
+    background-color: #0b625c;
 }
 
 #chat-icon i {
@@ -36,13 +38,14 @@
 /* Chat window */
 #chat-window {
     position: fixed;
-    bottom: 170px;
-    right: 30px;
-    width: 350px;
-    height: 500px;
+    bottom: 145px;
+    right: 20px;
+    width: min(380px, calc(100vw - 32px));
+    height: min(540px, calc(100vh - 180px));
     background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    border: 1px solid #dce5eb;
+    border-radius: 16px;
+    box-shadow: 0 18px 50px rgba(16, 42, 67, 0.18);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -62,7 +65,7 @@
 
 /* Chat header */
 .chat-header {
-    background: linear-gradient(to right, #3498db, #2c3e50);
+    background: linear-gradient(125deg, #102a43, #124b55);
     color: white;
     padding: 15px;
     display: flex;
@@ -71,6 +74,7 @@
 }
 
 .chat-header h3 {
+    color: white;
     margin: 0;
     font-size: 18px;
     font-weight: 600;
@@ -118,14 +122,14 @@
 }
 
 .user-message .message-bubble {
-    background-color: #3498db;
+    background-color: #0f766e;
     color: white;
     border-top-right-radius: 4px;
 }
 
 .bot-message .message-bubble {
-    background-color: #f0f2f5;
-    color: #333;
+    background-color: #edf3f6;
+    color: #172b3a;
     border-top-left-radius: 4px;
 }
 
@@ -179,11 +183,11 @@
 }
 
 #user-message:focus {
-    border-color: #3498db;
+    border-color: #0d9488;
 }
 
 #send-message {
-    background-color: #3498db;
+    background-color: #0f766e;
     color: white;
     border: none;
     width: 40px;
@@ -198,20 +202,18 @@
 }
 
 #send-message:hover {
-    background-color: #2980b9;
+    background-color: #0b625c;
 }
 
 /* Responsive styles */
 @media (max-width: 768px) {
     #chat-window {
-        width: 85%;
-        height: 60%;
-        right: 20px;
-        bottom: 160px;
+        right: 16px;
+        bottom: 140px;
     }
     
     .chat-icon-container {
-        right: 20px;
-        bottom: 90px;
+        right: 16px;
+        bottom: 78px;
     }
-} 
+}

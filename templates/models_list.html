@@ -1,46 +1,143 @@
 {% extends "base.html" %}
 
-{% block title %}Statistical Models{% endblock %}
+{% block title %}{{ group_name }} — Statistical Model Library{% endblock %}
+{% block page_context %}Browse {{ group_name }} with descriptions, analytical goals, and supported outcome types.{% endblock %}
 
+{% block extra_css %}
+<style>
+.library-header { padding: 2rem 0 1.25rem; }
+.library-header h1 { max-width: 760px; font-size: clamp(2.2rem, 5vw, 3.6rem); }
+.library-tools { position: sticky; top: 76px; z-index: 20; padding: 1rem 0; background: rgba(245,248,250,.94); border-bottom: 1px solid var(--line); backdrop-filter: blur(10px); }
+.library-search { position: relative; max-width: 580px; }
+.library-search i { position: absolute; top: 50%; left: 1rem; color: var(--muted); transform: translateY(-50%); }
+.library-search input { width: 100%; padding: .8rem 1rem .8rem 2.7rem; background: white; border: 1px solid var(--line); border-radius: .8rem; outline: none; }
+.library-search input:focus { border-color: var(--teal-600); box-shadow: 0 0 0 3px rgba(13,148,136,.12); }
+.group-nav { display: flex; gap: .5rem; padding: .75rem 0 .1rem; overflow-x: auto; scrollbar-width: thin; }
+.group-nav a { flex: 0 0 auto; padding: .4rem .7rem; color: var(--navy-700); background: white; border: 1px solid var(--line); border-radius: 999px; font-size: .8rem; font-weight: 700; text-decoration: none; }
+.library-group { padding: 2.4rem 0 .5rem; scroll-margin-top: 155px; }
+.library-group-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: end; margin-bottom: 1.15rem; padding-bottom: .8rem; border-bottom: 1px solid var(--line); }
+.library-group-heading h2 { margin: 0; font-size: 1.45rem; }
+.library-group-heading span { color: var(--muted); font-size: .85rem; }
+.model-library-card { display: flex; height: 100%; flex-direction: column; padding: 1.25rem; color: inherit; background: white; border: 1px solid var(--line); border-radius: 1rem; text-decoration: none; transition: .2s ease; }
+.model-library-card:hover { color: inherit; border-color: #8bd8cf; box-shadow: var(--shadow-md); transform: translateY(-3px); }
+.model-card-top { display: flex; justify-content: space-between; gap: 1rem; }
+.model-library-card h3 { margin-bottom: .7rem; font-size: 1.08rem; }
+.model-library-card .arrow { color: var(--teal-700); }
+.model-library-card p { display: -webkit-box; overflow: hidden; margin-bottom: 1rem; color: var(--muted); font-size: .9rem; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.model-meta { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: auto; }
+.model-meta span { padding: .25rem .5rem; color: var(--navy-700); background: var(--canvas); border-radius: 999px; font-size: .72rem; font-weight: 700; }
+.library-empty { display: none; padding: 3rem; text-align: center; color: var(--muted); }
+</style>
+{% endblock %}
+
+{% block container_start %}{% endblock %}
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">{{ group_name | replace('_', ' ') | title }}</h4>
-                    <p class="mb-0">Click on a model to view detailed information</p>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        {% for model_name, model_info in models %}
-                        <div class="col-md-6 mb-4">
-                            <a href="{{ url_for('main.model_details', model_name=model_name) }}" class="text-decoration-none">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ model_name }}</h5>
-                                        <p class="card-text">{{ model_info.description }}</p>
-                                        <div class="mt-2">
-                                            {% for goal in model_info.analysis_goals %}
-                                            <span class="badge bg-primary me-1">{{ goal }}</span>
-                                            {% endfor %}
-                                            {% for var_type in model_info.dependent_variable %}
-                                            <span class="badge bg-secondary me-1">{{ var_type }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </div>
+<header class="library-header">
+    <div class="container-xl">
+        <div class="page-eyebrow">Statistical model library</div>
+        <h1>{{ group_name }}</h1>
+        <p class="page-lead">
+            {% if is_all_models %}
+            Explore methods by family, compare their intended uses, and open any model for assumptions, examples, and interpretation guidance.
+            {% else %}
+            Compare methods in this family and review the data requirements, assumptions, implementation examples, and interpretation guidance for each.
+            {% endif %}
+        </p>
+    </div>
+</header>
 
-                    <div class="text-center mt-4">
-                        <a href="{{ url_for('main.home') }}" class="btn btn-primary">Back to Home</a>
-                    </div>
-                </div>
+<div class="library-tools">
+    <div class="container-xl">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div class="library-search flex-grow-1">
+                <i class="bi bi-search"></i>
+                <input id="model-filter" type="search" placeholder="Filter by model name, goal, or description" aria-label="Filter model library">
             </div>
+            <div class="text-muted small"><strong id="visible-model-count">{{ models|length }}</strong> models shown</div>
         </div>
+        {% if is_all_models %}
+        <nav class="group-nav" aria-label="Model families">
+            {% for family_name, family_models in grouped_models %}
+            <a href="#{{ family_name|lower|replace(' ', '-')|replace('(', '')|replace(')', '') }}">{{ family_name }}</a>
+            {% endfor %}
+        </nav>
+        {% endif %}
     </div>
 </div>
-{% endblock %} 
+
+<div class="container-xl pb-5">
+    {% if is_all_models %}
+        {% for family_name, family_models in grouped_models %}
+        <section class="library-group" id="{{ family_name|lower|replace(' ', '-')|replace('(', '')|replace(')', '') }}" data-model-group>
+            <div class="library-group-heading">
+                <h2>{{ family_name }}</h2>
+                <span>{{ family_models|length }} methods</span>
+            </div>
+            <div class="row g-3">
+                {% for model_name, model_info in family_models %}
+                <div class="col-md-6 col-xl-4 model-result" data-search="{{ model_name }} {{ model_info.description }} {{ model_info.analysis_goals|join(' ') }}">
+                    <a href="{{ url_for('main.model_details', model_name=model_name) }}" class="model-library-card">
+                        <div class="model-card-top"><h3>{{ model_name }}</h3><i class="bi bi-arrow-up-right arrow"></i></div>
+                        <p>{{ model_info.description }}</p>
+                        <div class="model-meta">
+                            {% for goal in model_info.analysis_goals[:3] %}<span>{{ goal|replace('_', ' ') }}</span>{% endfor %}
+                            {% for var_type in model_info.dependent_variable[:2] %}<span>{{ var_type }} outcome</span>{% endfor %}
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endfor %}
+    {% else %}
+        <section class="library-group" data-model-group>
+            <div class="row g-3">
+                {% for model_name, model_info in models %}
+                <div class="col-md-6 col-xl-4 model-result" data-search="{{ model_name }} {{ model_info.description }} {{ model_info.analysis_goals|join(' ') }}">
+                    <a href="{{ url_for('main.model_details', model_name=model_name) }}" class="model-library-card">
+                        <div class="model-card-top"><h3>{{ model_name }}</h3><i class="bi bi-arrow-up-right arrow"></i></div>
+                        <p>{{ model_info.description }}</p>
+                        <div class="model-meta">
+                            {% for goal in model_info.analysis_goals[:3] %}<span>{{ goal|replace('_', ' ') }}</span>{% endfor %}
+                            {% for var_type in model_info.dependent_variable[:2] %}<span>{{ var_type }} outcome</span>{% endfor %}
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+    <div id="library-empty" class="library-empty">
+        <i class="bi bi-search fs-2 d-block mb-2"></i>
+        No models match that filter. Try a broader term such as “predict,” “binary,” or “time series.”
+    </div>
+</div>
+{% endblock %}
+{% block container_end %}{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('model-filter');
+    const results = Array.from(document.querySelectorAll('.model-result'));
+    const groups = Array.from(document.querySelectorAll('[data-model-group]'));
+    const count = document.getElementById('visible-model-count');
+    const empty = document.getElementById('library-empty');
+
+    input.addEventListener('input', function () {
+        const query = this.value.trim().toLowerCase();
+        let visible = 0;
+        results.forEach(function (result) {
+            const matches = !query || result.dataset.search.toLowerCase().includes(query);
+            result.hidden = !matches;
+            if (matches) visible += 1;
+        });
+        groups.forEach(function (group) {
+            group.hidden = !group.querySelector('.model-result:not([hidden])');
+        });
+        count.textContent = visible;
+        empty.style.display = visible ? 'none' : 'block';
+    });
+});
+</script>
+{% endblock %}
