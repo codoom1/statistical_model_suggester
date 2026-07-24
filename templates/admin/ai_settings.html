@@ -7,7 +7,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <h2>AI Integration</h2>
-            <p class="lead">OpenAI Responses API configuration and connection test.</p>
+            <p class="lead">OpenAI configuration, usage-storage readiness, and live provider test.</p>
         </div>
     </div>
 
@@ -43,10 +43,19 @@
                 <dt class="col-sm-4">Model</dt>
                 <dd class="col-sm-8"><code>{{ current_settings.model }}</code></dd>
 
-                <dt class="col-sm-4">Status</dt>
+                <dt class="col-sm-4">Usage storage</dt>
                 <dd class="col-sm-8">
-                    <span class="badge bg-{{ 'success' if api_status.status == 'configured' else 'secondary' }}">
-                        {{ api_status.status }}
+                    {% if current_settings.storage_ready %}
+                        <span class="badge bg-success">Ready</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Not initialized</span>
+                    {% endif %}
+                </dd>
+
+                <dt class="col-sm-4">Overall readiness</dt>
+                <dd class="col-sm-8">
+                    <span class="badge bg-{{ 'success' if api_status.status == 'ready' else 'warning' if api_status.status == 'needs_setup' else 'secondary' }}">
+                        {{ api_status.label }}
                     </span>
                     {% if api_status.last_error %}
                         <span class="text-muted ms-2">{{ api_status.last_error }}</span>
@@ -61,6 +70,25 @@
             </p>
         </div>
     </div>
+
+    {% if not current_settings.storage_ready %}
+    <div class="card shadow mb-4 border-warning">
+        <div class="card-header bg-light">
+            <h4 class="mb-0">Initialize AI usage storage</h4>
+        </div>
+        <div class="card-body">
+            <p>
+                The assistant requires a durable PostgreSQL table to enforce
+                per-user usage limits. This action creates only the missing
+                <code>ai_usage_events</code> table and its indexes.
+            </p>
+            <button type="button" id="initialize-storage-button" class="btn btn-primary">
+                Initialize AI storage
+            </button>
+            <div id="storage-result" class="alert mt-3 d-none" role="status"></div>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="card shadow">
         <div class="card-header bg-light">
@@ -80,9 +108,36 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const storageButton = document.getElementById('initialize-storage-button');
+    const storageResult = document.getElementById('storage-result');
     const button = document.getElementById('test-button');
     const prompt = document.getElementById('test-prompt');
     const result = document.getElementById('test-result');
+
+    if (storageButton) {
+        storageButton.addEventListener('click', async () => {
+            storageButton.disabled = true;
+            storageResult.className = 'alert alert-info mt-3';
+            storageResult.textContent = 'Initializing durable AI usage storage…';
+            try {
+                const response = await fetch('{{ url_for("admin.initialize_ai_storage") }}', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({confirm: true})
+                });
+                const data = await response.json();
+                storageResult.className = `alert ${response.ok && data.success ? 'alert-success' : 'alert-danger'} mt-3`;
+                storageResult.textContent = data.message || data.error || 'Storage initialization failed.';
+                if (response.ok && data.success) {
+                    window.setTimeout(() => window.location.reload(), 800);
+                }
+            } catch (error) {
+                storageResult.className = 'alert alert-danger mt-3';
+                storageResult.textContent = 'Storage initialization could not be completed.';
+                storageButton.disabled = false;
+            }
+        });
+    }
 
     button.addEventListener('click', async () => {
         const value = prompt.value.trim();

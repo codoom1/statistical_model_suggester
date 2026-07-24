@@ -64,8 +64,8 @@ def ask_question():
             success=False,
             message="AI usage tracking is unavailable.",
             response=(
-                "The AI assistant is not initialized yet. "
-                "Please contact the administrator."
+                "The AI assistant's usage storage is not ready. "
+                "An administrator can initialize it from AI Integration."
             ),
         ), 503
 

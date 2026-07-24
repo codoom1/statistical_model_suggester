@@ -5,8 +5,9 @@ from unittest.mock import Mock, patch
 import httpx
 from openai import NotFoundError, RateLimitError
 import pytest
+from sqlalchemy import inspect
 
-from models import AIUsageEvent
+from models import AIUsageEvent, db
 from utils.ai_service import (
     OpenAIServiceError,
     call_openai_api,
@@ -196,6 +197,68 @@ def test_admin_ai_page_never_renders_api_key(client, admin_user, monkeypatch):
     assert response.status_code == 200
     assert b"sk_do_not_render_this_secret" not in response.data
     assert b"Configured" in response.data
+
+
+def test_admin_can_initialize_missing_ai_usage_storage(
+    app,
+    admin_client,
+    monkeypatch,
+):
+    monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    with app.app_context():
+        AIUsageEvent.__table__.drop(bind=db.engine)
+
+    status_response = admin_client.get("/admin/ai_settings")
+
+    assert status_response.status_code == 200
+    assert b"Needs initialization" in status_response.data
+    assert b"Not initialized" in status_response.data
+
+    initialize_response = admin_client.post(
+        "/admin/initialize-ai-storage",
+        json={"confirm": True},
+    )
+
+    assert initialize_response.status_code == 200
+    assert initialize_response.get_json()["storage_ready"] is True
+    with app.app_context():
+        assert inspect(db.engine).has_table("ai_usage_events")
+
+    ready_response = admin_client.get("/admin/ai_settings")
+    assert b"Overall readiness" in ready_response.data
+    assert b"Ready" in ready_response.data
+
+
+def test_ai_storage_initialization_requires_explicit_confirmation(admin_client):
+    response = admin_client.post(
+        "/admin/initialize-ai-storage",
+        json={"confirm": False},
+    )
+
+    assert response.status_code == 400
+    assert response.get_json()["success"] is False
+
+
+def test_chatbot_explains_missing_ai_usage_storage(
+    app,
+    client,
+    test_user,
+    monkeypatch,
+):
+    monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    _login(client, test_user)
+    with app.app_context():
+        AIUsageEvent.__table__.drop(bind=db.engine)
+
+    response = client.post(
+        "/chatbot/ask",
+        json={"question": "Which model?", "context": "Model selection"},
+    )
+
+    assert response.status_code == 503
+    assert "usage storage is not ready" in response.get_json()["response"]
 
 
 def test_questionnaire_ai_enhancement_requires_login(client, monkeypatch):
