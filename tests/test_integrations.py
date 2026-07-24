@@ -156,3 +156,64 @@ def test_admin_ai_page_never_renders_api_key(client, admin_user, monkeypatch):
     assert response.status_code == 200
     assert b"hf_do_not_render_this_secret" not in response.data
     assert b"Configured" in response.data
+
+
+def test_questionnaire_ai_enhancement_requires_login(client, monkeypatch):
+    monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
+
+    with patch("routes.questionnaire_routes.generate_questionnaire") as generate:
+        response = client.post(
+            "/questionnaire/design",
+            data={
+                "research_topic": "Public health",
+                "research_description": "Measure an intervention outcome",
+                "target_audience": "Adults",
+                "questionnaire_purpose": "Evaluation",
+                "use_ai_enhancement": "on",
+                "num_ai_questions": "3",
+            },
+        )
+
+    assert response.status_code == 302
+    assert "/auth/login" in response.headers["Location"]
+    generate.assert_not_called()
+
+
+def test_questionnaire_ai_enhancement_consumes_weighted_quota(
+    client, test_user, monkeypatch
+):
+    monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
+    monkeypatch.setenv("AI_REQUESTS_PER_USER_PER_HOUR", "3")
+    _login(client, test_user)
+
+    with patch(
+        "routes.questionnaire_routes.generate_questionnaire",
+        return_value=[],
+    ) as generate:
+        first = client.post(
+            "/questionnaire/design",
+            data={
+                "research_topic": "Public health",
+                "research_description": "Measure an intervention outcome",
+                "target_audience": "Adults",
+                "questionnaire_purpose": "Evaluation",
+                "use_ai_enhancement": "on",
+                "num_ai_questions": "3",
+            },
+        )
+        second = client.post(
+            "/questionnaire/design",
+            data={
+                "research_topic": "Public health",
+                "research_description": "Measure another outcome",
+                "target_audience": "Adults",
+                "questionnaire_purpose": "Evaluation",
+                "use_ai_enhancement": "on",
+                "num_ai_questions": "1",
+            },
+        )
+
+    assert first.status_code == 302
+    assert second.status_code == 302
+    assert generate.call_count == 1
+    assert AIUsageEvent.query.filter_by(user_id=test_user["id"]).count() == 3

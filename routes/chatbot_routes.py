@@ -1,52 +1,25 @@
 """Authenticated routes for the AI statistical-methods assistant."""
 
 import logging
-import os
-from datetime import datetime, timedelta
 
 from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy.exc import SQLAlchemyError
 
-from models import AIUsageEvent, db
+from models import db
 from utils.ai_service import (
     HuggingFaceError,
     call_huggingface_api,
     get_huggingface_config,
     is_ai_enabled,
 )
+from utils.ai_usage import consume_user_ai_quota, hourly_ai_limit
 
 
 logger = logging.getLogger(__name__)
 chatbot_bp = Blueprint("chatbot", __name__, url_prefix="/chatbot")
 MAX_QUESTION_LENGTH = 1_000
 MAX_CONTEXT_LENGTH = 4_000
-
-
-def _hourly_limit() -> int:
-    try:
-        return min(
-            max(int(os.environ.get("AI_REQUESTS_PER_USER_PER_HOUR", "20")), 1),
-            1_000,
-        )
-    except ValueError:
-        return 20
-
-
-def _consume_user_quota(user_id: int) -> tuple[bool, int]:
-    """Persist an AI attempt and return whether the user's hourly budget allows it."""
-    window_start = datetime.utcnow() - timedelta(hours=1)
-    used = AIUsageEvent.query.filter(
-        AIUsageEvent.user_id == user_id,
-        AIUsageEvent.created_at >= window_start,
-    ).count()
-    limit = _hourly_limit()
-    if used >= limit:
-        return False, 0
-
-    db.session.add(AIUsageEvent(user_id=user_id))
-    db.session.commit()
-    return True, limit - used - 1
 
 
 @chatbot_bp.route("/ask", methods=["POST"])
@@ -82,7 +55,7 @@ def ask_question():
     page_context = page_context[:MAX_CONTEXT_LENGTH]
 
     try:
-        allowed, remaining = _consume_user_quota(current_user.id)
+        allowed, remaining = consume_user_ai_quota(current_user.id)
     except SQLAlchemyError:
         db.session.rollback()
         logger.exception("Could not record AI usage for user %s.", current_user.id)
@@ -154,6 +127,6 @@ def test_config():
             "ai_enabled": is_ai_enabled(),
             "api_key_configured": bool(api_key),
             "model": model,
-            "hourly_user_limit": _hourly_limit(),
+            "hourly_user_limit": hourly_ai_limit(),
         },
     )
