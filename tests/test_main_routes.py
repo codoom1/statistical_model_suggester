@@ -14,6 +14,12 @@ class TestMainRoutes:
         response = client.get('/analysis-form')
         assert response.status_code == 200
         assert b'form' in response.data.lower() or b'analysis' in response.data.lower()
+    def test_double_encoded_model_group_url(self, client):
+        """Previously generated encoded group links remain usable."""
+        response = client.get('/models/Regression%2520Models')
+        assert response.status_code == 200
+        assert b'Invalid model group' not in response.data
+        assert b'Linear Regression' in response.data
     def test_analysis_form_submission_authenticated(self, authenticated_client, sample_analysis_data, app):
         """Test analysis form submission with authenticated user."""
         response = authenticated_client.post('/results', data=sample_analysis_data, follow_redirects=True)
