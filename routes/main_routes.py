@@ -7,6 +7,13 @@ import random
 from collections import OrderedDict
 from urllib.parse import unquote
 main = Blueprint('main', __name__)
+
+
+def _decode_path_name(name):
+    """Decode one path segment left encoded after Flask's URL decoding."""
+    return unquote(name)
+
+
 # -----------------------------------------------------------------------------
 # MODEL GROUPING FOR NAVIGATION DROPDOWN
 # -----------------------------------------------------------------------------
@@ -667,7 +674,7 @@ def models_in_group(group_name):
     model_database = current_app.config.get('MODEL_DATABASE', {})
     # Some clients and previously rendered links can encode the path segment
     # twice, leaving a literal ``%20`` after Flask's first URL decode.
-    group_name = unquote(group_name)
+    group_name = _decode_path_name(group_name)
     # Validate group_name
     if group_name not in MODEL_GROUPS:
         flash(f"Invalid model group: {group_name}", "danger")
@@ -690,6 +697,7 @@ def models_in_group(group_name):
 def model_details(model_name):
     """Display details for a specific model"""
     try:
+        model_name = _decode_path_name(model_name)
         model_info = get_model_details(model_name)
         if model_info:
             return render_template('model_details.html',
@@ -703,6 +711,7 @@ def model_details(model_name):
 def model_interpretation(model_name):
     """Display interpretation guide for a specific model"""
     try:
+        model_name = _decode_path_name(model_name)
         model_info = get_model_details(model_name)
         if not model_info:
             return render_template('error.html', error="Model not found")
@@ -720,6 +729,7 @@ def model_interpretation(model_name):
 def download_interpretation(model_name):
     """Generate and download interpretation guide as HTML file"""
     try:
+        model_name = _decode_path_name(model_name)
         model_info = get_model_details(model_name)
         if not model_info:
             return render_template('error.html', error="Model not found")
