@@ -668,6 +668,17 @@ def history():
             return redirect(url_for('auth.login', next=url_for('main.history')))
     except Exception as e:
         return render_template('error.html', error=str(e))
+@main.route('/models')
+def models_index():
+    """Display every available statistical model."""
+    model_database = current_app.config.get('MODEL_DATABASE', {})
+    return render_template(
+        'models_list.html',
+        models=sorted(model_database.items()),
+        group_name='All Statistical Models',
+    )
+
+
 @main.route('/models/<group_name>')
 def models_in_group(group_name):
     """Display models belonging to a specific group."""

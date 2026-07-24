@@ -317,7 +317,7 @@
 
                     <div class="text-center mt-4">
                         <a href="/" class="btn btn-primary">Back to Home</a>
-                        <a href="/models" class="btn btn-secondary">View All Models</a>
+                        <a href="{{ url_for('main.models_index') }}" class="btn btn-secondary">View All Models</a>
                     </div>
                 </div>
             </div>
@@ -327,4 +327,4 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/page_search.js') }}"></script>
-{% endblock %} 
+{% endblock %}

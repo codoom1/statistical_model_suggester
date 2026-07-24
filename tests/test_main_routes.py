@@ -26,6 +26,15 @@ class TestMainRoutes:
         assert b'Invalid model group' not in response.data
         assert b'Linear Regression' in response.data
 
+    def test_models_index(self, client):
+        """The all-models page lists models from the configured database."""
+        response = client.get('/models')
+
+        assert response.status_code == 200
+        assert b'All Statistical Models' in response.data
+        assert b'Linear Regression' in response.data
+        assert b'Logistic Regression' in response.data
+
     def test_double_encoded_model_detail_urls(self, client, monkeypatch):
         """Encoded model links work across detail and interpretation routes."""
         interpretation_module = ModuleType('utils.interpretation')
