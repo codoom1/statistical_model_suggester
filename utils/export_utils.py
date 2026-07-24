@@ -2,8 +2,7 @@
 Utility functions for exporting questionnaires to different formats
 """
 
-import os
-import tempfile
+from io import BytesIO
 from docx import Document
 from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -128,12 +127,10 @@ def export_to_word(questionnaire, research_topic, research_description, target_a
     doc.add_heading("Thank You", level=2)
     doc.add_paragraph("Thank you for completing this questionnaire. Your feedback is valuable for our research.")
     
-    # Save the document to a temporary file
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.docx')
-    doc.save(temp_file.name)
-    temp_file.close()
-    
-    return temp_file.name
+    output = BytesIO()
+    doc.save(output)
+    output.seek(0)
+    return output
 
 
 def export_to_pdf(questionnaire, research_topic, research_description, target_audience, questionnaire_purpose):
@@ -153,13 +150,11 @@ def export_to_pdf(questionnaire, research_topic, research_description, target_au
     if not REPORTLAB_AVAILABLE:
         raise ImportError("ReportLab is required for PDF export but is not installed. Please install reportlab>=4.4.0")
     
-    # Create a temporary file
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-    temp_file.close()
+    output = BytesIO()
     
     # Set up the document
     doc = SimpleDocTemplate(
-        temp_file.name,
+        output,
         pagesize=letter,
         rightMargin=72,
         leftMargin=72,
@@ -296,4 +291,5 @@ def export_to_pdf(questionnaire, research_topic, research_description, target_au
     # Build the PDF
     doc.build(story)
     
-    return temp_file.name 
+    output.seek(0)
+    return output

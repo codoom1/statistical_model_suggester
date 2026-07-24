@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "flask",
+  "functions": {
+    "app.py": {
+      "maxDuration": 60,
+      "excludeFiles": "{backup/**,data_processing/**,database_management/**,deployment/**,docs/**,plot_generation/**,scripts/**,synthetic_data_examples/**,testing/**,tests/**,utils/diagnostic_plots/**,utils/generate_*.py,utils/*diagnostic*.py,public/**,Dockerfile,docker-compose.yml,render.yaml,render_build.py,Makefile,pytest.ini,requirements-dev.txt}"
+    }
+  },
+  "headers": [
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}
