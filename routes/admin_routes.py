@@ -4,7 +4,6 @@ from models import db, User, ExpertApplication, Analysis, Consultation
 from functools import wraps
 from datetime import datetime, timedelta, timezone
 from utils.email_service import send_expert_approved_email, send_expert_rejected_email
-import os
 from utils.ai_service import (
     call_huggingface_api, is_ai_enabled, HuggingFaceError, get_huggingface_config
 )
@@ -233,149 +232,79 @@ def assign_consultation(consultation_id):
     db.session.commit()
     flash(f'Consultation assigned to {expert.username}.', 'success')
     return redirect(url_for('admin.consultations_list'))
-@admin.route('/ai_settings', methods=['GET', 'POST'])
+@admin.route('/ai_settings', methods=['GET'])
 @login_required
 @admin_required
 def ai_settings():
-    """AI Integration Settings"""
-    # Get current settings before POST processing
+    """Display non-secret AI integration status."""
     current_api_key, current_model = get_huggingface_config()
     current_enabled = is_ai_enabled()
-    # Settings available for template rendering if needed
-    _, _, _ = current_api_key, current_model, current_enabled
-    if request.method == 'POST':
-        if os.environ.get('VERCEL') or os.environ.get('FLASK_ENV', '').lower() == 'production':
-            flash(
-                'AI settings are managed with deployment environment variables in production.',
-                'info'
-            )
-            return redirect(url_for('admin.ai_settings'))
-        # Get form data
-        api_key = request.form.get('huggingface_api_key')
-        model = request.form.get('model')
-        enabled_form = request.form.get('enabled') == 'on'
-        # Validate model selection
-        valid_models = [
-            'mistralai/Mistral-7B-Instruct-v0.2',
-            'meta-llama/Llama-2-7b-chat-hf',
-            'google/flan-t5-base',
-            'facebook/bart-large-cnn',
-            'microsoft/Phi-2',
-            'google/gemma-7b-it'
-        ]
-        if model not in valid_models:
-            flash('Invalid model selection.', 'danger')
-            return redirect(url_for('admin.ai_settings'))
-        # Update environment variables
-        # Only update env var if value is provided, otherwise keep existing
-        if api_key is not None: # Check if field was present, even if empty
-            if api_key: # If not empty, set it
-                os.environ['HUGGINGFACE_API_KEY'] = api_key
-            elif 'HUGGINGFACE_API_KEY' in os.environ: # If empty, remove it
-                os.environ.pop('HUGGINGFACE_API_KEY')
-        os.environ['HUGGINGFACE_MODEL'] = model
-        os.environ['AI_ENHANCEMENT_ENABLED'] = str(enabled_form).lower()
-        flash(
-            'AI settings updated for this local application process.',
-            'success'
-        )
-        return redirect(url_for('admin.ai_settings'))
-    # Get current settings for display
     current_settings = {
-        'api_key': current_api_key or '', # Use empty string if None
+        'api_key_configured': bool(current_api_key),
         'model': current_model,
-        'enabled': current_enabled
+        'enabled': current_enabled,
     }
-    # Check for API status and credit issues
     api_status = {
-        'status': 'unknown',
-        'last_error': None,
-        'credit_warning': False
+        'status': (
+            'configured'
+            if current_enabled and current_api_key
+            else 'disabled'
+            if not current_enabled
+            else 'no_key'
+        ),
+        'last_error': (
+            None
+            if current_enabled and current_api_key
+            else 'AI enhancement is disabled.'
+            if not current_enabled
+            else 'HUGGINGFACE_API_KEY is missing.'
+        ),
+        'credit_warning': False,
     }
-    if current_enabled and current_api_key: # Only test if enabled and key exists
-        try:
-            # Use the currently selected model for the test
-            call_huggingface_api("Hello", model=current_model)
-            api_status['status'] = 'ok'
-        except HuggingFaceError as e:
-            api_status['status'] = 'error'
-            api_status['last_error'] = str(e)
-            if e.status_code == 402:
-                api_status['status'] = 'credit_limit_reached'
-                api_status['credit_warning'] = True
-                flash('WARNING: Hugging Face API credits exceeded. AI features may be limited until subscription is upgraded.', 'warning')
-        except ValueError as e: # Should not happen if current_enabled is checked, but safeguard
-            api_status['status'] = 'disabled'
-            api_status['last_error'] = str(e)
-        except Exception as e: # Catch other unexpected errors
-            api_status['status'] = 'error'
-            api_status['last_error'] = f"Unexpected error during API test: {str(e)}"
-    elif not current_enabled:
-        api_status['status'] = 'disabled'
-        api_status['last_error'] = "AI Enhancement is disabled in settings."
-    else: # Enabled but no API key
-        api_status['status'] = 'no_key'
-        api_status['last_error'] = "API Key is missing. Cannot test connection."
     return render_template(
         'admin/ai_settings.html',
         current_settings=current_settings,
-        api_status=api_status
+        api_status=api_status,
     )
+
+
 @admin.route('/test-ai-integration', methods=['POST'])
 @login_required
 @admin_required
 def test_ai_integration():
-    """API endpoint to test the Hugging Face integration using provided settings."""
-    if not request.json:
+    """Test the server-side AI credentials without exposing or replacing them."""
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
         return jsonify({'success': False, 'error': 'No JSON data provided'}), 400
-    test_prompt = request.json.get('prompt', '')
-    api_key = request.json.get('api_key')  # Can be None
-    model = request.json.get('model', 'mistralai/Mistral-7B-Instruct-v0.2')
+    test_prompt = str(data.get('prompt', '')).strip()
     if not test_prompt:
-        return jsonify({
-            'success': False,
-            'error': 'Please provide a test prompt'
-        })
-    # We will call the API directly, temporarily overriding env vars if key is provided
-    original_key = os.environ.get('HUGGINGFACE_API_KEY')
-    temp_key_set = False
+        return jsonify(
+            {'success': False, 'error': 'Please provide a test prompt'}
+        ), 400
+    if len(test_prompt) > 1000:
+        return jsonify(
+            {'success': False, 'error': 'Test prompts must be 1000 characters or fewer.'}
+        ), 400
+
     try:
-        # Temporarily set API key if provided in request for testing
-        if api_key is not None:
-            os.environ['HUGGINGFACE_API_KEY'] = api_key
-            temp_key_set = True
-        # Format the prompt
-        formatted_prompt = f"""<s>[INST] You are an expert questionnaire designer. Create an improved version of the following question:
-        {test_prompt}
-        Make it more specific, insightful, and relevant. Respond with only the improved question text. [/INST]"""
-        # Call the centralized AI service (will use the temp key if set)
-        # Note: This call assumes AI is enabled globally; the test should ideally reflect that
-        #       or the enabling check should be done here too.
-        #       For simplicity, we assume the test button is shown when AI is meant to be active.
-        enhanced_text = call_huggingface_api(formatted_prompt, model=model)
+        enhanced_text = call_huggingface_api(
+            test_prompt,
+            system_prompt=(
+                'You are an expert questionnaire designer. Improve the user '
+                'question so it is specific, neutral, and measurable. Return '
+                'only the improved question.'
+            ),
+        )
         return jsonify({
             'success': True,
             'original': test_prompt,
             'enhanced': enhanced_text
         })
-    except HuggingFaceError as e:
-        status_code = e.status_code or 500
-        error_msg = str(e)
-        if e.status_code == 402:
-            error_msg = "API credit limit reached during test."
-        return jsonify({'success': False, 'error': f'API Error (Status: {status_code}): {error_msg}'})
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        })
-    finally:
-        # Restore original API key if it was temporarily set
-        if temp_key_set:
-            if original_key:
-                os.environ['HUGGINGFACE_API_KEY'] = original_key
-            else:
-                os.environ.pop('HUGGINGFACE_API_KEY', None)
+    except HuggingFaceError as exc:
+        status_code = exc.status_code if exc.status_code in {402, 429, 503, 504} else 502
+        return jsonify({'success': False, 'error': str(exc)}), status_code
+
+
 @admin.route('/update-application-notes/<int:application_id>', methods=['POST'])
 @login_required
 @admin_required

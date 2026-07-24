@@ -114,8 +114,10 @@ def create_app() -> Flask:
         MAIL_USERNAME=os.environ.get("MAIL_USERNAME", ""),
         MAIL_PASSWORD=os.environ.get("MAIL_PASSWORD", ""),
         MAIL_DEFAULT_SENDER=os.environ.get(
-            "MAIL_DEFAULT_SENDER", "noreply@statisticalmodelsuggester.com"
+            "MAIL_DEFAULT_SENDER", ""
         ),
+        EMAIL_PROVIDER=os.environ.get("EMAIL_PROVIDER", ""),
+        RESEND_API_KEY=os.environ.get("RESEND_API_KEY", ""),
         MAIL_SUPPRESS_SEND=os.environ.get(
             "MAIL_SUPPRESS_SEND", "false"
         ).lower() == "true",

@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User
 from werkzeug.security import generate_password_hash, check_password_hash
-from utils.email_service import send_email
+from utils.email_service import get_email_provider, send_email
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import os
 from flask import current_app
@@ -143,6 +143,8 @@ def test_email_config():
         return redirect(url_for('auth.login'))
     app = current_app._get_current_object()
     mail_config = {
+        'EMAIL_PROVIDER': get_email_provider(),
+        'RESEND_API_KEY': 'Configured' if app.config.get('RESEND_API_KEY') else None,
         'MAIL_SERVER': app.config.get('MAIL_SERVER'),
         'MAIL_PORT': app.config.get('MAIL_PORT'),
         'MAIL_USE_TLS': app.config.get('MAIL_USE_TLS'),
@@ -152,6 +154,8 @@ def test_email_config():
     }
     # Check if email env vars are available
     env_vars = {
+        'EMAIL_PROVIDER': os.environ.get('EMAIL_PROVIDER'),
+        'RESEND_API_KEY': 'Configured' if os.environ.get('RESEND_API_KEY') else None,
         'MAIL_SERVER': os.environ.get('MAIL_SERVER'),
         'MAIL_PORT': os.environ.get('MAIL_PORT'),
         'MAIL_USE_TLS': os.environ.get('MAIL_USE_TLS'),
@@ -162,31 +166,21 @@ def test_email_config():
     return render_template('admin/email_config.html',
                          app_config=mail_config,
                          env_vars=env_vars)
-@auth.route('/send-test-email')
+@auth.route('/send-test-email', methods=['POST'])
 def send_test_email():
     """Send a test email to verify email configuration"""
     if not current_user.is_authenticated or not current_user.is_admin:
         flash('You must be an admin to access this page.', 'danger')
         return redirect(url_for('auth.login'))
-    try:
-        # Send test email to the current user
-        subject = "Test Email from Statistical Model Suggester"
-        html_body = f"""
-        <p>Hello {current_user.username},</p>
-        <p>This is a test email from the Statistical Model Suggester application.</p>
-        <p>If you're receiving this email, your email configuration is working correctly!</p>
-        <p>Email configuration:</p>
-        <ul>
-            <li>MAIL_SERVER: {current_app.config.get('MAIL_SERVER')}</li>
-            <li>MAIL_PORT: {current_app.config.get('MAIL_PORT')}</li>
-            <li>MAIL_USERNAME: {current_app.config.get('MAIL_USERNAME')}</li>
-            <li>MAIL_DEFAULT_SENDER: {current_app.config.get('MAIL_DEFAULT_SENDER')}</li>
-        </ul>
-        <p>Best regards,<br>
-        Statistical Model Suggester Team</p>
-        """
-        send_email(subject, current_user.email, html_body)
+    subject = "Test Email from Statistical Model Suggester"
+    html_body = f"""
+    <p>Hello {current_user.username},</p>
+    <p>This test confirms that transactional email delivery is configured.</p>
+    <p>Provider: {get_email_provider()}</p>
+    <p>Best regards,<br>Statistical Model Suggester Team</p>
+    """
+    if send_email(subject, current_user.email, html_body):
         flash(f'Test email sent to {current_user.email}. Please check your inbox.', 'success')
-    except Exception as e:
-        flash(f'Error sending test email: {str(e)}', 'danger')
+    else:
+        flash('Email delivery failed. Check the provider configuration and logs.', 'danger')
     return redirect(url_for('auth.test_email_config'))

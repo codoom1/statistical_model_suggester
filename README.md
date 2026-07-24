@@ -81,23 +81,34 @@ FLASK_ENV=production
 SECRET_KEY=<your-secure-random-key>
 DATABASE_URL=<pooled-postgresql-url>
 BLOB_READ_WRITE_TOKEN=<created-by-vercel-blob>
-ADMIN_USERNAME=<your-admin-username>
-ADMIN_EMAIL=<your-admin-email>
-ADMIN_PASSWORD=<your-secure-admin-password>
 ```
 
-**Optional (for email notifications):**
+Administrator credentials are only needed when running `flask create-admin`.
+They do not need to remain in the deployed environment.
+
+**Transactional email with Resend:**
 ```bash
-MAIL_SERVER=<smtp-server>
-MAIL_USERNAME=<email>
-MAIL_PASSWORD=<password>
+EMAIL_PROVIDER=resend
+RESEND_API_KEY=<your-resend-api-key>
+MAIL_DEFAULT_SENDER="Statistical Model Suggester <noreply@your-domain.example>"
 ```
 
-**Optional (for AI features):**
+The sender domain must be verified in Resend. For local SMTP instead, set
+`EMAIL_PROVIDER=smtp` and configure `MAIL_SERVER`, `MAIL_PORT`,
+`MAIL_USE_TLS`, `MAIL_USERNAME`, and `MAIL_PASSWORD`.
+
+**Optional Hugging Face Inference Providers integration:**
 ```bash
 AI_ENHANCEMENT_ENABLED=true
-HUGGINGFACE_API_KEY=<your-key>
+HUGGINGFACE_API_KEY=<token-with-inference-provider-permission>
+HUGGINGFACE_MODEL=Qwen/Qwen2.5-7B-Instruct:fastest
+AI_REQUESTS_PER_USER_PER_HOUR=20
+AI_REQUEST_TIMEOUT_SECONDS=45
 ```
+
+AI requests require an authenticated user and are limited per user with
+durable database usage records. After deploying this change, run
+`flask --app app init-db` once so the `ai_usage_events` table exists.
 
 ## Project Structure
 ```

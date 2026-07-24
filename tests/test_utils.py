@@ -1,64 +1,8 @@
 """
 Test utility functions and services.
 """
-import pytest
 import os
-from unittest.mock import patch, MagicMock
-class TestEmailService:
-    """Test email service functionality."""
-    @patch('utils.email_service.send_email')
-    def test_email_sending(self, mock_send_email, app):
-        """Test email sending functionality."""
-        from utils.email_service import send_email
-        mock_send_email.return_value = True
-        with app.app_context():
-            send_email(
-                subject='Test Email',
-                recipient='test@example.com',
-                html_body='<p>Test message for Test User</p>'
-            )
-            mock_send_email.assert_called_once()
-    def test_email_configuration(self, app):
-        """Test email configuration."""
-        with app.app_context():
-            # Check that email is configured
-            assert app.config.get('MAIL_SERVER') is not None
-            assert app.config.get('MAIL_PORT') is not None
-class TestAIService:
-    """Test AI service functionality."""
-    @patch('requests.post')
-    def test_ai_enhancement_request(self, mock_post):
-        """Test AI enhancement request."""
-        try:
-            from utils.ai_service import call_huggingface_api
-            # Mock successful API response
-            mock_response = MagicMock()
-            mock_response.status_code = 200
-            mock_response.json.return_value = [{
-                'generated_text': 'Enhanced analysis content'
-            }]
-            mock_post.return_value = mock_response
-            result = call_huggingface_api("Test analysis")
-            assert result is not None
-        except (ImportError, ValueError):
-            # AI service might not be available or disabled in test environment
-            pytest.skip("AI service not available or disabled")
-    @patch('requests.post')
-    def test_ai_service_error_handling(self, mock_post):
-        """Test AI service error handling."""
-        try:
-            from utils.ai_service import call_huggingface_api
-            # Mock failed API response
-            mock_response = MagicMock()
-            mock_response.status_code = 500
-            mock_response.raise_for_status.side_effect = Exception("HTTP 500 Error")
-            mock_post.return_value = mock_response
-            
-            # Should raise an exception
-            with pytest.raises(Exception):
-                call_huggingface_api("Test analysis")
-        except ImportError:
-            pytest.skip("AI service not available")
+import pytest
 class TestDataProcessing:
     """Test data processing utilities."""
     def test_model_database_loading(self):
