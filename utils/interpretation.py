@@ -272,8 +272,9 @@ def get_diagnostic_plots(model_name: str, model_details: Dict[str, Any], check_s
                     return generate_pca_plots(X, feature_names)
             except Exception as e:
                 print(f"Error generating PCA plots: {e}")
-    except NameError:
-        # If utilities weren't imported successfully, continue with default behavior
+    except (ImportError, NameError):
+        # Optional offline plot dependencies are not installed in production.
+        # Continue with the model-specific explanatory fallback instead.
         pass
     
     # Linear regression standard plots (fallback)
@@ -587,4 +588,4 @@ def get_further_reading(model_name: str) -> List[Dict[str, str]]:
             }
         ]
     
-    return common_resources + model_resources 
+    return common_resources + model_resources

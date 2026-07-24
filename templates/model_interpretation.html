@@ -264,6 +264,109 @@
             background: linear-gradient(45deg, var(--success-color), #27ae60);
             border: none;
         }
+
+        /* Solid, high-contrast reading surfaces */
+        body {
+            color: #172b3a;
+            background: #f5f8fa;
+            background-attachment: scroll;
+        }
+
+        .header {
+            color: white;
+            background: #102a43;
+            box-shadow: none;
+        }
+
+        .header::before {
+            display: none;
+        }
+
+        .header h1,
+        .header .lead {
+            color: white;
+            opacity: 1;
+        }
+
+        .interpretation-section,
+        .figure-container,
+        .footer {
+            overflow: visible;
+            background: white;
+            border: 1px solid #dce5eb;
+            box-shadow: 0 8px 24px rgba(16, 42, 67, 0.07);
+        }
+
+        .interpretation-section:hover,
+        .figure-container:hover {
+            transform: none;
+            box-shadow: 0 8px 24px rgba(16, 42, 67, 0.07);
+        }
+
+        .interpretation-section h2 {
+            color: #102a43;
+            border-bottom-color: #dce5eb;
+        }
+
+        .interpretation-section h2::after {
+            background: #0f766e;
+        }
+
+        .section-icon,
+        h4 {
+            color: #0f766e;
+        }
+
+        .interpretation-note {
+            color: #183b56;
+            background: #eaf7f8;
+            border-left-color: #0f766e;
+        }
+
+        .interpretation-note strong {
+            color: #0b625c;
+        }
+
+        .warning-note {
+            color: #5f4916;
+            background: #fff8e5;
+            border-left-color: #b68112;
+        }
+
+        .warning-note strong {
+            color: #765707;
+        }
+
+        .interpretation-tip {
+            color: #214c42;
+            background: #e9f7f1;
+            border-left-color: #287d68;
+        }
+
+        .interpretation-tip strong {
+            color: #1e6857;
+        }
+
+        th {
+            color: white;
+            background: #102a43;
+        }
+
+        tr:hover {
+            background: #edf6f5;
+        }
+
+        .action-btn,
+        .action-btn:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .action-btn.btn-primary,
+        .action-btn.btn-success {
+            background: #0f766e;
+            border: 1px solid #0f766e;
+        }
         
         @media print {
             .no-print {
@@ -568,4 +671,4 @@
             </div>
         </div>
     </div>
-{% endblock %} 
+{% endblock %}

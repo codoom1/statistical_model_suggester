@@ -4,7 +4,7 @@
 
 {% block extra_css %}
 <style>
-    .model-detail-shell { max-width: 1080px; margin: 0 auto; }
+    .model-detail-shell { width: 100%; max-width: 1080px; min-width: 0; margin: 0 auto; }
     .model-detail-breadcrumb { margin-bottom: 1rem; color: var(--muted); font-size: .9rem; }
     .model-detail-breadcrumb a { font-weight: 700; text-decoration: none; }
     .model-detail-header {
@@ -31,12 +31,15 @@
         color: #1a5d9f;
     }
     .tab-content .implementation-tab {
+        min-width: 0;
+        max-width: 100%;
         background-color: #ffffff;
         border: 1px solid #dee2e6;
         border-top: none;
     }
     pre { padding: 1rem; background: #0b1f33 !important; border-radius: .7rem; }
     pre code { color: #d6e7ef; }
+    .nav-tabs { flex-wrap: wrap; }
 </style>
 {% endblock %}
 
@@ -194,7 +197,7 @@
                                 <!-- R Code Tab -->
                                 <div class="tab-pane fade show active" id="code" role="tabpanel">
                                     <h6>R Code for Data Generation and Analysis</h6>
-                                    <pre class="bg-light p-3" style="overflow-x: auto;"><code>{{ model_details.synthetic_data.r_code }}</code></pre>
+                                    <pre class="code-sample"><code>{{ model_details.synthetic_data.r_code }}</code></pre>
                                     <div class="alert alert-info mt-3">
                                         <i class="bi bi-info-circle-fill me-2"></i>
                                         <small>Copy this code into your R environment to generate synthetic data and perform analysis with this model.</small>
@@ -212,7 +215,7 @@
                                             <h6 class="mb-0">Console Output</h6>
                                         </div>
                                         <div class="card-body">
-                                            <pre class="bg-dark text-white p-3" style="overflow-x: auto; font-size: 0.85rem;"><code>{{ model_details.synthetic_data.results.text_output }}</code></pre>
+                                            <pre class="code-sample"><code>{{ model_details.synthetic_data.results.text_output }}</code></pre>
                                         </div>
                                     </div>
                                     
