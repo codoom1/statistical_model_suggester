@@ -48,6 +48,26 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return f'<User {self.username}>'
 
+
+class AIUsageEvent(db.Model):
+    """A durable record used to enforce per-user AI request budgets."""
+
+    __tablename__ = 'ai_usage_events'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    __table_args__ = (
+        Index('idx_ai_usage_user_created', 'user_id', 'created_at'),
+    )
+
+
 class ExpertApplication(db.Model):
     __tablename__ = 'expert_applications'
     
@@ -181,4 +201,4 @@ def get_model_details(model_name):
         return None
     except Exception as e:
         print(f"Error loading model details: {e}")
-        return None 
+        return None

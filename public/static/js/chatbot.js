@@ -126,8 +126,12 @@ class ChatBot {
                 // Add bot response
                 this.addMessage(data.response, 'bot');
             } else {
+                if (response.status === 401) {
+                    this.addMessage('Please log in before using the AI assistant.', 'bot');
+                    return;
+                }
                 // Check for specific error types
-                if (response.status === 402 || data.message === 'API credits exceeded') {
+                if (response.status === 402 || response.status === 429) {
                     // Add a more helpful error message for credit limits
                     this.addMessage("I apologize, but our AI service has reached its usage limit for this month. Basic functionality will continue to work, but AI-powered features may be limited until the next billing cycle.", 'bot');
                     
@@ -158,4 +162,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('chat-icon')) {
         window.chatBot = new ChatBot();
     }
-}); 
+});

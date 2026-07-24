@@ -32,9 +32,9 @@ services:
         sync: false
       - key: MAIL_DEFAULT_SENDER
         sync: false
-      - key: HUGGINGFACE_API_KEY
+      - key: OPENAI_API_KEY
         sync: false
-      - key: HUGGINGFACE_MODEL
+      - key: OPENAI_MODEL
         sync: false
       - key: AI_ENHANCEMENT_ENABLED
         value: "false"
@@ -42,4 +42,4 @@ services:
 databases:
   - name: statistical-model-suggester-db
     databaseName: statistical_model_suggester
-    user: statistical_model_suggester 
+    user: statistical_model_suggester

@@ -5,7 +5,9 @@ allowing users to create, preview, and edit questionnaires.
 """
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, send_file
 from flask_login import login_required, current_user
+from sqlalchemy.exc import SQLAlchemyError
 from utils.questionnaire_generator import generate_questionnaire
+from utils.ai_usage import consume_user_ai_quota
 from utils.export_utils import export_to_word
 from models import db, Questionnaire
 from datetime import datetime, timezone
@@ -40,12 +42,37 @@ def design():
         # Get the number of AI questions per type (default to 3 if not provided or not using AI)
         num_ai_questions = 3 # Default value
         if use_ai:
+            if not current_user.is_authenticated:
+                flash('Please log in before using AI questionnaire enhancement.', 'info')
+                return redirect(url_for('auth.login', next=url_for('questionnaire.design')))
             try:
                 num_ai_questions = int(request.form.get('num_ai_questions', 3))
                 # Clamp the value between 1 and 5
                 num_ai_questions = max(1, min(num_ai_questions, 5))
             except ValueError:
                 num_ai_questions = 3 # Fallback to default if conversion fails
+            try:
+                allowed, _ = consume_user_ai_quota(
+                    current_user.id,
+                    units=num_ai_questions,
+                )
+            except SQLAlchemyError:
+                db.session.rollback()
+                logger.exception(
+                    "Could not record questionnaire AI usage for user %s.",
+                    current_user.id,
+                )
+                flash(
+                    'AI usage tracking is not initialized. Please contact the administrator.',
+                    'danger',
+                )
+                return redirect(url_for('questionnaire.design'))
+            if not allowed:
+                flash(
+                    'You have reached the hourly AI usage limit. Please try again later.',
+                    'warning',
+                )
+                return redirect(url_for('questionnaire.design'))
         # Generate questionnaire based on research description
         questionnaire = generate_questionnaire(
             research_description,

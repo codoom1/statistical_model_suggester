@@ -13,7 +13,7 @@ import requests
 import json
 
 # Import the new AI service and error class
-from utils.ai_service import call_huggingface_api, is_ai_enabled, HuggingFaceError, get_huggingface_config
+from utils.ai_service import call_openai_api, is_ai_enabled, OpenAIServiceError, get_openai_config
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -906,7 +906,7 @@ def enhance_questions_with_ai(questions, research_topic, research_description, d
         return questions
     
     # Get the default model from config in case API call fails early
-    _, configured_model = get_huggingface_config()
+    _, configured_model = get_openai_config()
 
     enhanced_questions = []
     api_error_occurred = False # Track if any API call failed
@@ -932,7 +932,7 @@ Provide only the text of the enhanced question with no explanations or additiona
             
             try:
                 # Call the centralized AI service
-                enhanced_text = call_huggingface_api(prompt)
+                enhanced_text = call_openai_api(prompt)
                 
                 # Use AI-enhanced text if it's valid, otherwise keep original
                 if enhanced_text and len(enhanced_text) > 10:  # Basic validation
@@ -942,7 +942,7 @@ Provide only the text of the enhanced question with no explanations or additiona
                 else:
                     logger.warning(f"AI returned invalid or short response for question: '{question.get('text')}', Response: '{enhanced_text}'")
 
-            except (HuggingFaceError, ValueError) as e:
+            except (OpenAIServiceError, ValueError) as e:
                 logger.error(f"Error enhancing question '{question.get('text')}' with AI: {e}")
                 api_error_occurred = True # Mark that an error happened
                 # Keep original question on API error
@@ -1119,7 +1119,7 @@ Return ONLY the questions with no explanations or additional text, one question 
             
             try:
                 # Call the centralized AI service
-                generated_text = call_huggingface_api(prompt)
+                generated_text = call_openai_api(prompt)
                 
                 if generated_text and len(generated_text) > 10:
                     # Process the generated questions
@@ -1149,7 +1149,7 @@ Return ONLY the questions with no explanations or additional text, one question 
                 
                 logger.info(f"Generated {len(ai_questions)} AI questions of type: {q_type['name']}")
                 
-            except (HuggingFaceError, ValueError) as e:
+            except (OpenAIServiceError, ValueError) as e:
                 logger.error(f"Error generating {q_type['name']} questions: {e}")
     
     except Exception as e:
@@ -1210,4 +1210,4 @@ def generate_questionnaire(research_description, research_topic=None, target_aud
                     research_description
                 )
     
-    return sections 
+    return sections
