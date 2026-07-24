@@ -1,9 +1,30 @@
 """Durable per-user usage controls for paid AI features."""
 
 import os
+import logging
 from datetime import datetime, timedelta
 
+from sqlalchemy import inspect
+from sqlalchemy.exc import SQLAlchemyError
+
 from models import AIUsageEvent, db
+
+
+logger = logging.getLogger(__name__)
+
+
+def ai_usage_storage_ready() -> bool:
+    """Return whether the durable AI usage table is available."""
+    try:
+        return inspect(db.engine).has_table(AIUsageEvent.__tablename__)
+    except SQLAlchemyError:
+        logger.exception("Could not inspect AI usage storage.")
+        return False
+
+
+def initialize_ai_usage_storage() -> None:
+    """Create only the durable AI usage table when it is missing."""
+    AIUsageEvent.__table__.create(bind=db.engine, checkfirst=True)
 
 
 def hourly_ai_limit() -> int:

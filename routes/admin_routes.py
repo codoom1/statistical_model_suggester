@@ -1,14 +1,27 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, User, ExpertApplication, Analysis, Consultation
+from models import (
+    db,
+    User,
+    ExpertApplication,
+    Analysis,
+    Consultation,
+)
 from functools import wraps
 from datetime import datetime, timedelta, timezone
 from utils.email_service import send_expert_approved_email, send_expert_rejected_email
 from utils.ai_service import (
     call_openai_api, is_ai_enabled, OpenAIServiceError, get_openai_config
 )
+from utils.ai_usage import (
+    ai_usage_storage_ready,
+    initialize_ai_usage_storage,
+)
+from sqlalchemy.exc import SQLAlchemyError
+import logging
 import re
 admin = Blueprint('admin', __name__, url_prefix='/admin')
+logger = logging.getLogger(__name__)
 # Custom decorator for admin access
 def admin_required(f):
     @wraps(f)
@@ -239,33 +252,78 @@ def ai_settings():
     """Display non-secret AI integration status."""
     current_api_key, current_model = get_openai_config()
     current_enabled = is_ai_enabled()
+    storage_ready = ai_usage_storage_ready()
     current_settings = {
         'api_key_configured': bool(current_api_key),
         'model': current_model,
         'enabled': current_enabled,
+        'storage_ready': storage_ready,
     }
-    api_status = {
-        'status': (
-            'configured'
-            if current_enabled and current_api_key
-            else 'disabled'
-            if not current_enabled
-            else 'no_key'
-        ),
-        'last_error': (
-            None
-            if current_enabled and current_api_key
-            else 'AI enhancement is disabled.'
-            if not current_enabled
-            else 'OPENAI_API_KEY is missing.'
-        ),
-        'credit_warning': False,
-    }
+    if not current_enabled:
+        api_status = {
+            'status': 'disabled',
+            'label': 'Disabled',
+            'last_error': 'AI enhancement is disabled.',
+        }
+    elif not current_api_key:
+        api_status = {
+            'status': 'no_key',
+            'label': 'Missing API token',
+            'last_error': 'OPENAI_API_KEY is missing.',
+        }
+    elif not storage_ready:
+        api_status = {
+            'status': 'needs_setup',
+            'label': 'Needs initialization',
+            'last_error': (
+                'The AI usage database table has not been initialized.'
+            ),
+        }
+    else:
+        api_status = {
+            'status': 'ready',
+            'label': 'Ready',
+            'last_error': None,
+        }
     return render_template(
         'admin/ai_settings.html',
         current_settings=current_settings,
         api_status=api_status,
     )
+
+
+@admin.route('/initialize-ai-storage', methods=['POST'])
+@login_required
+@admin_required
+def initialize_ai_storage():
+    """Initialize durable AI usage storage for serverless deployments."""
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or data.get('confirm') is not True:
+        return jsonify({
+            'success': False,
+            'error': 'Explicit initialization confirmation is required.',
+        }), 400
+
+    try:
+        initialize_ai_usage_storage()
+    except SQLAlchemyError:
+        logger.exception(
+            "AI storage initialization failed for admin user %s.",
+            current_user.id,
+        )
+        return jsonify({
+            'success': False,
+            'error': (
+                'The AI usage table could not be created. Verify that '
+                'DATABASE_URL is correct and permits schema changes.'
+            ),
+        }), 503
+
+    return jsonify({
+        'success': True,
+        'message': 'AI usage storage is initialized.',
+        'storage_ready': ai_usage_storage_ready(),
+    })
 
 
 @admin.route('/test-ai-integration', methods=['POST'])
