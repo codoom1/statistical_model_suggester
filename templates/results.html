@@ -7,7 +7,7 @@
 <style>
 .result-shell { max-width: 1080px; margin: 0 auto; }
 .result-hero { position: relative; overflow: hidden; padding: clamp(2rem, 5vw, 3.5rem); color: white; background: linear-gradient(125deg, #102a43, #124b55); border-radius: 1.5rem; box-shadow: var(--shadow-md); }
-.result-hero::after { position: absolute; right: -5rem; bottom: -8rem; width: 20rem; height: 20rem; content: ""; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; box-shadow: 0 0 0 3rem rgba(255,255,255,.025); }
+.result-hero::after { position: absolute; right: -5rem; bottom: -8rem; width: 20rem; height: 20rem; content: ""; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; box-shadow: 0 0 0 3rem rgba(255,255,255,.025); pointer-events: none; }
 .result-hero > * { position: relative; z-index: 1; }
 .result-label { display: inline-flex; align-items: center; gap: .45rem; margin-bottom: 1rem; color: #99f6e4; font-size: .78rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
 .result-hero h1 { max-width: 760px; margin-bottom: 1rem; color: white; font-size: clamp(2.25rem, 5vw, 3.8rem); }

@@ -1,9 +1,6 @@
 """
 Test the main routes and analysis functionality.
 """
-import sys
-from types import ModuleType
-
 from models import Analysis
 
 
@@ -50,18 +47,8 @@ class TestMainRoutes:
         assert home_response.data.count(b'href="/models"') >= 3
         assert b'href="/models"' in results_response.data
 
-    def test_double_encoded_model_detail_urls(self, client, monkeypatch):
+    def test_double_encoded_model_detail_urls(self, client):
         """Encoded model links work across detail and interpretation routes."""
-        interpretation_module = ModuleType('utils.interpretation')
-        interpretation_module.generate_interpretation_data = (
-            lambda _model_name, _model_info: {}
-        )
-        monkeypatch.setitem(
-            sys.modules,
-            'utils.interpretation',
-            interpretation_module,
-        )
-
         detail_response = client.get('/model/Linear%2520Regression')
         interpretation_response = client.get(
             '/model/Linear%2520Regression/interpretation'

@@ -37,6 +37,16 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+.app-main,
+.content,
+.card,
+.card-body,
+.tab-content,
+.tab-pane {
+    min-width: 0;
+    max-width: 100%;
+}
+
 a { color: var(--teal-700); }
 a:hover { color: var(--navy-800); }
 
@@ -60,7 +70,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .app-navbar {
     min-height: 76px;
-    background: rgba(16, 42, 67, .98);
+    background: var(--navy-900);
     box-shadow: 0 1px 0 rgba(255,255,255,.08);
 }
 
@@ -150,7 +160,12 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 800;
 }
 
-.app-main { flex: 1; }
+.app-main { flex: 1; isolation: isolate; }
+.app-main,
+.app-main * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
 .content { min-height: 60vh; padding-top: 2rem; padding-bottom: 3rem; }
 .flash-wrap { padding-top: 1rem; }
 .flash-wrap:empty { display: none; }
@@ -176,6 +191,11 @@ h1, h2, h3, h4, h5, h6 {
 .bg-success { background: var(--teal-700) !important; }
 .bg-info { color: var(--navy-950) !important; background: var(--teal-100) !important; }
 .text-primary { color: var(--teal-700) !important; }
+.text-success { color: #1e6857 !important; }
+.text-warning { color: #765707 !important; }
+.text-info { color: #145268 !important; }
+.model-detail-header .text-info,
+.cta-panel .text-info { color: #99f6e4 !important; }
 
 .btn {
     border-radius: .65rem;
@@ -211,6 +231,59 @@ h1, h2, h3, h4, h5, h6 {
 .form-select:focus {
     border-color: var(--teal-600);
     box-shadow: 0 0 0 .22rem rgba(13,148,136,.14);
+}
+
+code {
+    padding: .14rem .36rem;
+    color: #0b625c;
+    background: #e4f4f1;
+    border: 1px solid #c5e8e2;
+    border-radius: .32rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: .88em;
+    font-weight: 650;
+    text-shadow: none;
+}
+
+pre,
+.code-block {
+    max-width: 100%;
+    color: #edf7fa !important;
+    background: #0b1f33 !important;
+    border: 1px solid #28465e !important;
+    border-radius: .75rem !important;
+    box-shadow: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    text-shadow: none !important;
+}
+
+pre {
+    width: 100%;
+    padding: 1rem 1.1rem !important;
+    overflow-x: auto !important;
+    overflow-y: visible;
+    white-space: pre;
+    tab-size: 4;
+}
+
+pre code,
+.code-block pre {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    color: #edf7fa !important;
+    background: transparent !important;
+    border: 0;
+    font-size: .86rem;
+    font-weight: 500;
+    line-height: 1.65;
+    opacity: 1 !important;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    text-shadow: none !important;
 }
 
 .badge { padding: .4em .65em; border-radius: 999px; font-weight: 650; }
