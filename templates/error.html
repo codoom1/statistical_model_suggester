@@ -1,108 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/page_search.css') }}">
-    <style>
-        .error-container { margin-top: 100px; }
-        /* Basic nav styling for search bar */
-        .search-nav {
-            background-color: #8b1a1d;
-            padding: 10px 0;
-            margin-bottom: 20px;
-        }
-        .search-nav .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .search-nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .search-nav a:hover {
-            text-decoration: underline;
-        }
-        #page-search-form {
-            display: flex;
-            align-items: center;
-        }
-        #page-search-input {
-            max-width: 200px;
-        }
-    </style>
-</head>
-<body>
-    <!-- Simple navigation/search bar -->
-    <div class="search-nav">
-        <div class="container">
-            <a href="{{ url_for('main.home') }}">
-                <i class="bi bi-house-door me-1"></i>Return to Home
-            </a>
-            
-            <!-- Page Search Form -->
-            <form id="page-search-form" class="d-flex align-items-center" onsubmit="return pageSearch();">
-                <input id="page-search-input" class="form-control form-control-sm me-2" type="search" placeholder="Search page..." aria-label="Search this page">
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-light" type="button" id="pageSearchDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Search Options & Controls">
-                        <i class="bi bi-search"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end p-2 shadow" aria-labelledby="pageSearchDropdown" style="min-width: 280px;">
-                        <li class="mb-2">
-                            <button class="btn btn-sm btn-primary w-100" type="submit">Search Now</button>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li class="d-flex justify-content-around align-items-center mb-2">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="case-sensitive-check" title="Case sensitive">
-                                <label class="form-check-label small" for="case-sensitive-check">Case Sensitive (Aa)</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="regex-check" title="Use regex">
-                                <label class="form-check-label small" for="regex-check">Use Regex (.*)</label>
-                            </div>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li class="d-flex justify-content-between align-items-center">
-                            <span class="small me-2">Found: <span id="match-count" class="badge bg-secondary">0</span></span>
-                            <div>
-                                <button id="prev-match" type="button" class="btn btn-sm btn-outline-secondary me-1" title="Previous match"><i class="bi bi-chevron-up"></i></button>
-                                <button id="next-match" type="button" class="btn btn-sm btn-outline-secondary" title="Next match"><i class="bi bi-chevron-down"></i></button>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </form>
-        </div>
-    </div>
+{% extends "base.html" %}
 
-    <div class="container error-container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header bg-danger text-white">
-                        <h4 class="mb-0">Error</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-danger">
-                            <h5>An error occurred:</h5>
-                            <p>{{ error }}</p>
-                        </div>
-                        <div class="text-center mt-4">
-                            <a href="/" class="btn btn-primary">Return to Home</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+{% block title %}Something went wrong — Statistical Model Suggester{% endblock %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/page_search.js') }}"></script>
-</body>
-</html> 
+{% block extra_css %}
+<style>
+.error-state { max-width: 720px; margin: 4rem auto; padding: clamp(2rem, 6vw, 4rem); text-align: center; background: white; border: 1px solid var(--line); border-radius: 1.5rem; box-shadow: var(--shadow-md); }
+.error-icon { display: grid; width: 4rem; height: 4rem; margin: 0 auto 1.3rem; place-items: center; color: #9a5b16; background: #fff5d8; border-radius: 1.1rem; font-size: 1.7rem; }
+.error-state p { max-width: 560px; margin: 0 auto 1.6rem; color: var(--muted); }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="error-state" role="alert">
+    <div class="error-icon"><i class="bi bi-exclamation-triangle"></i></div>
+    <div class="page-eyebrow">An error occurred</div>
+    <h1>We could not complete that request.</h1>
+    <p>{{ error }}</p>
+    <div class="d-flex flex-wrap justify-content-center gap-2">
+        <a href="{{ url_for('main.home') }}" class="btn btn-primary">Return home</a>
+        <a href="{{ url_for('main.models_index') }}" class="btn btn-outline-primary">Browse model library</a>
+    </div>
+</section>
+{% endblock %}

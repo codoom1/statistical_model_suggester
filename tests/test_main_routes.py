@@ -131,7 +131,7 @@ class TestMainRoutes:
         response2 = client.post('/results', data=test_data)
         assert response1.status_code == 200
         assert response2.status_code == 200
-        # Responses should be consistent (same model recommended)
+        assert response1.data == response2.data
     def test_different_analysis_goals(self, client):
         """Test different analysis goals produce appropriate models."""
         base_data = {
