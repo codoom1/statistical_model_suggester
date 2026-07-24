@@ -41,14 +41,14 @@ def store_resume(file_storage, user_id: int) -> str:
     if os.environ.get("BLOB_READ_WRITE_TOKEN"):
         from vercel.blob import BlobClient
 
-        with BlobClient() as client:
-            result = client.put(
-                object_name,
-                data,
-                access="private",
-                content_type=content_type,
-                add_random_suffix=False,
-            )
+        client = BlobClient()
+        result = client.put(
+            object_name,
+            data,
+            access="private",
+            content_type=content_type,
+            add_random_suffix=False,
+        )
         return result.url
 
     if os.environ.get("VERCEL") or os.environ.get(
