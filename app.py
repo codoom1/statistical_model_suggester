@@ -1,255 +1,231 @@
-import os
-import sys
-from flask import Flask, render_template, send_from_directory, request
-from flask_login import LoginManager
-from flask_mail import Mail
-from flask_migrate import Migrate
-from models import db, User, get_model_details, initialize_postgres_extensions
-import json
 import argparse
-import logging
-from utils.email_service import init_mail
-from dotenv import load_dotenv
 import datetime
+import json
+import logging
+import os
+from pathlib import Path
 
-# Load environment variables from .env file
-load_dotenv()
-print("Environment variables loaded:")
-print(f"HUGGINGFACE_API_KEY: {'Set' if os.environ.get('HUGGINGFACE_API_KEY') else 'Not set'}")
-print(f"HUGGINGFACE_MODEL: {'Set' if os.environ.get('HUGGINGFACE_MODEL') else 'Not set'}")
-print(f"AI_ENHANCEMENT_ENABLED: {'Set' if os.environ.get('AI_ENHANCEMENT_ENABLED') else 'Not set'}")
+import click
+from dotenv import load_dotenv
+from flask import Flask, render_template
+from flask_login import LoginManager
+from flask_migrate import Migrate
 
-def create_app():
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-dev-key-change-in-production')
-    
-    # Configure database - prefer PostgreSQL for production, fallback to SQLite for development
-    database_url = os.environ.get('DATABASE_URL')
-    if database_url and database_url.startswith('postgres://'):
-        # Heroku-style PostgreSQL URL needs to be updated for SQLAlchemy 1.4+
-        database_url = database_url.replace('postgres://', 'postgresql://', 1)
-    
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///users.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    
-    # Configure Flask-Mail
-    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
-    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
-    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
-    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
-    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
-    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@statisticalmodelsuggester.com')
-    
-    # Set up logging
-    logging.basicConfig(level=logging.DEBUG)
-    logger = logging.getLogger(__name__)
-    
-    # Initialize database
-    db.init_app(app)
-    
-    # Initialize Flask-Migrate
-    migrate = Migrate(app, db)
-    
-    # Initialize PostgreSQL extensions if using PostgreSQL
-    if database_url and ('postgresql://' in database_url or 'postgres://' in database_url):
-        logger.info("PostgreSQL database detected, initializing extensions...")
+from models import User, db, initialize_postgres_extensions
+from utils.email_service import init_mail
+
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
+
+
+def _is_production() -> bool:
+    return bool(os.environ.get("VERCEL")) or os.environ.get(
+        "FLASK_ENV", ""
+    ).lower() == "production"
+
+
+def _database_url() -> str:
+    database_url = os.environ.get("DATABASE_URL", "").strip()
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+    if _is_production() and not database_url:
+        raise RuntimeError(
+            "DATABASE_URL is required in production. Configure a persistent "
+            "PostgreSQL database before starting the application."
+        )
+
+    return database_url or "sqlite:///users.db"
+
+
+def _secret_key() -> str:
+    secret_key = os.environ.get("SECRET_KEY", "").strip()
+    if _is_production() and not secret_key:
+        raise RuntimeError("SECRET_KEY is required in production.")
+    return secret_key or "local-development-only"
+
+
+def _load_model_database() -> dict:
+    model_db_path = BASE_DIR / "data" / "model_database.json"
+    if not model_db_path.is_file():
+        raise RuntimeError(f"Required model database is missing: {model_db_path}")
+
+    with model_db_path.open(encoding="utf-8") as model_db_file:
+        models_data = json.load(model_db_file)
+
+    if not isinstance(models_data, dict) or not models_data:
+        raise RuntimeError("The model database must be a non-empty JSON object.")
+    return models_data
+
+
+def _register_cli_commands(app: Flask) -> None:
+    @app.cli.command("init-db")
+    def init_db_command() -> None:
+        """Create database tables and PostgreSQL extensions once."""
         initialize_postgres_extensions(app)
-    
-    # Initialize mail
+        db.create_all()
+        click.echo("Database initialized.")
+
+    @app.cli.command("create-admin")
+    @click.option("--username", envvar="ADMIN_USERNAME", required=True)
+    @click.option("--email", envvar="ADMIN_EMAIL", required=True)
+    @click.password_option(envvar="ADMIN_PASSWORD", confirmation_prompt=False)
+    def create_admin_command(username: str, email: str, password: str) -> None:
+        """Create or promote an administrator explicitly."""
+        admin_user = User.query.filter(
+            (User.username == username) | (User.email == email)
+        ).first()
+        if admin_user is None:
+            admin_user = User(username=username, email=email, _is_admin=True)
+            db.session.add(admin_user)
+        else:
+            admin_user.username = username
+            admin_user.email = email
+            admin_user._is_admin = True
+
+        admin_user.set_password(password)
+        db.session.commit()
+        click.echo(f"Administrator '{username}' is ready.")
+
+
+def create_app() -> Flask:
+    is_vercel = bool(os.environ.get("VERCEL"))
+    app = Flask(
+        __name__,
+        static_folder=None if is_vercel else str(BASE_DIR / "public" / "static"),
+        static_url_path="/static",
+    )
+    if is_vercel:
+        # Vercel's CDN serves public/static; this rule only lets url_for build URLs.
+        app.add_url_rule(
+            "/static/<path:filename>", endpoint="static", build_only=True
+        )
+
+    app.config.update(
+        SECRET_KEY=_secret_key(),
+        SQLALCHEMY_DATABASE_URI=_database_url(),
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        SQLALCHEMY_ENGINE_OPTIONS={"pool_pre_ping": True},
+        MAX_CONTENT_LENGTH=4 * 1024 * 1024,
+        MAIL_SERVER=os.environ.get("MAIL_SERVER", "smtp.gmail.com"),
+        MAIL_PORT=int(os.environ.get("MAIL_PORT", 587)),
+        MAIL_USE_TLS=os.environ.get("MAIL_USE_TLS", "true").lower() == "true",
+        MAIL_USERNAME=os.environ.get("MAIL_USERNAME", ""),
+        MAIL_PASSWORD=os.environ.get("MAIL_PASSWORD", ""),
+        MAIL_DEFAULT_SENDER=os.environ.get(
+            "MAIL_DEFAULT_SENDER", "noreply@statisticalmodelsuggester.com"
+        ),
+        MAIL_SUPPRESS_SEND=os.environ.get(
+            "MAIL_SUPPRESS_SEND", "false"
+        ).lower() == "true",
+        MODEL_DATABASE=_load_model_database(),
+    )
+
+    logging.basicConfig(
+        level=logging.INFO if _is_production() else logging.DEBUG
+    )
+    logger = app.logger
+
+    db.init_app(app)
+    Migrate(app, db)
     init_mail(app)
-      # Initialize login manager
+
     login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'  # type: ignore
-    login_manager.login_message_category = 'info'
+    login_manager.login_view = "auth.login"  # type: ignore
+    login_manager.login_message_category = "info"
     login_manager.init_app(app)
 
     @login_manager.user_loader
     def load_user(user_id):
-        logger.debug(f"Loading user with ID: {user_id}")
         try:
-            # Use Session.get() instead of Query.get() (SQLAlchemy 2.0 compatibility)
             return db.session.get(User, int(user_id))
-        except Exception as e:
-            logger.error(f"Error loading user: {e}")
-            return None    # Create database tables
-    with app.app_context():
-        logger.debug("Creating database tables...")
-        try:
-            db.create_all()
-            logger.debug("Database tables created successfully")
-            
-            # Only create admin user if not in testing mode
-            if not os.environ.get('TESTING'):
-                # Create admin user if it doesn't exist
-                admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
-                admin_email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
-                admin_password = os.environ.get('ADMIN_PASSWORD')
-                
-                # Check if admin credentials are properly configured
-                if not admin_password:
-                    logger.warning("ADMIN_PASSWORD environment variable not set. Using default password for admin account.")
-                    logger.warning("This is insecure. Please set ADMIN_PASSWORD in your environment variables.")
-                    admin_password = 'admin123'  # Default password, should be changed
-                
-                # Check if admin user exists (check both username and email)
-                admin_user = User.query.filter(
-                    (User.username == admin_username) | (User.email == admin_email)
-                ).first()
-                if not admin_user:
-                    logger.info(f"Creating admin user '{admin_username}'")
-                    admin_user = User()
-                    admin_user.username = admin_username
-                    admin_user.email = admin_email
-                    admin_user._is_admin = True
-                    admin_user.set_password(admin_password)
-                    db.session.add(admin_user)
-                    db.session.commit()
-                    logger.info("Admin user created successfully")
-                else:
-                    logger.info(f"Admin user '{admin_username}' already exists")
-                
-        except Exception as e:
-            logger.error(f"Error creating database tables or admin user: {e}")
-            raise
+        except (TypeError, ValueError):
+            return None
 
-    # Register blueprints
-    from routes.auth_routes import auth
-    from routes.main_routes import main
-    from routes.user_routes import user
-    from routes.expert_routes import expert
     from routes.admin_routes import admin
-    from routes.questionnaire_routes import questionnaire_bp
+    from routes.auth_routes import auth
     from routes.chatbot_routes import chatbot_bp
-    
-    app.register_blueprint(auth, url_prefix='/auth')
-    app.register_blueprint(main, url_prefix='/')
-    app.register_blueprint(user, url_prefix='/user')
-    app.register_blueprint(expert, url_prefix='/expert')
-    app.register_blueprint(admin, url_prefix='/admin')
-    app.register_blueprint(questionnaire_bp, url_prefix='/questionnaire')
-    app.register_blueprint(chatbot_bp, url_prefix='/chatbot')
+    from routes.expert_routes import expert
+    from routes.main_routes import main
+    from routes.questionnaire_routes import questionnaire_bp
+    from routes.user_routes import user
 
-    # Make model_groups available globally to all templates
+    app.register_blueprint(auth, url_prefix="/auth")
+    app.register_blueprint(main, url_prefix="/")
+    app.register_blueprint(user, url_prefix="/user")
+    app.register_blueprint(expert, url_prefix="/expert")
+    app.register_blueprint(admin, url_prefix="/admin")
+    app.register_blueprint(questionnaire_bp, url_prefix="/questionnaire")
+    app.register_blueprint(chatbot_bp, url_prefix="/chatbot")
+
     @app.context_processor
     def inject_model_groups_global():
         from routes.main_routes import MODEL_GROUPS
-        return dict(model_groups=MODEL_GROUPS)
 
-    # Add Jinja2 custom filters
-    @app.template_filter('nl2br')
-    def nl2br_filter(s):
-        if s is None:
-            return ""
-        return s.replace('\n', '<br>')
+        return {"model_groups": MODEL_GROUPS}
 
-    # Define error handler
+    @app.template_filter("nl2br")
+    def nl2br_filter(value):
+        return "" if value is None else value.replace("\n", "<br>")
+
     @app.errorhandler(404)
-    def page_not_found(e):
-        logger.warning(f"404 error: {e}")
-        return render_template('error.html', error="Page not found"), 404
+    def page_not_found(error):
+        logger.info("404: %s", error)
+        return render_template("error.html", error="Page not found"), 404
+
+    @app.errorhandler(413)
+    def upload_too_large(_error):
+        return render_template(
+            "error.html", error="Uploads must be smaller than 4 MB."
+        ), 413
 
     @app.errorhandler(500)
-    def internal_server_error(e):
-        logger.error(f"500 error: {e}")
-        return render_template('error.html', error=str(e)), 500
-        
-    # Diagnostic route to check database connection
-    @app.route('/system/check-db')
-    def check_db_connection():
-        try:
-            # Try to query the database
-            user_count = User.query.count()
-            db_uri = app.config['SQLALCHEMY_DATABASE_URI']
-            # Hide password in logs/output
-            if 'postgresql://' in db_uri:
-                # Mask the password in the connection string
-                masked_uri = db_uri.replace('://', '://').split('@')
-                credentials = masked_uri[0].split(':')
-                if len(credentials) > 2:
-                    masked_uri[0] = f"{credentials[0]}:{credentials[1]}:****"
-                db_uri = '@'.join(masked_uri)
-            else:
-                db_uri = 'sqlite:///users.db' if 'sqlite:///users.db' in db_uri else 'custom-sqlite-path'
-                
-            return {
-                'status': 'ok',
-                'database_type': 'PostgreSQL' if 'postgresql://' in app.config['SQLALCHEMY_DATABASE_URI'] else 'SQLite', 
-                'connection': db_uri,
-                'user_count': user_count,
-                'timestamp': datetime.datetime.now().isoformat()
-            }
-        except Exception as e:
-            logger.error(f"Database connection error: {e}")
-            return {
-                'status': 'error',
-                'error': str(e),
-                'database_url': app.config['SQLALCHEMY_DATABASE_URI'].split('@')[0].split(':')[0] + '://****' 
-            }, 500
+    def internal_server_error(error):
+        logger.exception("Unhandled application error: %s", error)
+        message = (
+            "An unexpected error occurred. Please try again."
+            if _is_production()
+            else str(error)
+        )
+        return render_template("error.html", error=message), 500
 
-    # Load model database
-    try:
-        model_db_path = os.path.join(os.path.dirname(__file__), 'data', 'model_database.json')
-        logger.debug(f"Loading model database from {model_db_path}")
-        
-        if not os.path.exists(model_db_path):
-            logger.warning(f"model_database.json file not found at {model_db_path}, creating a default empty database")
-            # Create a default empty database file
-            with open(model_db_path, 'w') as f:
-                json.dump({}, f)
-            app.config['MODEL_DATABASE'] = {}
-        else:
-            with open(model_db_path, 'r') as f:
-                models_data = json.load(f)
-                logger.debug(f"Loaded {len(models_data)} models from model_database.json")
-                app.config['MODEL_DATABASE'] = models_data
-    except Exception as e:
-        logger.error(f"Error loading model database: {e}")
-        app.config['MODEL_DATABASE'] = {}
-
-    # Add static file serving verification
-    @app.route('/test-image')
-    def test_image():
-        try:
-            logger.debug("Testing image serving...")
-            return send_from_directory('static/images', 'stats-background.png')
-        except Exception as e:
-            logger.error(f"Error serving image: {e}")
-            return str(e), 500
-
-    @app.before_request
-    def log_static_requests():
-        if request.path.startswith('/static/'):
-            logger.debug(f"Serving static file: {request.path}")
-
-    # Health check endpoint for Docker and monitoring
-    @app.route('/health')
+    @app.route("/health")
     def health_check():
-        try:            # Quick database check
-            db.session.execute(db.text('SELECT 1'))
+        try:
+            db.session.execute(db.text("SELECT 1"))
             return {
-                'status': 'healthy',
-                'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                'service': 'statistical-model-suggester'
-            }, 200
-        except Exception as e:
-            logger.error(f"Health check failed: {e}")
+                "status": "healthy",
+                "timestamp": datetime.datetime.now(
+                    datetime.timezone.utc
+                ).isoformat(),
+                "service": "statistical-model-suggester",
+            }
+        except Exception:
+            logger.exception("Health check failed")
             return {
-                'status': 'unhealthy',
-                'error': str(e),
-                'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                'service': 'statistical-model-suggester'
+                "status": "unhealthy",
+                "service": "statistical-model-suggester",
             }, 503
 
+    _register_cli_commands(app)
     return app
 
-# Create the app instance at the module level for Gunicorn
+
+# Recognized by Vercel and Gunicorn as the WSGI entry point.
 app = create_app()
 
-if __name__ == '__main__':
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Run the Statistical Model Suggester application')
-    parser.add_argument('--port', type=int, default=int(os.environ.get('PORT', 8084)), help='Port to run the application on')
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Run the Statistical Model Suggester application"
+    )
+    parser.add_argument(
+        "--port", type=int, default=int(os.environ.get("PORT", 8084))
+    )
     args = parser.parse_args()
-    
-    print(f"Starting application on port {args.port}")
-    app.run(host='0.0.0.0', debug=os.environ.get('FLASK_DEBUG', 'True').lower() == 'true', port=args.port)
+    app.run(
+        host="0.0.0.0",
+        debug=os.environ.get("FLASK_DEBUG", "false").lower() == "true",
+        port=args.port,
+    )

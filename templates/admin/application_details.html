@@ -250,7 +250,7 @@
                 
                 {% if application.resume_url %}
                 <div class="mt-3">
-                    <a href="{{ application.resume_url }}" target="_blank" class="btn btn-outline-primary">
+                    <a href="{{ url_for('expert.download_resume', application_id=application.id) }}" class="btn btn-outline-primary">
                         <i class="bi bi-file-earmark-text"></i> View Resume/CV
                     </a>
                 </div>
@@ -389,4 +389,4 @@
         }
     });
 </script>
-{% endblock %} 
+{% endblock %}

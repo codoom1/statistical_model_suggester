@@ -5,7 +5,6 @@ from functools import wraps
 from datetime import datetime, timedelta, timezone
 from utils.email_service import send_expert_approved_email, send_expert_rejected_email
 import os
-import json
 from utils.ai_service import (
     call_huggingface_api, is_ai_enabled, HuggingFaceError, get_huggingface_config
 )
@@ -245,6 +244,12 @@ def ai_settings():
     # Settings available for template rendering if needed
     _, _, _ = current_api_key, current_model, current_enabled
     if request.method == 'POST':
+        if os.environ.get('VERCEL') or os.environ.get('FLASK_ENV', '').lower() == 'production':
+            flash(
+                'AI settings are managed with deployment environment variables in production.',
+                'info'
+            )
+            return redirect(url_for('admin.ai_settings'))
         # Get form data
         api_key = request.form.get('huggingface_api_key')
         model = request.form.get('model')
@@ -270,24 +275,10 @@ def ai_settings():
                 os.environ.pop('HUGGINGFACE_API_KEY')
         os.environ['HUGGINGFACE_MODEL'] = model
         os.environ['AI_ENHANCEMENT_ENABLED'] = str(enabled_form).lower()
-        # Save settings to config file for persistence
-        try:
-            config_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'instance')
-            os.makedirs(config_dir, exist_ok=True)
-            # Fetch the latest values from environment variables before saving
-            saved_api_key, saved_model = get_huggingface_config()
-            saved_enabled = is_ai_enabled()
-            config_file = os.path.join(config_dir, 'ai_config.json')
-            config_data = {
-                'huggingface_api_key': saved_api_key,
-                'model': saved_model,
-                'enabled': saved_enabled
-            }
-            with open(config_file, 'w') as f:
-                json.dump(config_data, f)
-            flash('AI settings updated successfully.', 'success')
-        except Exception as e:
-            flash(f'Error saving AI settings: {e}', 'danger')
+        flash(
+            'AI settings updated for this local application process.',
+            'success'
+        )
         return redirect(url_for('admin.ai_settings'))
     # Get current settings for display
     current_settings = {

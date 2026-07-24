@@ -55,11 +55,7 @@ ehthumbs.db
 Thumbs.db
 
 # Application specific
-/static/uploads/
-/static/diagnostic_plots/*
-!/static/diagnostic_plots/.gitkeep
-/static/r_results/*
-!/static/r_results/.gitkeep
+/public/static/uploads/
 
 # Temporary files
 *.tmp

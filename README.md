@@ -27,17 +27,19 @@ pip install -r requirements.txt        # Core app (~100MB)
 pip install -r requirements-dev.txt    # + Development tools
 ```
 
-3. **Run the app**:
+3. **Initialize and run the app**:
 ```bash
-export FLASK_SECRET_KEY='your-secret-key-here'
+cp .env.example .env
+flask --app app init-db
+flask --app app create-admin
 python app.py
 # Visit: http://localhost:8084
 ```
 
 ## Dependencies
 
-- **`requirements.txt`**: Core production dependencies (Flask, SQLAlchemy, scikit-learn, basic plotting)
-The app gracefully handles missing optional dependencies (like PDF export libraries).
+- **`requirements.txt`**: Packages required by live web requests
+- **`requirements-dev.txt`**: Tests plus offline diagnostic/plot-generation packages
 
 ## Deployment
 
@@ -48,17 +50,37 @@ python app.py
 # Visit: http://localhost:8084
 ```
 
-### Production (Render.com)
+### Production (Vercel)
 
-1. **Create a Web Service** on Render and connect your GitHub repository
-2. **Build Command**: `pip install -r requirements.txt && python render_build.py`
-3. **Start Command**: `gunicorn app:app`
-4. **Add a PostgreSQL database** and Render will set `DATABASE_URL` automatically
+1. Import this Git repository into Vercel with the Flask framework preset.
+2. Add a pooled PostgreSQL connection string as `DATABASE_URL`.
+3. Create a private Vercel Blob store. Vercel supplies
+   `BLOB_READ_WRITE_TOKEN` to the selected environments.
+4. Add the required environment variables below.
+5. Initialize the database once from a trusted machine using production
+   environment variables:
+
+```bash
+vercel env pull .env.production.local
+set -a
+source .env.production.local
+set +a
+flask --app app init-db
+flask --app app create-admin
+```
+
+6. Deploy from the Vercel dashboard or run `vercel --prod`.
+
+The application never creates tables or administrator accounts during a web
+request or cold start. Uploaded résumés are private Blob objects and are
+downloaded through an authenticated application route.
 
 **Required Environment Variables:**
 ```bash
 FLASK_ENV=production
 SECRET_KEY=<your-secure-random-key>
+DATABASE_URL=<pooled-postgresql-url>
+BLOB_READ_WRITE_TOKEN=<created-by-vercel-blob>
 ADMIN_USERNAME=<your-admin-username>
 ADMIN_EMAIL=<your-admin-email>
 ADMIN_PASSWORD=<your-secure-admin-password>
@@ -85,7 +107,7 @@ HUGGINGFACE_API_KEY=<your-key>
 ├── requirements-dev.txt  # Development tools
 ├── routes/              # Route handlers
 ├── templates/           # HTML templates
-├── static/             # CSS, JS, images
+├── public/static/      # CDN-served CSS, JS, images
 ├── utils/              # Helper functions
 ├── tests/              # Test suite
 └── data/               # Model database

@@ -1,9 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from io import BytesIO
+
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, send_file
 from flask_login import login_required, current_user
 from models import db, User, Analysis, Consultation, ExpertApplication
 from datetime import datetime, timezone
 from functools import wraps
 from utils.email_service import send_expert_approved_email, send_expert_rejected_email
+from utils.storage import read_resume, store_resume
 import re
 expert = Blueprint('expert', __name__)
 # Custom decorator for expert access
@@ -356,26 +359,7 @@ def upload_resume():
         flash('Invalid file type. Please upload a PDF, DOC, or DOCX file.', 'danger')
         return redirect(url_for('expert.application_status'))
     try:
-        # Create a unique filename
-        import os
-        from datetime import datetime
-        from werkzeug.utils import secure_filename
-        if not resume_file.filename:
-            flash('Invalid filename.', 'danger')
-            return redirect(url_for('expert.application_status'))
-        filename = secure_filename(resume_file.filename)
-        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-        unique_filename = f"{current_user.id}_{timestamp}_{filename}"
-        # Ensure the upload directory exists
-        static_folder = current_app.static_folder or 'static'
-        upload_dir = os.path.join(static_folder, 'uploads', 'resumes')
-        os.makedirs(upload_dir, exist_ok=True)
-        # Save the file
-        file_path = os.path.join(upload_dir, unique_filename)
-        resume_file.save(file_path)
-        # Update the application with the resume URL
-        resume_url = url_for('static', filename=f'uploads/resumes/{unique_filename}')
-        application.resume_url = resume_url
+        application.resume_url = store_resume(resume_file, current_user.id)
         # Update status from "needs_info" to "pending_review" if it was previously in "needs_info" state
         if application.status == 'needs_info':
             application.status = 'pending_review'
@@ -385,6 +369,35 @@ def upload_resume():
         current_app.logger.error(f"Resume upload error: {str(e)}")
         flash(f'Error uploading resume: {str(e)}', 'danger')
     return redirect(url_for('expert.application_status'))
+
+
+@expert.route('/application/<int:application_id>/resume')
+@login_required
+def download_resume(application_id):
+    """Download a private resume as its owner or an administrator."""
+    application = ExpertApplication.query.get_or_404(application_id)
+    if application.user_id != current_user.id and not current_user.is_admin:
+        return render_template('error.html', error='Unauthorized access'), 403
+    if not application.resume_url:
+        return render_template('error.html', error='Resume not found'), 404
+
+    try:
+        data, content_type, filename = read_resume(application.resume_url)
+        return send_file(
+            BytesIO(data),
+            as_attachment=True,
+            download_name=filename,
+            mimetype=content_type,
+        )
+    except FileNotFoundError:
+        return render_template('error.html', error='Resume not found'), 404
+    except Exception:
+        current_app.logger.exception(
+            "Could not download resume for application %s", application_id
+        )
+        return render_template(
+            'error.html', error='The resume could not be retrieved.'
+        ), 503
 @expert.route('/submit-additional-info', methods=['POST'])
 @login_required
 def submit_additional_info():

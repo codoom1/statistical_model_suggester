@@ -3,12 +3,9 @@ from flask_login import login_required, current_user
 from models import db, User, Analysis, get_model_details
 from datetime import datetime
 import json
-import os
 import random
 from collections import OrderedDict
 main = Blueprint('main', __name__)
-# Path for history file (legacy support)
-HISTORY_FILE = 'history.json'
 # -----------------------------------------------------------------------------
 # MODEL GROUPING FOR NAVIGATION DROPDOWN
 # -----------------------------------------------------------------------------
@@ -118,35 +115,8 @@ MODEL_GROUPS = OrderedDict([
 @main.context_processor
 def inject_model_groups():
     return dict(model_groups=MODEL_GROUPS)
-def load_history():
-    """Load analysis history from JSON file (legacy support)"""
-    if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, 'r') as f:
-            return json.load(f)
-    return []
-def save_history(history):
-    """Save analysis history to JSON file (legacy support)"""
-    with open(HISTORY_FILE, 'w') as f:
-        json.dump(history, f, indent=2)
-def add_to_history(research_question, recommended_model, analysis_goal, dependent_variable_type,
-                   independent_variables, sample_size, missing_data, data_distribution, relationship_type,
-                   variables_correlated='unknown'):
-    """Add analysis to history file (legacy support)"""
-    history = load_history()
-    history.append({
-        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'research_question': research_question,
-        'analysis_goal': analysis_goal,
-        'dependent_variable': dependent_variable_type,
-        'independent_variables': independent_variables,
-        'sample_size': sample_size,
-        'missing_data': missing_data,
-        'data_distribution': data_distribution,
-        'relationship_type': relationship_type,
-        'variables_correlated': variables_correlated,
-        'recommended_model': recommended_model
-    })
-    save_history(history)
+# Analysis history is stored in PostgreSQL for authenticated users. Guest
+# recommendations are intentionally not persisted.
 def get_model_recommendation(analysis_goal, dependent_variable, independent_variables,
                             sample_size, missing_data, data_distribution, relationship_type,
                             variables_correlated):
@@ -592,11 +562,6 @@ def results():
         # Find a replacement model if the recommended one doesn't exist
         recommended_model = get_default_model(analysis_goal, dependent_variable_type)
         explanation = f"Based on your analysis goal ({analysis_goal}) and dependent variable type ({dependent_variable_type}), we recommend using {recommended_model}."
-    # Save to history if model recommendation found
-    if recommended_model:
-        add_to_history(research_question, recommended_model, analysis_goal, dependent_variable_type,
-                    independent_variables, sample_size, missing_data, data_distribution, relationship_type,
-                    variables_correlated)
     # Save analysis if user is logged in
     if current_user.is_authenticated:
         try:

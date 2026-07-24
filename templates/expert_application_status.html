@@ -63,7 +63,7 @@
                             <div class="card-body">
                                 {% if application.resume_url %}
                                 <p>
-                                    <a href="{{ application.resume_url }}" target="_blank" class="btn btn-outline-primary">
+                                    <a href="{{ url_for('expert.download_resume', application_id=application.id) }}" class="btn btn-outline-primary">
                                         <i class="bi bi-file-earmark-text"></i> View Uploaded Resume
                                     </a>
                                 </p>
@@ -147,4 +147,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

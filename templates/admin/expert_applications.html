@@ -306,7 +306,7 @@
                                     <dt class="col-sm-4">Resume:</dt>
                                     <dd class="col-sm-8">
                                         {% if application.resume_url %}
-                                            <a href="{{ application.resume_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <a href="{{ url_for('expert.download_resume', application_id=application.id) }}" class="btn btn-sm btn-outline-primary">
                                                 <i class="bi bi-file-earmark-text"></i> View Resume
                                             </a>
                                         {% else %}
@@ -432,4 +432,4 @@
         };
     });
 </script>
-{% endblock %} 
+{% endblock %}
