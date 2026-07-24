@@ -1,7 +1,12 @@
 """
 Test the main routes and analysis functionality.
 """
+import sys
+from types import ModuleType
+
 from models import Analysis
+
+
 class TestMainRoutes:
     """Test main application routes."""
     def test_home_page(self, client):
@@ -20,6 +25,41 @@ class TestMainRoutes:
         assert response.status_code == 200
         assert b'Invalid model group' not in response.data
         assert b'Linear Regression' in response.data
+
+    def test_double_encoded_model_detail_urls(self, client, monkeypatch):
+        """Encoded model links work across detail and interpretation routes."""
+        interpretation_module = ModuleType('utils.interpretation')
+        interpretation_module.generate_interpretation_data = (
+            lambda _model_name, _model_info: {}
+        )
+        monkeypatch.setitem(
+            sys.modules,
+            'utils.interpretation',
+            interpretation_module,
+        )
+
+        detail_response = client.get('/model/Linear%2520Regression')
+        interpretation_response = client.get(
+            '/model/Linear%2520Regression/interpretation'
+        )
+        download_response = client.get(
+            '/model/Linear%2520Regression/download-interpretation'
+        )
+
+        for response in (
+            detail_response,
+            interpretation_response,
+            download_response,
+        ):
+            assert response.status_code == 200
+            assert b'Model not found' not in response.data
+
+        assert b'Linear Regression' in detail_response.data
+        assert (
+            'Linear_Regression_interpretation_guide.html'
+            in download_response.headers['Content-Disposition']
+        )
+
     def test_analysis_form_submission_authenticated(self, authenticated_client, sample_analysis_data, app):
         """Test analysis form submission with authenticated user."""
         response = authenticated_client.post('/results', data=sample_analysis_data, follow_redirects=True)
