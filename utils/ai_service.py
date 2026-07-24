@@ -9,6 +9,7 @@ from openai import (
     APIStatusError,
     APITimeoutError,
     AuthenticationError,
+    NotFoundError,
     OpenAI,
     PermissionDeniedError,
     RateLimitError,
@@ -17,7 +18,7 @@ from openai import (
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "gpt-5.6-luna"
+DEFAULT_MODEL = "gpt-5-mini"
 DEFAULT_SYSTEM_PROMPT = (
     "You are a careful statistical methods assistant. Give concise, accurate "
     "answers, state important assumptions, and do not invent application "
@@ -88,8 +89,13 @@ def call_openai_api(
     if not cleaned_prompt:
         raise ValueError("An AI prompt is required.")
 
+    target_model = (model or configured_model).strip()
+    fallback_model = (
+        os.environ.get("OPENAI_FALLBACK_MODEL", DEFAULT_MODEL).strip()
+        or DEFAULT_MODEL
+    )
     request_options = {
-        "model": (model or configured_model).strip(),
+        "model": target_model,
         "instructions": system_prompt or DEFAULT_SYSTEM_PROMPT,
         "input": cleaned_prompt,
         "max_output_tokens": _max_output_tokens(),
@@ -104,31 +110,54 @@ def call_openai_api(
         timeout=_timeout_seconds(),
         max_retries=1,
     )
-    try:
-        response = client.responses.create(**request_options)
-    except APITimeoutError as exc:
-        raise OpenAIServiceError("The AI provider timed out.", 504) from exc
-    except APIConnectionError as exc:
-        raise OpenAIServiceError(
-            "Could not connect to the AI provider.", 503
-        ) from exc
-    except RateLimitError as exc:
-        raise OpenAIServiceError(
-            "AI usage limits have been reached. Please try again later.",
-            429,
-        ) from exc
-    except (AuthenticationError, PermissionDeniedError) as exc:
-        raise OpenAIServiceError(
-            "The OpenAI credentials or model access are invalid.",
-            getattr(exc, "status_code", 401),
-        ) from exc
-    except APIStatusError as exc:
-        logger.warning("OpenAI request failed with status %s.", exc.status_code)
-        raise OpenAIServiceError(
-            "The AI provider could not complete the request.",
-            exc.status_code,
-        ) from exc
+    candidate_models = [target_model]
+    if fallback_model != target_model:
+        candidate_models.append(fallback_model)
 
+    response = None
+    for candidate_model in candidate_models:
+        request_options["model"] = candidate_model
+        try:
+            response = client.responses.create(**request_options)
+            break
+        except NotFoundError as exc:
+            if candidate_model != candidate_models[-1]:
+                logger.warning(
+                    "Configured OpenAI model '%s' is unavailable; trying '%s'.",
+                    candidate_model,
+                    fallback_model,
+                )
+                continue
+            raise OpenAIServiceError(
+                "The configured OpenAI model is unavailable for this project. "
+                "Set OPENAI_MODEL to an enabled model such as gpt-5-mini.",
+                503,
+            ) from exc
+        except APITimeoutError as exc:
+            raise OpenAIServiceError("The AI provider timed out.", 504) from exc
+        except APIConnectionError as exc:
+            raise OpenAIServiceError(
+                "Could not connect to the AI provider.", 503
+            ) from exc
+        except RateLimitError as exc:
+            raise OpenAIServiceError(
+                "AI usage limits have been reached. Please try again later.",
+                429,
+            ) from exc
+        except (AuthenticationError, PermissionDeniedError) as exc:
+            raise OpenAIServiceError(
+                "The OpenAI credentials or model access are invalid.",
+                getattr(exc, "status_code", 401),
+            ) from exc
+        except APIStatusError as exc:
+            logger.warning("OpenAI request failed with status %s.", exc.status_code)
+            raise OpenAIServiceError(
+                "The AI provider could not complete the request.",
+                exc.status_code,
+            ) from exc
+
+    if response is None:
+        raise OpenAIServiceError("The AI provider returned no response.", 502)
     content = response.output_text
     if not isinstance(content, str) or not content.strip():
         raise OpenAIServiceError("The AI provider returned an empty response.", 502)

@@ -3,7 +3,7 @@
 from unittest.mock import Mock, patch
 
 import httpx
-from openai import RateLimitError
+from openai import NotFoundError, RateLimitError
 import pytest
 
 from models import AIUsageEvent
@@ -71,6 +71,33 @@ def test_openai_maps_provider_rate_limit(monkeypatch):
             call_openai_api("Test")
 
     assert error.value.status_code == 429
+
+
+def test_openai_falls_back_when_configured_model_is_unavailable(monkeypatch):
+    monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    monkeypatch.setenv("OPENAI_MODEL", "unavailable-model")
+    monkeypatch.setenv("OPENAI_FALLBACK_MODEL", "gpt-5-mini")
+    request = httpx.Request("POST", "https://api.openai.com/v1/responses")
+    not_found_response = httpx.Response(404, request=request)
+    unavailable = NotFoundError(
+        "Model not found",
+        response=not_found_response,
+        body=None,
+    )
+    client = Mock()
+    client.responses.create.side_effect = [
+        unavailable,
+        Mock(output_text="Use logistic regression."),
+    ]
+
+    with patch("utils.ai_service.OpenAI", return_value=client):
+        result = call_openai_api("Which model should I use?")
+
+    assert result == "Use logistic regression."
+    assert [
+        call.kwargs["model"] for call in client.responses.create.call_args_list
+    ] == ["unavailable-model", "gpt-5-mini"]
 
 
 def test_resend_email_delivery_is_synchronous(app, monkeypatch):
