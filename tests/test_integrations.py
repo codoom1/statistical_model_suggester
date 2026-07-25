@@ -13,6 +13,8 @@ from utils.ai_service import (
     call_openai_api,
 )
 from utils.email_service import RESEND_API_URL, send_email
+from utils.questionnaire_ai import generate_ai_question_batch
+from utils.questionnaire_generator import generate_questionnaire
 from utils.recommendation_ai import review_recommendation
 
 
@@ -527,11 +529,11 @@ def test_questionnaire_ai_enhancement_requires_login(client, monkeypatch):
     generate.assert_not_called()
 
 
-def test_questionnaire_ai_enhancement_consumes_weighted_quota(
+def test_questionnaire_ai_enhancement_consumes_one_request(
     client, test_user, monkeypatch
 ):
     monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
-    monkeypatch.setenv("AI_REQUESTS_PER_USER_PER_HOUR", "3")
+    monkeypatch.setenv("AI_REQUESTS_PER_USER_PER_HOUR", "1")
     _login(client, test_user)
 
     with patch(
@@ -564,4 +566,111 @@ def test_questionnaire_ai_enhancement_consumes_weighted_quota(
     assert first.status_code == 302
     assert second.status_code == 302
     assert generate.call_count == 1
-    assert AIUsageEvent.query.filter_by(user_id=test_user["id"]).count() == 3
+    assert AIUsageEvent.query.filter_by(user_id=test_user["id"]).count() == 1
+
+
+def test_questionnaire_ai_uses_one_structured_request():
+    sections = [
+        {
+            "title": "Experience",
+            "description": "Respondent experience",
+            "questions": [
+                {
+                    "text": "How long have you used the service?",
+                    "type": "Open-Ended",
+                }
+            ],
+        }
+    ]
+    provider_response = {
+        "questions": [
+            {
+                "section_title": "Experience",
+                "text": "How often do you use the service?",
+                "type": "Multiple Choice",
+                "options": ["Daily", "Weekly", "Monthly", "Less often"],
+            },
+            {
+                "section_title": "Additional Insights",
+                "text": "What would most improve your experience?",
+                "type": "Open-Ended",
+                "options": [],
+            },
+        ]
+    }
+
+    with patch(
+        "utils.questionnaire_ai.call_openai_api",
+        return_value=__import__("json").dumps(provider_response),
+    ) as generate:
+        questions = generate_ai_question_batch(
+            research_topic="Service experience",
+            research_description="Understand usage and opportunities.",
+            target_audience="Current customers",
+            questionnaire_purpose="Service evaluation",
+            sections=sections,
+            num_questions=2,
+            safety_identifier="user-hash",
+        )
+
+    assert len(questions) == 2
+    assert all(question["ai_created"] for question in questions)
+    assert generate.call_count == 1
+    kwargs = generate.call_args.kwargs
+    assert kwargs["max_output_tokens"] == 1_500
+    assert kwargs["safety_identifier"] == "user-hash"
+    assert kwargs["response_schema"]["properties"]["questions"]["maxItems"] == 2
+
+
+def test_questionnaire_generation_batches_ai_once(monkeypatch):
+    monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
+    base_sections = [
+        {
+            "title": "General Questions",
+            "description": "General",
+            "questions": [
+                {"text": "What is your experience?", "type": "Open-Ended"}
+            ],
+        }
+    ]
+    ai_questions = [
+        {
+            "section_title": "General Questions",
+            "text": "What outcome matters most to you?",
+            "type": "Open-Ended",
+            "options": [],
+            "ai_created": True,
+        }
+    ]
+
+    with (
+        patch(
+            "utils.questionnaire_generator.analyze_research_description",
+            return_value=base_sections,
+        ) as analyze,
+        patch(
+            "utils.questionnaire_generator.generate_ai_question_batch",
+            return_value=ai_questions,
+        ) as generate,
+    ):
+        questionnaire = generate_questionnaire(
+            "Understand participant experience.",
+            "Participant experience",
+            "Adults",
+            "Evaluation",
+            use_ai_enhancement=True,
+            num_ai_questions=1,
+            safety_identifier="user-hash",
+        )
+
+    assert analyze.call_args.kwargs["use_ai"] is False
+    assert generate.call_count == 1
+    assert questionnaire[0]["questions"][-1]["ai_created"] is True
+
+
+def test_questionnaire_design_shows_generation_progress(client):
+    response = client.get("/questionnaire/design")
+
+    assert response.status_code == 200
+    assert b'data-progress-mode="questionnaire"' in response.data
+    assert b'generation_progress.js?v=20260725.1' in response.data

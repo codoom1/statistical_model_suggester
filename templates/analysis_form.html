@@ -5,6 +5,7 @@
 {% block container_start %}{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/generation_progress.css', v='20260725.1') }}">
 <style>
     /* Reset navbar margin */
     .navbar {
@@ -172,7 +173,11 @@
                 </div>
             </div>
             
-            <form method="POST" action="{{ url_for('main.results') }}">
+            <form method="POST" action="{{ url_for('main.results') }}"
+                  data-generation-progress
+                  data-progress-target="model-selection-progress"
+                  data-progress-mode="model"
+                  data-progress-ai-field="use_ai_review">
                 <div class="form-group">
                     <label for="research_question" class="form-label required-field">What are you trying to find out?</label>
                     <input type="text" class="form-control" id="research_question" name="research_question" required 
@@ -371,6 +376,23 @@
                 </div>
             </form>
         </div>
+    </div>
+</div>
+
+<div id="model-selection-progress" class="generation-progress-overlay"
+     role="status" aria-live="polite" aria-hidden="true">
+    <div class="generation-progress-card">
+        <div class="generation-progress-icon" aria-hidden="true">
+            <i class="bi bi-diagram-3"></i>
+        </div>
+        <h2>Selecting your statistical model</h2>
+        <p class="generation-progress-status">Checking your study design…</p>
+        <div class="progress" aria-label="Model selection progress">
+            <div class="progress-bar" role="progressbar" aria-valuenow="8"
+                 aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <span class="generation-progress-percent">8%</span>
+        <small class="text-muted d-block mt-3">We are matching your inputs to compatible methods.</small>
     </div>
 </div>
 
@@ -636,5 +658,6 @@ function handleAnalysisGoalChange() {
     }
 }
 </script>
+<script src="{{ url_for('static', filename='js/generation_progress.js', v='20260725.1') }}"></script>
 {% endblock %}
 {% block container_end %}{% endblock %}

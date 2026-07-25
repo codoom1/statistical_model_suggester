@@ -3,15 +3,29 @@ Questionnaire Designer Service Routes
 This module provides routes for the questionnaire design service,
 allowing users to create, preview, and edit questionnaires.
 """
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, send_file
+import hashlib
+import logging
+from datetime import datetime, timezone
+
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    session,
+    url_for,
+)
 from flask_login import login_required, current_user
 from sqlalchemy.exc import SQLAlchemyError
-from utils.questionnaire_generator import generate_questionnaire
+
+from models import db, Questionnaire
+from utils.ai_service import is_ai_enabled
 from utils.ai_usage import consume_user_ai_quota
 from utils.export_utils import export_to_word
-from models import db, Questionnaire
-from datetime import datetime, timezone
-import logging
+from utils.questionnaire_generator import generate_questionnaire
 
 # Try to import PDF export functionality
 try:
@@ -37,9 +51,19 @@ def design():
         research_description = request.form.get('research_description', '')
         target_audience = request.form.get('target_audience', '')
         questionnaire_purpose = request.form.get('questionnaire_purpose', '')
+        if not all(
+            [
+                research_topic.strip(),
+                research_description.strip(),
+                target_audience.strip(),
+                questionnaire_purpose.strip(),
+            ]
+        ):
+            flash('Please complete all required questionnaire fields.', 'warning')
+            return redirect(url_for('questionnaire.design'))
         # Check if AI enhancement was requested
         use_ai = request.form.get('use_ai_enhancement', 'off') == 'on'
-        # Get the number of AI questions per type (default to 3 if not provided or not using AI)
+        # Get the total number of focused AI questions to add.
         num_ai_questions = 3 # Default value
         if use_ai:
             if not current_user.is_authenticated:
@@ -51,28 +75,34 @@ def design():
                 num_ai_questions = max(1, min(num_ai_questions, 5))
             except ValueError:
                 num_ai_questions = 3 # Fallback to default if conversion fails
-            try:
-                allowed, _ = consume_user_ai_quota(
-                    current_user.id,
-                    units=num_ai_questions,
-                )
-            except SQLAlchemyError:
-                db.session.rollback()
-                logger.exception(
-                    "Could not record questionnaire AI usage for user %s.",
-                    current_user.id,
-                )
-                flash(
-                    'AI usage tracking is not initialized. Please contact the administrator.',
-                    'danger',
-                )
-                return redirect(url_for('questionnaire.design'))
-            if not allowed:
-                flash(
-                    'You have reached the hourly AI usage limit. Please try again later.',
-                    'warning',
-                )
-                return redirect(url_for('questionnaire.design'))
+            if is_ai_enabled():
+                try:
+                    allowed, _ = consume_user_ai_quota(current_user.id)
+                except SQLAlchemyError:
+                    db.session.rollback()
+                    logger.exception(
+                        "Could not record questionnaire AI usage for user %s.",
+                        current_user.id,
+                    )
+                    flash(
+                        'AI usage tracking is not initialized. Please contact the administrator.',
+                        'danger',
+                    )
+                    return redirect(url_for('questionnaire.design'))
+                if not allowed:
+                    flash(
+                        'You have reached the hourly AI usage limit. Please try again later.',
+                        'warning',
+                    )
+                    return redirect(url_for('questionnaire.design'))
+        safety_identifier = None
+        if use_ai and current_user.is_authenticated:
+            safety_identifier = hashlib.sha256(
+                (
+                    f"{current_app.config['SECRET_KEY']}:"
+                    f"{current_user.id}"
+                ).encode()
+            ).hexdigest()
         # Generate questionnaire based on research description
         questionnaire = generate_questionnaire(
             research_description,
@@ -80,15 +110,27 @@ def design():
             target_audience,
             questionnaire_purpose,
             use_ai_enhancement=use_ai,
-            num_ai_questions=num_ai_questions
+            num_ai_questions=num_ai_questions,
+            safety_identifier=safety_identifier,
         )
+        ai_applied = any(
+            question.get('ai_created') or question.get('ai_enhanced')
+            for section in questionnaire
+            for question in section.get('questions', [])
+        )
+        if use_ai and not ai_applied:
+            flash(
+                'AI enhancement was unavailable, so a complete rules-based '
+                'questionnaire was generated instead.',
+                'warning',
+            )
         # Store questionnaire data in session
         session['questionnaire'] = questionnaire
         session['research_topic'] = research_topic
         session['research_description'] = research_description
         session['target_audience'] = target_audience
         session['questionnaire_purpose'] = questionnaire_purpose
-        session['used_ai_enhancement'] = use_ai
+        session['used_ai_enhancement'] = ai_applied
         return redirect(url_for('questionnaire.preview'))
     return render_template('questionnaire/design.html')
 @questionnaire_bp.route('/preview')
