@@ -53,6 +53,21 @@ class TestUser:
             # Test that expert must be approved
             user.is_approved_expert = False
             assert not user.is_expert
+
+    def test_user_role_and_expertise_contract(self, app):
+        with app.app_context():
+            user = User(
+                username='expert',
+                email='expert@example.com',
+                _is_expert=True,
+                is_approved_expert=True,
+            )
+            user.expertise = 'Experimental design'
+
+            assert user.role == 'expert'
+            assert user.areas_of_expertise == 'Experimental design'
+            user._is_admin = True
+            assert user.role == 'admin'
     def test_user_string_representation(self, app):
         """Test user string representation."""
         with app.app_context():

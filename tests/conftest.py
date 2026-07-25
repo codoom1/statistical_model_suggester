@@ -2,7 +2,6 @@
 Test configuration and fixtures for the Statistical Model Suggester app.
 """
 import pytest
-import tempfile
 import os
 import sys
 from pathlib import Path
@@ -18,23 +17,20 @@ from models import db, User
 @pytest.fixture
 def app():
     """Create and configure a new app instance for each test."""
-    # Create a temporary file to use as the database
-    db_fd, db_path = tempfile.mkstemp()
-    
     # Set testing environment variables before app creation
     os.environ['TESTING'] = 'true'
     os.environ['WTF_CSRF_ENABLED'] = 'false'
     os.environ['SECRET_KEY'] = 'test-secret-key'
     os.environ['MAIL_SUPPRESS_SEND'] = 'true'
     # Force SQLite for testing to avoid PostgreSQL connection issues
-    os.environ['DATABASE_URL'] = f'sqlite:///{db_path}'
+    os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
     
     # Import app creation function after setting environment
     from app import create_app
     app = create_app()
     app.config.update({
         'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
+        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
         'WTF_CSRF_ENABLED': False,
         'SECRET_KEY': 'test-secret-key',
         'MAIL_SUPPRESS_SEND': True,
@@ -44,9 +40,8 @@ def app():
     with app.app_context():
         db.create_all()
         yield app
-        
-    os.close(db_fd)
-    os.unlink(db_path)
+        db.session.remove()
+        db.engine.dispose()
 @pytest.fixture
 def client(app):
     """A test client for the app."""

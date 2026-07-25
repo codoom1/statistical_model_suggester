@@ -13,6 +13,7 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('main.results') }}" class="needs-validation" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-4">
                             <label for="research_question" class="form-label">Research Question</label>
                             <input type="text" class="form-control" id="research_question" name="research_question" 

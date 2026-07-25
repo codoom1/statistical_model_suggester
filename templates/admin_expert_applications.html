@@ -78,6 +78,7 @@
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     <form method="POST" action="{{ url_for('admin.approve_expert', user_id=expert.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="btn btn-success">Approve Expert</button>
                                     </form>
                                 </div>

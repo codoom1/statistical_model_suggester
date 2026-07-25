@@ -218,11 +218,12 @@ class TestSecurityIntegration:
             '/admin/dashboard',
             '/admin/users',
             '/profile',
-            '/auth/logout'
         ]
         for route in protected_routes:
             response = client.get(route)
             assert response.status_code == 302  # Should redirect to login
+
+        assert client.get('/auth/logout').status_code == 405
     def test_role_based_access_control(self, client, app):
         """Test role-based access control."""
         # Create users with different roles
@@ -253,12 +254,12 @@ class TestSecurityIntegration:
         client.post('/auth/login', data={'username': 'regular', 'password': 'password'})
         response = client.get('/admin/dashboard')
         assert response.status_code in [302, 403]  # Should be denied
-        client.get('/auth/logout')
+        client.post('/auth/logout')
         # Test admin access
         client.post('/auth/login', data={'username': 'admin', 'password': 'password'})
         response = client.get('/admin/dashboard')
         assert response.status_code == 200  # Should be allowed
-        client.get('/auth/logout')
+        client.post('/auth/logout')
 class TestDataIntegrity:
     """Test data integrity across operations."""
     def test_user_deletion_cascades(self, app):
@@ -341,4 +342,5 @@ class TestPerformanceIntegration:
             'variables_correlated': 'no'
         }
         response = client.post('/results', data=analysis_data)
-        assert response.status_code == 200  # Should handle gracefully
+        assert response.status_code == 302
+        assert response.headers['Location'].endswith('/analysis-form')

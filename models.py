@@ -45,6 +45,24 @@ class User(db.Model, UserMixin):
     def is_expert(self):
         return self._is_expert and self.is_approved_expert
 
+    @property
+    def role(self):
+        """Return the user's effective role for templates and older callers."""
+        if self.is_admin:
+            return 'admin'
+        if self.is_expert:
+            return 'expert'
+        return 'user'
+
+    @property
+    def expertise(self):
+        """Backward-compatible alias for the canonical expertise field."""
+        return self.areas_of_expertise
+
+    @expertise.setter
+    def expertise(self, value):
+        self.areas_of_expertise = value
+
     def __repr__(self):
         return f'<User {self.username}>'
 
@@ -165,6 +183,29 @@ class Questionnaire(db.Model):
     
     def __repr__(self):
         return f'<Questionnaire {self.id}: {self.title}>'
+
+
+class QuestionnaireDraft(db.Model):
+    """Server-side working copy for guest and authenticated questionnaires."""
+
+    __tablename__ = 'questionnaire_drafts'
+
+    id = db.Column(db.String(64), primary_key=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='CASCADE'),
+        nullable=True,
+        index=True,
+    )
+    content = db.Column(db.JSON, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+        index=True,
+    )
 
 # PostgreSQL-specific function to initialize extensions
 def initialize_postgres_extensions(app):

@@ -36,6 +36,16 @@ python app.py
 # Visit: http://localhost:8084
 ```
 
+For a fresh or unmanaged installation, `init-db` is safe to run again: it
+creates missing tables without deleting existing data.
+
+For an installation already managed by Alembic, apply schema updates before
+restarting:
+
+```bash
+flask --app app db upgrade
+```
+
 ## Dependencies
 
 - **`requirements.txt`**: Packages required by live web requests

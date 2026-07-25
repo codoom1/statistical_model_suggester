@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFError, CSRFProtect
 
 from models import User, db, initialize_postgres_extensions
 from utils.email_service import init_mail
@@ -17,6 +18,7 @@ from utils.email_service import init_mail
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
+csrf = CSRFProtect()
 
 
 def _is_production() -> bool:
@@ -108,6 +110,16 @@ def create_app() -> Flask:
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         SQLALCHEMY_ENGINE_OPTIONS={"pool_pre_ping": True},
         MAX_CONTENT_LENGTH=4 * 1024 * 1024,
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=_is_production(),
+        REMEMBER_COOKIE_HTTPONLY=True,
+        REMEMBER_COOKIE_SAMESITE="Lax",
+        REMEMBER_COOKIE_SECURE=_is_production(),
+        PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=7),
+        WTF_CSRF_ENABLED=os.environ.get(
+            "WTF_CSRF_ENABLED", "true"
+        ).lower() == "true",
         MAIL_SERVER=os.environ.get("MAIL_SERVER", "smtp.gmail.com"),
         MAIL_PORT=int(os.environ.get("MAIL_PORT", 587)),
         MAIL_USE_TLS=os.environ.get("MAIL_USE_TLS", "true").lower() == "true",
@@ -131,6 +143,7 @@ def create_app() -> Flask:
 
     db.init_app(app)
     Migrate(app, db)
+    csrf.init_app(app)
     init_mail(app)
 
     login_manager = LoginManager()
@@ -181,6 +194,14 @@ def create_app() -> Flask:
         return render_template(
             "error.html", error="Uploads must be smaller than 4 MB."
         ), 413
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(error):
+        logger.warning("CSRF validation failed: %s", error.description)
+        return render_template(
+            "error.html",
+            error="This form expired or could not be verified. Please try again.",
+        ), 400
 
     @app.errorhandler(500)
     def internal_server_error(error):

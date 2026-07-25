@@ -2,6 +2,7 @@
 Test the main routes and analysis functionality.
 """
 from models import Analysis
+from routes.main_routes import MODEL_GROUPS
 
 
 class TestMainRoutes:
@@ -36,6 +37,17 @@ class TestMainRoutes:
         assert b'Linear Regression' in response.data
         assert b'ARIMA' in response.data
         assert b'Random Forest' in response.data
+
+    def test_navigation_groups_only_reference_known_models(self, app):
+        with app.app_context():
+            known_models = set(app.config['MODEL_DATABASE'])
+
+        grouped_models = {
+            model
+            for models in MODEL_GROUPS.values()
+            for model in models
+        }
+        assert grouped_models <= known_models
 
     def test_generic_model_links_open_full_catalog(
         self,
@@ -112,7 +124,43 @@ class TestMainRoutes:
         """Test clustering analysis with empty dependent variable."""
         response = client.post('/results', data=clustering_analysis_data, follow_redirects=True)
         assert response.status_code == 200
-        assert b'cluster' in response.data.lower()
+        assert b'K-Means clustering' in response.data
+
+    def test_hypothesis_test_vocabulary_matches_database(self, client):
+        response = client.post('/results', data={
+            'research_question': 'Do the two groups differ?',
+            'analysis_goal': 'hypothesis_test',
+            'dependent_variable_type': 'continuous',
+            'independent_variables': 'categorical',
+            'sample_size': '80',
+            'missing_data': 'none',
+            'data_distribution': 'normal',
+            'relationship_type': 'unknown',
+            'variables_correlated': 'unknown',
+        })
+
+        assert response.status_code == 200
+        assert any(
+            model in response.data
+            for model in (
+                b'T test',
+                b'Mann-Whitney U Test',
+                b'Kruskal-Wallis Test',
+                b'Analysis of Variance (ANOVA)',
+            )
+        )
+
+    def test_invalid_optional_metadata_is_not_silently_defaulted(self, client):
+        response = client.post('/results', data={
+            'research_question': 'What predicts the outcome?',
+            'analysis_goal': 'predict',
+            'dependent_variable_type': 'continuous',
+            'missing_data': 'not-a-real-value',
+            'data_distribution': 'unknown',
+            'relationship_type': 'unknown',
+        })
+
+        assert response.status_code == 302
     def test_invalid_form_data(self, client):
         """Test form submission with invalid data."""
         invalid_data = {

@@ -24,6 +24,7 @@
     <div class="card mt-4">
         <div class="card-body">
             <form method="POST" action="{{ url_for('expert.request_consultation') }}{% if selected_expert %}?expert_id={{ selected_expert.id }}{% endif %}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="mb-3">
                     <label for="title" class="form-label">Consultation Title</label>
                     <input type="text" class="form-control" id="title" name="title" required 

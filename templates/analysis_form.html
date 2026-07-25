@@ -178,6 +178,7 @@
                   data-progress-target="model-selection-progress"
                   data-progress-mode="model"
                   data-progress-ai-field="use_ai_review">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
                     <label for="research_question" class="form-label required-field">What are you trying to find out?</label>
                     <input type="text" class="form-control" id="research_question" name="research_question" required 
@@ -222,6 +223,7 @@
                         <option value="binary">Yes/No or Two Categories (e.g., pass/fail, success/failure)</option>
                         <option value="count">Whole numbers only (e.g., number of customers, incidents)</option>
                         <option value="time_series">Measurements taken over time (e.g., daily temperature, monthly sales)</option>
+                        <option value="time_to_event">Time until an event (e.g., recovery, failure, relapse)</option>
                     </select>
                     <div class="help-text" id="dependent_variable_help_default">
                         <i class="bi bi-graph-up me-2"></i>This is what you're trying to understand or predict in your study.

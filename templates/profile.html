@@ -12,6 +12,7 @@
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('main.profile') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="text-center mb-4">
                         <div class="avatar-circle bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px; color: white; font-size: 2.5rem;">
                             {{ user.username[0].upper() }}

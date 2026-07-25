@@ -68,7 +68,7 @@
                 <div class="mb-4">
                     <h5>Question</h5>
                     <div class="p-3 bg-light rounded">
-                        {{ consultation.question|replace('\n', '<br>')|safe }}
+                        {{ consultation.description|replace('\n', '<br>')|safe }}
                     </div>
                 </div>
                 
@@ -84,6 +84,7 @@
                 </div>
                 {% elif consultation.expert_id == current_user.id %}
                 <form method="POST" action="{{ url_for('expert.respond_consultation', consultation_id=consultation.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="mb-3">
                         <label for="response" class="form-label">Your Response</label>
                         <textarea class="form-control" id="response" name="response" rows="8" required 
@@ -116,4 +117,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

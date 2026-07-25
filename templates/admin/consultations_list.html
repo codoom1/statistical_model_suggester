@@ -63,13 +63,14 @@
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <form action="{{ url_for('admin.assign_consultation', consultation_id=consultation.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <div class="modal-body">
                                             <div class="mb-3">
                                                 <label for="expert_id" class="form-label">Select Expert</label>
                                                 <select class="form-select" id="expert_id" name="expert_id" required>
                                                     <option value="">Choose an expert...</option>
                                                     {% for expert in experts %}
-                                                    <option value="{{ expert.id }}">{{ expert.username }} - {{ expert.expertise }}</option>
+                                                    <option value="{{ expert.id }}">{{ expert.username }} - {{ expert.areas_of_expertise }}</option>
                                                     {% endfor %}
                                                 </select>
                                             </div>
@@ -93,4 +94,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

@@ -7,7 +7,7 @@ from openai import NotFoundError, RateLimitError
 import pytest
 from sqlalchemy import inspect
 
-from models import AIUsageEvent, db
+from models import AIUsageEvent, QuestionnaireDraft, db
 from utils.ai_service import (
     OpenAIServiceError,
     call_openai_api,
@@ -527,6 +527,46 @@ def test_questionnaire_ai_enhancement_requires_login(client, monkeypatch):
     assert response.status_code == 302
     assert "/auth/login" in response.headers["Location"]
     generate.assert_not_called()
+
+
+def test_questionnaire_draft_is_stored_server_side(app, client):
+    generated = [
+        {
+            "title": "Experience",
+            "description": "A deliberately substantial draft",
+            "questions": [
+                {
+                    "text": f"Question {index} " + ("detail " * 50),
+                    "type": "Open-Ended",
+                }
+                for index in range(20)
+            ],
+        }
+    ]
+
+    with patch(
+        "routes.questionnaire_routes.generate_questionnaire",
+        return_value=generated,
+    ):
+        response = client.post(
+            "/questionnaire/design",
+            data={
+                "research_topic": "Public health",
+                "research_description": "Measure an intervention outcome",
+                "target_audience": "Adults",
+                "questionnaire_purpose": "Evaluation",
+            },
+        )
+
+    assert response.status_code == 302
+    with client.session_transaction() as browser_session:
+        assert "questionnaire" not in browser_session
+        draft_id = browser_session["questionnaire_draft_id"]
+
+    with app.app_context():
+        draft = db.session.get(QuestionnaireDraft, draft_id)
+        assert draft is not None
+        assert draft.content["questionnaire"] == generated
 
 
 def test_questionnaire_ai_enhancement_consumes_one_request(

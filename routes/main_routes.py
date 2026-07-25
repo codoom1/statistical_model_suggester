@@ -12,10 +12,127 @@ from sqlalchemy.exc import SQLAlchemyError
 from utils.ai_service import OpenAIServiceError, is_ai_enabled
 from utils.ai_usage import consume_user_ai_quota
 from utils.recommendation_ai import review_recommendation
+from utils.validation import is_valid_email, normalize_email
 
 
 logger = logging.getLogger(__name__)
 main = Blueprint('main', __name__)
+
+GOAL_COMPATIBILITY = {
+    'predict': {
+        'predict',
+        'robust_prediction',
+        'flexible_prediction',
+        'predict survival probabilities',
+    },
+    'classify': {
+        'classify',
+        'separate groups',
+        'estimate probabilities',
+    },
+    'explore': {
+        'explore',
+        'explain',
+        'explore relationships',
+        'identify latent variables',
+        'reduce',
+        'reduce dimensions',
+        'dimensionality reduction',
+        'visualize',
+        'visualize relationships',
+        'explore similarity structures',
+    },
+    'cluster': {'cluster'},
+    'hypothesis_test': {
+        'test',
+        'compare',
+        'compare means',
+        'test group differences',
+        'evaluate treatment effects',
+        'compare adjusted means',
+        'compare multivariate means',
+        'test overall group differences',
+    },
+    'non_parametric': {'test', 'compare', 'rank'},
+    'time_series': {'time_series'},
+}
+
+OUTCOME_COMPATIBILITY = {
+    'continuous': {'continuous'},
+    'categorical': {'categorical', 'categorical (limited)', 'multiclass'},
+    'binary': {'binary', 'binary (with link functions)'},
+    'count': {'count'},
+    'time_series': {'continuous'},
+    'time_to_event': {'time-to-event', 'censored'},
+}
+
+MISSING_DATA_COMPATIBILITY = {
+    'none': {'none'},
+    'little': {'none', 'random', 'random (MAR)'},
+    'moderate': {'random', 'random (MAR)', 'imputed'},
+    'substantial': {
+        'random',
+        'random (MAR)',
+        'systematic',
+        'imputed',
+        'handled_via_FIML',
+        'handled_via_imputation',
+        'handled_automatically',
+    },
+}
+
+
+def _supports_goal(selected, supported):
+    return bool(GOAL_COMPATIBILITY.get(selected, {selected}) & set(supported))
+
+
+def _supports_outcome(selected, supported):
+    return bool(
+        OUTCOME_COMPATIBILITY.get(selected, {selected}) & set(supported)
+    )
+
+
+def _supports_missing_data(selected, supported):
+    return bool(
+        MISSING_DATA_COMPATIBILITY.get(selected, {selected}) & set(supported)
+    )
+
+
+def _supports_distribution(selected, supported):
+    supported = set(supported)
+    if 'any' in supported:
+        return True
+    if selected == 'unknown':
+        return False
+    if selected == 'normal':
+        return bool(
+            {'normal', 'gaussian', 'multivariate normal', 'multivariate_normal'}
+            & supported
+        )
+    if selected == 'non_normal':
+        return bool(
+            {
+                'non_normal',
+                'nonparametric',
+                'heavy_tailed',
+                'asymmetric_laplace',
+                'non_normal (with robust estimators)',
+                'non_normal (with alternative likelihoods)',
+            }
+            & supported
+        )
+    return selected in supported
+
+
+def _supports_relationship(selected, supported):
+    supported = set(supported)
+    if 'any' in supported:
+        return True
+    if selected == 'unknown':
+        return False
+    if selected == 'non_linear':
+        return bool({'non_linear', 'non-linear', 'nonlinear'} & supported)
+    return selected in supported
 
 
 def _decode_path_name(name):
@@ -41,34 +158,22 @@ MODEL_GROUPS = OrderedDict([
         'Kruskal-Wallis Test',
         'Analysis of Variance (ANOVA)',
         'Analysis of Covariance (ANCOVA)',
-        'Repeated Measures ANOVA'
-        # Add other relevant test models here if they exist
+        'Repeated Measures ANOVA',
     ]),
     ('Regression Models', [
         'Linear Regression',
-        'Multiple Linear Regression',
         'Logistic Regression',
-        'Multinomial Logistic Regression',
+        'Multinomial Regression',
         'Ordinal Regression',
         'Poisson Regression',
         'Ridge Regression',
         'Lasso Regression',
         'Elastic Net Regression',
-        'Quantile Regression',
-        'Stepwise Regression',
-        'Generalized Linear Model (GLM)',
-        'Generalized Additive Model (GAM)',
         'Kernel Regression',
-        'Polynomial Regression',
-        'Bayesian Linear Regression', # Consider if Bayesian models get their own group
-        'Bayesian Quantile Regression' # Or are subtypes here
+        'Bayesian Quantile Regression',
     ]),
     ('Time Series Models', [
         'ARIMA',
-        'Exponential Smoothing',
-        'Prophet',
-        'Vector Autoregression (VAR)'
-        # Add other time series models
     ]),
     ('Multivariate Analysis', [
         'Principal Component Analysis (PCA)',
@@ -79,9 +184,6 @@ MODEL_GROUPS = OrderedDict([
         'Multidimensional Scaling',
         'Multivariate Analysis of Covariance (MANCOVA)',
         'Multivariate Analysis of Variance (MANOVA)',
-        'Analysis of Covariance (ANCOVA)',
-        'Analysis of Variance (ANOVA)'
-        # Add other multivariate models (K-Means, DBSCAN etc. could fit here or ML)
     ]),
     ('Machine Learning Models', [
         'Decision Trees',
@@ -94,15 +196,9 @@ MODEL_GROUPS = OrderedDict([
         'K-Nearest Neighbors (KNN)',
         'Naive Bayes classifier',
         'Neural Networks',
-        'K-Means',
-        'Hierarchical Clustering',
-        'DBSCAN'
-        # Add other ML models
     ]),
     ('Mixed and Hierarchical Models', [
         'Mixed Effects Model',
-        'Hierarchical Linear Model',
-        'Multilevel Model',
         'Bayesian Hierarchical Regression'
     ]),
     ('Structural Models', [
@@ -114,19 +210,11 @@ MODEL_GROUPS = OrderedDict([
         'Kaplan-Meier Curve'
     ]),
     ('Bayesian Models', [
-        'Bayesian Linear Regression',
         'Bayesian Hierarchical Regression',
         'Bayesian Model Averaging',
         'Bayesian Quantile Regression',
         'Bayesian Additive Regression Trees (BART)'
-     ]),
-     #(optional) 'Deep Learning Models', [
-      #  'Convolutional Neural Networks (CNN)',
-      #  'Recurrent Neural Networks (RNN)',
-      #  'Long Short-Term Memory (LSTM)',
-      #  'Gated Recurrent Units (GRU)',
-      #  'Transformer Models'
-     #])
+    ]),
 ])
 # Make model groups available to all templates
 @main.context_processor
@@ -157,15 +245,15 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
         'classical': ['Linear Regression', 'Logistic Regression', 'Poisson Regression', 'Ridge Regression',
                      'Lasso Regression', 'Elastic Net Regression'],
         'tree_based': ['Decision Trees', 'Random Forest', 'Gradient Boosting', 'XGBoost', 'LightGBM', 'CatBoost'],
-        'bayesian': ['Bayesian Linear Regression', 'Bayesian Hierarchical Regression', 'Bayesian Model Averaging',
-                    'Bayesian Quantile Regression', 'Bayesian Additive Regression Trees'],
-        'hierarchical': ['Mixed Effects Model', 'Hierarchical Linear Model', 'Multilevel Model'],
+        'bayesian': ['Bayesian Hierarchical Regression', 'Bayesian Model Averaging',
+                    'Bayesian Quantile Regression', 'Bayesian Additive Regression Trees (BART)'],
+        'hierarchical': ['Mixed Effects Model', 'Bayesian Hierarchical Regression'],
         'neural_network': ['Neural Networks'],
-        'nonparametric': ['Support Vector Machines', 'K-Nearest Neighbors', 'Kernel_Regression'],
-        'dimensionality_reduction': ['Principal Component Analysis', 'Factor Analysis', 'Multidimensional Scaling'],
-        'clustering': ['Cluster Analysis', 'K-Means', 'Hierarchical Clustering', 'DBSCAN', 'Gaussian Mixture Models'],
-        'time_series': ['ARIMA', 'Exponential Smoothing', 'Prophet'],
-        'hypothesis_testing': ['T_test', 'Chi_Square_Test', 'Mann_Whitney_U_Test', 'Kruskal_Wallis_Test',
+        'nonparametric': ['Support Vector Machines (SVM)', 'K-Nearest Neighbors (KNN)', 'Kernel Regression'],
+        'dimensionality_reduction': ['Principal Component Analysis (PCA)', 'Factor Analysis', 'Multidimensional Scaling'],
+        'clustering': ['K-Means clustering'],
+        'time_series': ['ARIMA'],
+        'hypothesis_testing': ['T test', 'Chi-Square Test', 'Mann-Whitney U Test', 'Kruskal-Wallis Test',
                               'Analysis of Variance (ANOVA)', 'Analysis of Covariance (ANCOVA)']
     }
     # Build a reverse lookup of model to family
@@ -174,8 +262,7 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
         for model in models:
             model_to_family[model] = family
     # Define clustering models (these don't require a dependent variable)
-    clustering_models = ['Cluster Analysis', 'K-Means', 'Hierarchical Clustering', 'DBSCAN',
-                         'Gaussian Mixture Models', 'Principal Component Analysis', 'Factor Analysis']
+    clustering_models = ['K-Means clustering']
     # For clustering analysis, ensure we have a default dependent variable if not provided
     if analysis_goal == 'cluster' and not dependent_variable:
         dependent_variable = 'continuous'  # A sensible default for clustering
@@ -185,7 +272,7 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
         score = 0
         current_app.logger.debug(f"SCORING {model_name}: Starting score = {score}")
         # Check analysis goal compatibility - heavily weighted
-        if analysis_goal in model.get('analysis_goals', []):
+        if _supports_goal(analysis_goal, model.get('analysis_goals', [])):
             score += 3
             current_app.logger.debug(f"  + Analysis goal match: +3 → {score}")
         else:
@@ -193,14 +280,17 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
             current_app.logger.debug(f"  × Skipping {model_name}: analysis goal mismatch")
             continue  # Skip models that don't match the primary analysis goal
         # Special handling for clustering models when the goal is 'cluster'
-        is_clustering_model = model_name in clustering_models or 'cluster' in analysis_goal.lower()
+        is_clustering_model = model_name in clustering_models
         # Check dependent variable compatibility - heavily weighted
         # Skip this check for clustering models when the goal is 'cluster'
         if is_clustering_model and analysis_goal == 'cluster':
             # Clustering models get a bonus instead of being checked for dependent variable
             score += 3
             current_app.logger.debug(f"  + Clustering model bonus: +3 → {score}")
-        elif dependent_variable in model.get('dependent_variable', []):
+        elif _supports_outcome(
+            dependent_variable,
+            model.get('dependent_variable', []),
+        ):
             score += 3
             current_app.logger.debug(f"  + Dependent variable match: +3 → {score}")
         else:
@@ -208,7 +298,10 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
             current_app.logger.debug(f"  × Skipping {model_name}: dependent variable mismatch")
             continue  # Skip models that don't match the dependent variable type
         # Check relationship type compatibility - important factor
-        if relationship_type in model.get('relationship_type', []):
+        if _supports_relationship(
+            relationship_type,
+            model.get('relationship_type', []),
+        ):
             score += 2
             current_app.logger.debug(f"  + Relationship type match: +2 → {score}")
         elif relationship_type == 'linear' and 'non_linear' in model.get('relationship_type', []):
@@ -240,7 +333,7 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
                 current_app.logger.debug(f"  + Regularization compatibility: +0.75 → {score}")
             # No bonus when variables are explicitly not correlated
         # Boost other models that work well with correlated variables
-        if variables_correlated == 'yes' and model_name in ['Principal Component Analysis',
+        if variables_correlated == 'yes' and model_name in ['Principal Component Analysis (PCA)',
                                                           'Factor Analysis', 'Partial Least Squares',
                                                           'Random Forest', 'Gradient Boosting',
                                                           'XGBoost', 'CatBoost', 'LightGBM']:
@@ -256,14 +349,16 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
            missing_data in ['none', 'little'] and dependent_variable == 'continuous':
             score += 5.0
             current_app.logger.debug(f"  + Linear Regression boost: +5.0 → {score}")
-        # Strong boost for Cluster Analysis in exploratory or clustering scenarios
-        if model_name == 'Cluster Analysis' and (analysis_goal == 'explore' or analysis_goal == 'cluster'):
-            score += 15.0  # Massively increased to ensure Cluster Analysis wins for clustering
-            current_app.logger.debug(f"CLUSTER BONUS: {model_name} +15.0 for {analysis_goal} analysis")
+        # Strong boost for K-Means in clustering scenarios.
+        if model_name == 'K-Means clustering' and analysis_goal == 'cluster':
+            score += 5.0
+            current_app.logger.debug(
+                f"CLUSTER BONUS: {model_name} +5.0 for {analysis_goal} analysis"
+            )
         # Penalty for non-clustering models in exploratory or clustering scenarios
-        if (analysis_goal == 'explore' or analysis_goal == 'cluster') and model_name not in ['Cluster Analysis', 'Factor Analysis', 'Principal Component Analysis',
-                                                           'Multidimensional Scaling', 'UMAP', 'K-Means', 'Hierarchical Clustering', 'DBSCAN', 'Gaussian Mixture Models']:
-            score -= 5.0  # Significant penalty for non-exploratory models
+        if (analysis_goal == 'explore' or analysis_goal == 'cluster') and model_name not in ['K-Means clustering', 'Factor Analysis', 'Principal Component Analysis (PCA)',
+                                                           'Multidimensional Scaling']:
+            score -= 5.0
             current_app.logger.debug(f"EXPLORE/CLUSTER PENALTY: {model_name} -5.0 for being non-{analysis_goal}")
         # Extra boost for Elastic Net which combines benefits of Lasso and Ridge
         if model_name == 'Elastic Net Regression' and missing_data in ['none', 'little']:
@@ -276,11 +371,14 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
             score += 1
             current_app.logger.debug(f"  + Sample size match: +1 → {score}")
         # Check missing data handling
-        if missing_data in model.get('missing_data', []):
+        if _supports_missing_data(missing_data, model.get('missing_data', [])):
             score += 1.5
             current_app.logger.debug(f"  + Missing data compatibility: +1.5 → {score}")
         # Check data distribution compatibility
-        if data_distribution in model.get('data_distribution', []):
+        if _supports_distribution(
+            data_distribution,
+            model.get('data_distribution', []),
+        ):
             score += 1.5
             current_app.logger.debug(f"  + Data distribution match: +1.5 → {score}")
         elif data_distribution == 'normal' and 'non_normal' in model.get('data_distribution', []):
@@ -305,8 +403,8 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
             current_app.logger.debug(f"  + Hierarchical model bonus: +2.0 → {score}")
         # Bonus for advanced models that handle complex relationships
         if relationship_type == 'non_linear' and model_name in ['Random Forest', 'XGBoost', 'Neural Networks',
-                                                               'Gradient Boosting', 'Support Vector Machines',
-                                                               'Bayesian Additive Regression Trees']:
+                                                               'Gradient Boosting', 'Support Vector Machines (SVM)',
+                                                               'Bayesian Additive Regression Trees (BART)']:
             score += 1.5
             current_app.logger.debug(f"  + Non-linear model bonus: +1.5 → {score}")
         # Add a penalty for overused models to promote diversity
@@ -321,10 +419,6 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
         if (analysis_goal == 'explore' or analysis_goal == 'cluster') and model_name == 'Neural Networks':
             score -= 5.0  # Significant penalty for neural networks in clustering tasks
             current_app.logger.debug(f"  - Neural Networks penalty for clustering: -5.0 → {score:.4f}")
-        # Fix for exploratory analysis with continuous dependent variable - ensure clustering models win
-        if (analysis_goal == 'explore' or analysis_goal == 'cluster') and dependent_variable == 'continuous' and model_name == 'Cluster Analysis':
-            score += 5.0  # Extra boost to ensure Cluster Analysis wins for exploratory analysis
-            current_app.logger.debug(f"  + Exploratory/Cluster continuous fix: +5.0 → {score:.4f}")
         model_scores[model_name] = score
     # Get top models
     # First, identify the best matching model
@@ -380,31 +474,31 @@ def get_default_alternatives(analysis_goal, dependent_variable):
     alternatives = []
     if analysis_goal == 'predict':
         if dependent_variable == 'continuous':
-            alternatives = ['Ridge Regression', 'Random Forest', 'XGBoost', 'Bayesian Linear Regression', 'Gradient Boosting']
+            alternatives = ['Ridge Regression', 'Random Forest', 'XGBoost', 'Gradient Boosting']
         elif dependent_variable == 'binary':
-            alternatives = ['Random Forest', 'Support Vector Machine', 'XGBoost', 'Neural Network']
+            alternatives = ['Random Forest', 'Support Vector Machines (SVM)', 'XGBoost', 'Neural Networks']
         elif dependent_variable == 'count':
             alternatives = ['Negative Binomial Regression', 'Zero-Inflated Poisson', 'Quantile Regression']
         elif dependent_variable == 'ordinal':
-            alternatives = ['Multinomial Logistic Regression', 'Neural Network', 'Ordinal Regression']
+            alternatives = ['Multinomial Regression', 'Neural Networks', 'Ordinal Regression']
         elif dependent_variable == 'time_to_event':
-            alternatives = ['Kaplan-Meier', 'Weibull Model', 'Cox Proportional Hazards']
+            alternatives = ['Kaplan-Meier Curve', 'Cox Proportional Hazards Model']
     elif analysis_goal == 'classify':
         if dependent_variable == 'binary':
-            alternatives = ['Random Forest', 'Support Vector Machine', 'XGBoost', 'Neural Network', 'Gradient Boosting']
+            alternatives = ['Random Forest', 'Support Vector Machines (SVM)', 'XGBoost', 'Neural Networks', 'Gradient Boosting']
         elif dependent_variable == 'categorical':
-            alternatives = ['Random Forest', 'Neural Network', 'Support Vector Machine', 'XGBoost']
+            alternatives = ['Random Forest', 'Neural Networks', 'Support Vector Machines (SVM)', 'XGBoost']
     elif analysis_goal == 'explore':
-        alternatives = ['Cluster Analysis', 'Factor Analysis', 'Multidimensional Scaling', 'Principal Component Analysis', 'UMAP']
+        alternatives = ['Factor Analysis', 'Multidimensional Scaling', 'Principal Component Analysis (PCA)']
     elif analysis_goal == 'cluster':
-        alternatives = ['Cluster Analysis', 'K-Means', 'Hierarchical Clustering', 'DBSCAN', 'Gaussian Mixture Models']
+        alternatives = ['K-Means clustering']
     elif analysis_goal == 'hypothesis_test':
         if dependent_variable == 'continuous':
-            alternatives = ['Analysis of Variance (ANOVA)', 'Mann_Whitney_U_Test', 'Wilcoxon Signed-Rank Test', 'T_test']
+            alternatives = ['Analysis of Variance (ANOVA)', 'Mann-Whitney U Test', 'T test']
         elif dependent_variable == 'categorical':
-            alternatives = ['Fisher\'s Exact Test', 'G-Test', 'McNemar\'s Test', 'Chi_Square_Test']
+            alternatives = ['Chi-Square Test']
     elif analysis_goal == 'non_parametric':
-        alternatives = ['Wilcoxon Signed-Rank Test', 'Kruskal_Wallis_Test', 'Spearman Correlation', 'Mann_Whitney_U_Test']
+        alternatives = ['Kruskal-Wallis Test', 'Mann-Whitney U Test']
     elif analysis_goal == 'time_series':
         alternatives = ['Exponential Smoothing', 'Prophet', 'ARIMA', 'ARIMAX', 'GARCH']
     # Remove alternatives that might not exist in the database
@@ -417,7 +511,7 @@ def generate_explanation(model_name, analysis_goal, dependent_variable, independ
     model_info = get_model_details(model_name) or {}
     explanation = f"\n    Based on your data characteristics, a {model_name} is recommended because:\n    \n"
     reasons = []
-    if analysis_goal in model_info.get('analysis_goals', []):
+    if _supports_goal(analysis_goal, model_info.get('analysis_goals', [])):
         reasons.append(f"It is suitable for {analysis_goal} analysis with {dependent_variable} dependent variables")
     if independent_variables and all(var in model_info.get('independent_variables', []) for var in independent_variables):
         reasons.append(f"It can handle {', '.join(independent_variables)} independent variables")
@@ -432,16 +526,21 @@ def generate_explanation(model_name, analysis_goal, dependent_variable, independ
         reasons.append("It works well with medium sample sizes")
     elif sample_size_int >= 100 and 'large' in model_info.get('sample_size', []):
         reasons.append("It is optimized for large datasets")
-    if missing_data in model_info.get('missing_data', []):
+    if _supports_missing_data(missing_data, model_info.get('missing_data', [])):
         reasons.append(f"It can handle {missing_data} missing data patterns")
-    if data_distribution in model_info.get('data_distribution', []):
+    if _supports_distribution(
+        data_distribution,
+        model_info.get('data_distribution', []),
+    ):
         reasons.append(f"It is appropriate for {data_distribution} data distribution")
-    if relationship_type in model_info.get('relationship_type', []):
+    if _supports_relationship(
+        relationship_type,
+        model_info.get('relationship_type', []),
+    ):
         reasons.append(f"It can model {relationship_type} relationships")
     # Add reason related to correlated variables if specified
     if variables_correlated == 'yes' and model_name in ['Elastic Net Regression', 'Ridge Regression', 'Lasso Regression',
-                                                      'Principal Component Analysis', 'Factor Analysis',
-                                                      'Partial Least Squares']:
+                                                      'Principal Component Analysis (PCA)', 'Factor Analysis']:
         reasons.append("It excels at handling correlated predictors")
     # Add numbered reasons
     for i, reason in enumerate(reasons, 1):
@@ -467,29 +566,29 @@ def get_default_model(analysis_goal, dependent_variable):
         if dependent_variable == 'continuous':
             target_models = ['Linear Regression', 'Ridge Regression', 'Lasso Regression']
         elif dependent_variable == 'binary':
-            target_models = ['Logistic Regression', 'Support Vector Machines']
+            target_models = ['Logistic Regression', 'Support Vector Machines (SVM)']
         elif dependent_variable == 'count':
             target_models = ['Poisson Regression', 'Negative Binomial Regression']
         elif dependent_variable == 'ordinal':
             target_models = ['Ordinal Regression', 'Multinomial Regression']
         elif dependent_variable == 'time_to_event':
-            target_models = ['Cox Proportional Hazards', 'Kaplan Meier']
+            target_models = ['Cox Proportional Hazards Model', 'Kaplan-Meier Curve']
     elif analysis_goal == 'classify':
         if dependent_variable == 'binary':
-            target_models = ['Logistic Regression', 'Support Vector Machines']
+            target_models = ['Logistic Regression', 'Support Vector Machines (SVM)']
         elif dependent_variable == 'categorical':
             target_models = ['Multinomial Regression', 'Random Forest']
     elif analysis_goal == 'explore':
-        target_models = ['Principal Component Analysis', 'Factor Analysis', 'Cluster Analysis']
+        target_models = ['Principal Component Analysis (PCA)', 'Factor Analysis']
     elif analysis_goal == 'cluster':
-        target_models = ['Cluster Analysis', 'Principal Component Analysis']
+        target_models = ['K-Means clustering']
     elif analysis_goal == 'hypothesis_test':
         if dependent_variable == 'continuous':
-            target_models = ['T_test', 'Analysis of Variance (ANOVA)']
+            target_models = ['T test', 'Analysis of Variance (ANOVA)']
         elif dependent_variable == 'categorical':
-            target_models = ['Chi_Square_Test', 'Fisher\'s Exact Test']
+            target_models = ['Chi-Square Test']
     elif analysis_goal == 'non_parametric':
-        target_models = ['Mann_Whitney_U_Test', 'Kruskal_Wallis_Test']
+        target_models = ['Mann-Whitney U Test', 'Kruskal-Wallis Test']
     elif analysis_goal == 'time_series':
         target_models = ['ARIMA', 'Exponential Smoothing']
     else:
@@ -519,7 +618,10 @@ def profile():
     """View and edit user profile"""
     if request.method == 'POST':
         # Update basic profile information
-        email = request.form.get('email')
+        email = normalize_email(request.form.get('email'))
+        if not is_valid_email(email):
+            flash('Please provide a valid email address.', 'danger')
+            return redirect(url_for('main.profile'))
         # Check if email already exists for another user
         if email != current_user.email:
             existing_user = User.query.filter_by(email=email).first()
@@ -546,6 +648,8 @@ def results():
     dependent_variable_type = request.form.get('dependent_variable_type', '')
     # Get independent variables (multiply selected)
     independent_variables = request.form.getlist('independent_variables')
+    if independent_variables == ['mixed']:
+        independent_variables = ['continuous', 'categorical']
     # Get other attributes
     sample_size = request.form.get('sample_size', '')
     missing_data = request.form.get('missing_data', '')
@@ -555,6 +659,17 @@ def results():
     use_ai_review = request.form.get('use_ai_review') == 'on'
     # Get model database from app config
     MODEL_DATABASE = current_app.config.get('MODEL_DATABASE', {})
+    allowed_goals = set(GOAL_COMPATIBILITY)
+    allowed_outcomes = set(OUTCOME_COMPATIBILITY)
+    allowed_missing_data = set(MISSING_DATA_COMPATIBILITY)
+    allowed_distributions = {'unknown', 'normal', 'non_normal'}
+    allowed_relationships = {
+        'unknown',
+        'linear',
+        'non_linear',
+        'hierarchical',
+    }
+    allowed_predictors = {'continuous', 'categorical', 'binary'}
     # For clustering analysis, dependent variable can be empty
     # If it's empty, set it to 'continuous' which works well with clustering models
     if analysis_goal == 'cluster' and not dependent_variable_type:
@@ -563,10 +678,32 @@ def results():
     if not (research_question and analysis_goal):
         flash('Please provide all required information to get a recommendation.', 'warning')
         return redirect(url_for('main.analysis_form'))
+    if len(research_question) > 500 or analysis_goal not in allowed_goals:
+        flash('Please provide a valid research question and analysis goal.', 'warning')
+        return redirect(url_for('main.analysis_form'))
     # For non-clustering analysis, require dependent variable
     if analysis_goal != 'cluster' and not dependent_variable_type:
         flash('Please select what type of outcome you are measuring.', 'warning')
         return redirect(url_for('main.analysis_form'))
+    if (
+        dependent_variable_type not in allowed_outcomes
+        or missing_data not in allowed_missing_data
+        or data_distribution not in allowed_distributions
+        or relationship_type not in allowed_relationships
+        or not set(independent_variables).issubset(allowed_predictors)
+    ):
+        flash(
+            'Some study-design fields were missing or invalid. Please review the form.',
+            'warning',
+        )
+        return redirect(url_for('main.analysis_form'))
+    if sample_size:
+        try:
+            if int(sample_size) < 1:
+                raise ValueError
+        except (TypeError, ValueError):
+            flash('Sample size must be a positive whole number.', 'warning')
+            return redirect(url_for('main.analysis_form'))
     # Get model recommendation
     recommended_model, explanation, alternative_models = get_model_recommendation(
         analysis_goal, dependent_variable_type, independent_variables,
@@ -585,8 +722,17 @@ def results():
         similar_models = {
             model_name: model for model_name, model in MODEL_DATABASE.items()
             if (model_name != recommended_model and
-                analysis_goal in model.get('analysis_goals', []) and
-                (not dependent_variable_type or dependent_variable_type in model.get('dependent_variable', [])))
+                _supports_goal(
+                    analysis_goal,
+                    model.get('analysis_goals', []),
+                ) and
+                (
+                    not dependent_variable_type
+                    or _supports_outcome(
+                        dependent_variable_type,
+                        model.get('dependent_variable', []),
+                    )
+                ))
         }
         # If we have alternative models from the recommendation engine, use those
         # Otherwise, fall back to similar models based on metadata

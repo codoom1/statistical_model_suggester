@@ -4,9 +4,33 @@ from models import db, User
 from werkzeug.security import generate_password_hash, check_password_hash
 from utils.email_service import get_email_provider, send_email
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+import hashlib
 import os
+from urllib.parse import urljoin, urlsplit
 from flask import current_app
+from utils.validation import (
+    MIN_PASSWORD_LENGTH,
+    is_valid_email,
+    is_valid_password,
+    is_valid_username,
+    normalize_email,
+)
 auth = Blueprint('auth', __name__)
+
+def _is_safe_redirect_target(target):
+    """Allow redirects only to local HTTP(S) paths."""
+    if not target:
+        return False
+    host_url = urlsplit(request.host_url)
+    redirect_url = urlsplit(urljoin(request.host_url, target))
+    return (
+        redirect_url.scheme in {'http', 'https'}
+        and redirect_url.netloc == host_url.netloc
+    )
+
+
+def _password_fingerprint(user):
+    return hashlib.sha256(user.password_hash.encode()).hexdigest()[:16]
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     """Handle user login"""
@@ -23,6 +47,8 @@ def login():
         if user and check_password_hash(user.password_hash, password):
             login_user(user, remember=remember)
             next_page = request.args.get('next')
+            if not _is_safe_redirect_target(next_page):
+                next_page = None
             flash('Login successful!', 'success')
             return redirect(next_page or url_for('main.home'))
         else:
@@ -34,8 +60,8 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
+        username = request.form.get('username', '').strip()
+        email = normalize_email(request.form.get('email'))
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         if not username or not email or not password or not confirm_password:
@@ -43,6 +69,18 @@ def register():
             return render_template('register.html')
         if password != confirm_password:
             flash('Passwords do not match!', 'danger')
+            return render_template('register.html')
+        if not is_valid_username(username):
+            flash('Username must be between 3 and 80 characters.', 'danger')
+            return render_template('register.html')
+        if not is_valid_email(email):
+            flash('Please provide a valid email address.', 'danger')
+            return render_template('register.html')
+        if not is_valid_password(password):
+            flash(
+                f'Password must be at least {MIN_PASSWORD_LENGTH} characters.',
+                'danger',
+            )
             return render_template('register.html')
         user_exists = User.query.filter_by(username=username).first()
         email_exists = User.query.filter_by(email=email).first()
@@ -61,7 +99,7 @@ def register():
             flash('Account created successfully! Please log in.', 'success')
             return redirect(url_for('auth.login'))
     return render_template('register.html')
-@auth.route('/logout')
+@auth.route('/logout', methods=['POST'])
 @login_required
 def logout():
     """Handle user logout"""
@@ -82,7 +120,13 @@ def forgot_password():
         if user:
             # Generate a secure token
             serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-            token = serializer.dumps(email, salt='password-reset-salt')
+            token = serializer.dumps(
+                {
+                    'email': email,
+                    'password_fingerprint': _password_fingerprint(user),
+                },
+                salt='password-reset-salt',
+            )
             # Build reset URL
             reset_url = url_for('auth.reset_password', token=token, _external=True)
             # Send reset email
@@ -112,13 +156,24 @@ def reset_password(token):
     try:
         # Validate token (expires after 1 hour)
         serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-        email = serializer.loads(token, salt='password-reset-salt', max_age=3600)
+        token_data = serializer.loads(
+            token,
+            salt='password-reset-salt',
+            max_age=3600,
+        )
     except (SignatureExpired, BadSignature):
         flash('The password reset link is invalid or has expired.', 'danger')
         return redirect(url_for('auth.forgot_password'))
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        flash('User not found.', 'danger')
+    if not isinstance(token_data, dict):
+        flash('The password reset link is invalid or has expired.', 'danger')
+        return redirect(url_for('auth.forgot_password'))
+    user = User.query.filter_by(email=token_data.get('email')).first()
+    if (
+        not user
+        or token_data.get('password_fingerprint')
+        != _password_fingerprint(user)
+    ):
+        flash('The password reset link is invalid or has expired.', 'danger')
         return redirect(url_for('auth.login'))
     if request.method == 'POST':
         password = request.form.get('password')
@@ -128,6 +183,12 @@ def reset_password(token):
             return render_template('reset_password.html', token=token)
         if password != confirm_password:
             flash('Passwords do not match!', 'danger')
+            return render_template('reset_password.html', token=token)
+        if not is_valid_password(password):
+            flash(
+                f'Password must be at least {MIN_PASSWORD_LENGTH} characters.',
+                'danger',
+            )
             return render_template('reset_password.html', token=token)
         # Update password
         user.password_hash = generate_password_hash(password, method='pbkdf2:sha256')

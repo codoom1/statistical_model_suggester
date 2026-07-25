@@ -293,6 +293,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ url_for('questionnaire.save_questionnaire') }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <p>Save this questionnaire to your account for future use.</p>
                     

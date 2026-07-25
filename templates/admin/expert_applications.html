@@ -346,6 +346,7 @@
                 </div>
                 
                 <form method="POST" action="{{ url_for('admin.update_application_notes', application_id=application.id) }}" class="mb-4">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="form-group">
                         <label for="adminNotes{{ application.id }}">Admin Notes</label>
                         <textarea class="form-control" id="adminNotes{{ application.id }}" name="admin_notes" rows="3">{{ application.admin_notes or '' }}</textarea>
@@ -368,11 +369,13 @@
                     {% else %}
                         {% if not application.resume_url %}
                         <form action="{{ url_for('admin.request_resume', application_id=application.id) }}" method="post" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-warning">Request Resume</button>
                         </form>
                         {% endif %}
                         
                         <form action="{{ url_for('admin.request_additional_info', application_id=application.id) }}" method="post" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-info">Request Additional Info</button>
                         </form>
                     {% endif %}
@@ -383,22 +386,27 @@
                         <button type="button" class="btn btn-danger" disabled>Reject</button>
                     {% elif application.status == 'pending_review' %}
                     <form action="{{ url_for('admin.process_additional_info', application_id=application.id) }}" method="post" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="action" value="approve">
                         <button type="submit" class="btn btn-success">Approve Information</button>
                     </form>
                     <form action="{{ url_for('admin.process_additional_info', application_id=application.id) }}" method="post" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="action" value="request_more_info">
                         <button type="submit" class="btn btn-warning">Need More Info</button>
                     </form>
                     <form action="{{ url_for('admin.process_additional_info', application_id=application.id) }}" method="post" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="action" value="reject">
                         <button type="submit" class="btn btn-danger">Reject</button>
                     </form>
                     {% else %}
                     <form action="{{ url_for('admin.approve_expert', user_id=application.user.id) }}" method="post" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-success">Approve</button>
                     </form>
                     <form action="{{ url_for('admin.reject_expert', user_id=application.user.id) }}" method="post" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-danger">Reject</button>
                     </form>
                     {% endif %}

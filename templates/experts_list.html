@@ -200,7 +200,7 @@
     <div class="container experts-hero-content">
         <div class="experts-header">
             <h1>Statistical Analysis Experts</h1>
-            {% if current_user.is_authenticated and current_user.role != 'expert' %}
+            {% if current_user.is_authenticated and not current_user.is_expert %}
                 <a href="{{ url_for('expert.apply_expert') }}" class="btn btn-outline-light">
                     <i class="bi bi-person-plus me-1"></i> Apply to Become an Expert
                 </a>
@@ -257,7 +257,7 @@
                             </div>
                             
                             <h6 class="card-subtitle mb-2">Expertise:</h6>
-                            <p class="card-text">{{ expert.expertise }}</p>
+                            <p class="card-text">{{ expert.areas_of_expertise }}</p>
                             
                             <div class="text-end mt-3">
                                 <a href="{{ url_for('expert.expert_profile', expert_id=expert.id) }}" class="btn btn-outline-primary btn-sm">View Profile</a>
@@ -305,4 +305,4 @@
         };
     });
 </script>
-{% endblock %} 
+{% endblock %}

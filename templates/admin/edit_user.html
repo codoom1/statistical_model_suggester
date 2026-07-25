@@ -16,6 +16,7 @@
             <div class="card">
                 <div class="card-body">
                     <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
                             <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
@@ -29,13 +30,13 @@
                         <div class="mb-3">
                             <label for="role" class="form-label">Role</label>
                             <select class="form-select" id="role" name="role">
-                                <option value="user" {% if user.role == 'user' %}selected{% endif %}>User</option>
-                                <option value="expert" {% if user.role == 'expert' %}selected{% endif %}>Expert</option>
-                                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                <option value="user" {% if not user.is_admin and not user._is_expert %}selected{% endif %}>User</option>
+                                <option value="expert" {% if user._is_expert %}selected{% endif %}>Expert</option>
+                                <option value="admin" {% if user.is_admin %}selected{% endif %}>Admin</option>
                             </select>
                         </div>
 
-                        <div id="expertFields" {% if user.role != 'expert' %}style="display: none;"{% endif %}>
+                        <div id="expertFields" {% if not user._is_expert %}style="display: none;"{% endif %}>
                             <div class="mb-3">
                                 <div class="form-check">
                                     <input type="checkbox" class="form-check-input" id="is_approved_expert" name="is_approved_expert" {% if user.is_approved_expert %}checked{% endif %}>
@@ -44,8 +45,8 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="expertise" class="form-label">Areas of Expertise</label>
-                                <textarea class="form-control" id="expertise" name="expertise" rows="3">{{ user.expertise or '' }}</textarea>
+                                <label for="areas_of_expertise" class="form-label">Areas of Expertise</label>
+                                <textarea class="form-control" id="areas_of_expertise" name="areas_of_expertise" rows="3">{{ user.areas_of_expertise or '' }}</textarea>
                             </div>
 
                             <div class="mb-3">
@@ -76,7 +77,7 @@
                 <div class="card-body">
                     <p><strong>Created:</strong> {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
                     <p><strong>Current Role:</strong> {{ user.role }}</p>
-                    {% if user.role == 'expert' %}
+                    {% if user._is_expert %}
                         <p><strong>Expert Status:</strong> 
                             {% if user.is_approved_expert %}
                                 <span class="badge bg-success">Approved</span>
@@ -103,4 +104,4 @@ document.getElementById('role').addEventListener('change', function() {
 });
 </script>
 {% endblock %}
-{% endblock %} 
+{% endblock %}

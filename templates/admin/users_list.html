@@ -30,12 +30,12 @@
                             <td>{{ user.username }}</td>
                             <td>{{ user.email }}</td>
                             <td>
-                                <span class="badge {% if user.role == 'admin' %}bg-danger{% elif user.role == 'expert' %}bg-success{% else %}bg-primary{% endif %}">
+                                <span class="badge {% if user.is_admin %}bg-danger{% elif user.is_expert %}bg-success{% else %}bg-primary{% endif %}">
                                     {{ user.role }}
                                 </span>
                             </td>
                             <td>
-                                {% if user.role == 'expert' %}
+                                {% if user._is_expert %}
                                     {% if user.is_approved_expert %}
                                         <span class="badge bg-success">Approved</span>
                                     {% else %}
@@ -73,6 +73,7 @@
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                                 <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                     <button type="submit" class="btn btn-danger">Delete User</button>
                                                 </form>
                                             </div>
@@ -87,4 +88,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

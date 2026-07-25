@@ -116,7 +116,7 @@ class TestAuthRoutes:
         assert response.status_code == 200
     def test_logout(self, authenticated_client):
         """Test user logout."""
-        response = authenticated_client.get('/auth/logout', follow_redirects=True)
+        response = authenticated_client.post('/auth/logout', follow_redirects=True)
         assert response.status_code == 200
         # After logout, should be redirected to login page or home
         # Try to access a protected page to verify logout
@@ -124,8 +124,42 @@ class TestAuthRoutes:
         assert response.status_code == 302  # Should redirect to login
     def test_logout_requires_login(self, client):
         """Test that logout requires being logged in."""
-        response = client.get('/auth/logout')
+        response = client.post('/auth/logout')
         assert response.status_code == 302  # Should redirect to login
+
+    def test_csrf_rejects_unverified_post(self, app, client):
+        app.config['WTF_CSRF_ENABLED'] = True
+
+        response = client.post('/auth/login', data={
+            'username': 'someone',
+            'password': 'password123',
+        })
+
+        assert response.status_code == 400
+        assert b'could not be verified' in response.data
+
+    def test_external_next_redirect_is_rejected(self, client, test_user):
+        response = client.post(
+            '/auth/login?next=https://example.com/phishing',
+            data={
+                'username': test_user['username'],
+                'password': test_user['password'],
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.headers['Location'] == '/'
+
+    def test_registration_rejects_short_password(self, client):
+        response = client.post('/auth/register', data={
+            'username': 'secureuser',
+            'email': 'secure@example.com',
+            'password': 'short',
+            'confirm_password': 'short',
+        })
+
+        assert response.status_code == 200
+        assert b'at least 10 characters' in response.data
     def test_redirect_after_login(self, client, test_user):
         """Test redirect to intended page after login."""
         # Try to access a protected page first

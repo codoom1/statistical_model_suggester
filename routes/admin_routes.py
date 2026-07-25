@@ -17,6 +17,11 @@ from utils.ai_usage import (
     ai_usage_storage_ready,
     initialize_ai_usage_storage,
 )
+from utils.validation import (
+    is_valid_email,
+    is_valid_username,
+    normalize_email,
+)
 from sqlalchemy.exc import SQLAlchemyError
 import logging
 import re
@@ -109,16 +114,22 @@ def edit_user(user_id):
     user = User.query.get_or_404(user_id)
     if request.method == 'POST':
         # Update user information
-        user.username = request.form.get('username')
-        user.email = request.form.get('email')
-        # Update roles
-        is_admin = request.form.get('is_admin') == 'on'
-        is_expert = request.form.get('is_expert') == 'on'
-        user._is_admin = is_admin
-        if is_expert:
+        username = request.form.get('username', '').strip()
+        email = normalize_email(request.form.get('email'))
+        if not is_valid_username(username) or not is_valid_email(email):
+            flash('Provide a valid username and email address.', 'danger')
+            return render_template('admin/edit_user.html', user=user), 400
+        user.username = username
+        user.email = email
+        role = request.form.get('role', 'user')
+        user._is_admin = role == 'admin'
+        if role == 'expert':
             user._is_expert = True
             user.is_approved_expert = request.form.get('is_approved_expert') == 'on'
-            user.areas_of_expertise = request.form.get('areas_of_expertise')
+            user.areas_of_expertise = request.form.get(
+                'areas_of_expertise',
+                request.form.get('expertise', ''),
+            )
             user.institution = request.form.get('institution')
             user.bio = request.form.get('bio')
         else:

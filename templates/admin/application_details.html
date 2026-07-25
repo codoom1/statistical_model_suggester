@@ -275,26 +275,31 @@
                         {% endif %}
                     {% elif application.status == 'pending_review' %}
                     <form action="{{ url_for('admin.process_additional_info', application_id=application.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="action" value="approve">
                         <button type="submit" class="btn btn-success w-100 mb-2">Approve Application</button>
                     </form>
                     
                     <form action="{{ url_for('admin.process_additional_info', application_id=application.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="action" value="reject">
                         <button type="submit" class="btn btn-danger w-100 mb-2">Reject Application</button>
                     </form>
                     {% else %}
                     <form action="{{ url_for('admin.approve_expert', user_id=application.user.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-success w-100 mb-2">Approve Application</button>
                     </form>
                     
                     <form action="{{ url_for('admin.reject_expert', user_id=application.user.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-danger w-100 mb-2">Reject Application</button>
                     </form>
                     {% endif %}
                     
                     {% if not application.resume_url and application.status != 'approved' and application.status != 'rejected' %}
                     <form action="{{ url_for('admin.request_resume', application_id=application.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-warning w-100 mb-2">Request Resume</button>
                     </form>
                     {% endif %}
@@ -315,6 +320,7 @@
                 <div class="admin-form mb-4">
                     <h5>Request Additional Information</h5>
                     <form action="{{ url_for('admin.request_additional_info', application_id=application.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
                             <label for="admin_notes" class="form-label">Admin Notes</label>
                             <textarea class="form-control" id="admin_notes" name="admin_notes" rows="4" placeholder="Specify what additional information you need from the applicant...">{{ application.admin_notes or '' }}</textarea>
@@ -362,6 +368,7 @@
                 <div class="application-section mt-4">
                     <h5>Submit Additional Information</h5>
                     <form action="{{ url_for('expert.submit_additional_info') }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="application_id" value="{{ application.id }}">
                         <div class="mb-3">
                             <label for="additional_info" class="form-label">Your Response</label>

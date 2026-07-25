@@ -122,7 +122,12 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const response = await fetch('{{ url_for("admin.initialize_ai_storage") }}', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector(
+                            'meta[name="csrf-token"]'
+                        ).content
+                    },
                     body: JSON.stringify({confirm: true})
                 });
                 const data = await response.json();
@@ -150,7 +155,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('{{ url_for("admin.test_ai_integration") }}', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector(
+                        'meta[name="csrf-token"]'
+                    ).content
+                },
                 body: JSON.stringify({prompt: value})
             });
             const data = await response.json();

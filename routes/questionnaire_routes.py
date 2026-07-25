@@ -5,7 +5,8 @@ allowing users to create, preview, and edit questionnaires.
 """
 import hashlib
 import logging
-from datetime import datetime, timezone
+import secrets
+from datetime import datetime, timedelta, timezone
 
 from flask import (
     Blueprint,
@@ -20,8 +21,9 @@ from flask import (
 )
 from flask_login import login_required, current_user
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm.attributes import flag_modified
 
-from models import db, Questionnaire
+from models import db, Questionnaire, QuestionnaireDraft
 from utils.ai_service import is_ai_enabled
 from utils.ai_usage import consume_user_ai_quota
 from utils.export_utils import export_to_word
@@ -36,6 +38,67 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 questionnaire_bp = Blueprint('questionnaire', __name__, url_prefix='/questionnaire')
+
+DRAFT_SESSION_KEY = 'questionnaire_draft_id'
+DRAFT_MAX_AGE = timedelta(days=7)
+
+
+def _load_draft():
+    """Return the current server-side draft when it belongs to this session."""
+    draft_id = session.get(DRAFT_SESSION_KEY)
+    if not draft_id:
+        return None
+    draft = db.session.get(QuestionnaireDraft, draft_id)
+    if draft is None:
+        session.pop(DRAFT_SESSION_KEY, None)
+        return None
+    if draft.updated_at < datetime.utcnow() - DRAFT_MAX_AGE:
+        db.session.delete(draft)
+        db.session.commit()
+        session.pop(DRAFT_SESSION_KEY, None)
+        return None
+    if (
+        draft.user_id is not None
+        and (
+            not current_user.is_authenticated
+            or draft.user_id != current_user.id
+        )
+    ):
+        session.pop(DRAFT_SESSION_KEY, None)
+        return None
+    return draft
+
+
+def _save_draft(content):
+    """Persist a questionnaire working copy and keep only its ID in session."""
+    draft = _load_draft()
+    if draft is None:
+        draft = QuestionnaireDraft(
+            id=secrets.token_urlsafe(32),
+            user_id=(
+                current_user.id if current_user.is_authenticated else None
+            ),
+            content=content,
+        )
+        db.session.add(draft)
+    else:
+        draft.content = content
+        flag_modified(draft, 'content')
+        if draft.user_id is None and current_user.is_authenticated:
+            draft.user_id = current_user.id
+    db.session.commit()
+    session[DRAFT_SESSION_KEY] = draft.id
+    return draft
+
+
+def _draft_content_or_redirect():
+    draft = _load_draft()
+    if draft is None:
+        flash('Please design a questionnaire first.', 'warning')
+        return None
+    return draft.content
+
+
 @questionnaire_bp.route('/')
 def index():
     """Landing page for the questionnaire design service."""
@@ -124,29 +187,29 @@ def design():
                 'questionnaire was generated instead.',
                 'warning',
             )
-        # Store questionnaire data in session
-        session['questionnaire'] = questionnaire
-        session['research_topic'] = research_topic
-        session['research_description'] = research_description
-        session['target_audience'] = target_audience
-        session['questionnaire_purpose'] = questionnaire_purpose
-        session['used_ai_enhancement'] = ai_applied
+        _save_draft({
+            'questionnaire': questionnaire,
+            'research_topic': research_topic,
+            'research_description': research_description,
+            'target_audience': target_audience,
+            'questionnaire_purpose': questionnaire_purpose,
+            'used_ai_enhancement': ai_applied,
+        })
         return redirect(url_for('questionnaire.preview'))
     return render_template('questionnaire/design.html')
 @questionnaire_bp.route('/preview')
 def preview():
     """Preview the generated questionnaire."""
-    # Check if questionnaire data exists in session
-    if 'questionnaire' not in session:
-        flash('Please design a questionnaire first.', 'error')
+    draft = _draft_content_or_redirect()
+    if draft is None:
         return redirect(url_for('questionnaire.design'))
     return render_template(
         'questionnaire/preview.html',
-        questionnaire=session['questionnaire'],
-        research_topic=session.get('research_topic', ''),
-        research_description=session.get('research_description', ''),
-        target_audience=session.get('target_audience', ''),
-        questionnaire_purpose=session.get('questionnaire_purpose', '')
+        questionnaire=draft['questionnaire'],
+        research_topic=draft.get('research_topic', ''),
+        research_description=draft.get('research_description', ''),
+        target_audience=draft.get('target_audience', ''),
+        questionnaire_purpose=draft.get('questionnaire_purpose', '')
     )
 @questionnaire_bp.route('/edit', methods=['GET', 'POST'])
 def edit():
@@ -154,9 +217,8 @@ def edit():
     GET: Show form to edit questionnaire
     POST: Process edits and update the questionnaire
     """
-    # Check if questionnaire data exists in session
-    if 'questionnaire' not in session:
-        flash('Please design a questionnaire first.', 'error')
+    draft = _draft_content_or_redirect()
+    if draft is None:
         return redirect(url_for('questionnaire.design'))
     if request.method == 'POST':
         # Process the form data
@@ -213,7 +275,7 @@ def edit():
                 ai_enhanced = False
                 ai_created = False
                 # Check if this question was in the original questionnaire
-                original_questionnaire = session.get('questionnaire', [])
+                original_questionnaire = draft.get('questionnaire', [])
                 if int(section_index) < len(original_questionnaire):
                     original_section = original_questionnaire[int(section_index)]
                     original_questions = original_section.get('questions', [])
@@ -239,37 +301,37 @@ def edit():
                     'description': section_description,
                     'questions': questions
                 })
-        # Update session with edited data
-        session['questionnaire'] = sections_data
-        session['research_topic'] = research_topic
-        session['target_audience'] = target_audience
-        session['questionnaire_purpose'] = questionnaire_purpose
-        session['research_description'] = research_description
+        draft.update({
+            'questionnaire': sections_data,
+            'research_topic': research_topic,
+            'target_audience': target_audience,
+            'questionnaire_purpose': questionnaire_purpose,
+            'research_description': research_description,
+        })
+        _save_draft(draft)
         flash('Questionnaire updated successfully.', 'success')
         return redirect(url_for('questionnaire.preview'))
     return render_template(
         'questionnaire/edit.html',
-        questionnaire=session['questionnaire'],
-        research_topic=session.get('research_topic', ''),
-        research_description=session.get('research_description', ''),
-        target_audience=session.get('target_audience', ''),
-        questionnaire_purpose=session.get('questionnaire_purpose', '')
+        questionnaire=draft['questionnaire'],
+        research_topic=draft.get('research_topic', ''),
+        research_description=draft.get('research_description', ''),
+        target_audience=draft.get('target_audience', ''),
+        questionnaire_purpose=draft.get('questionnaire_purpose', '')
     )
 @questionnaire_bp.route('/save', methods=['POST'])
 @login_required
 def save_questionnaire():
     """Save the current questionnaire to the database."""
-    # Check if questionnaire data exists in session
-    if 'questionnaire' not in session:
-        flash('Please design a questionnaire first.', 'error')
+    draft = _draft_content_or_redirect()
+    if draft is None:
         return redirect(url_for('questionnaire.design'))
-    # Get questionnaire data from session
-    questionnaire_data = session['questionnaire']
-    research_topic = session.get('research_topic', 'Untitled Questionnaire')
-    research_description = session.get('research_description', '')
-    target_audience = session.get('target_audience', '')
-    questionnaire_purpose = session.get('questionnaire_purpose', '')
-    is_ai_enhanced = session.get('used_ai_enhancement', False)
+    questionnaire_data = draft['questionnaire']
+    research_topic = draft.get('research_topic', 'Untitled Questionnaire')
+    research_description = draft.get('research_description', '')
+    target_audience = draft.get('target_audience', '')
+    questionnaire_purpose = draft.get('questionnaire_purpose', '')
+    is_ai_enhanced = draft.get('used_ai_enhancement', False)
     try:
         # Check if we're updating an existing questionnaire
         questionnaire_id = request.form.get('questionnaire_id')
@@ -328,13 +390,14 @@ def load_questionnaire(questionnaire_id):
     if not questionnaire:
         flash('Questionnaire not found or you do not have permission to view it.', 'error')
         return redirect(url_for('questionnaire.my_questionnaires'))
-    # Store questionnaire data in session
-    session['questionnaire'] = questionnaire.content
-    session['research_topic'] = questionnaire.title
-    session['research_description'] = questionnaire.description
-    session['target_audience'] = questionnaire.target_audience
-    session['questionnaire_purpose'] = questionnaire.purpose
-    session['used_ai_enhancement'] = questionnaire.is_ai_enhanced
+    _save_draft({
+        'questionnaire': questionnaire.content,
+        'research_topic': questionnaire.title,
+        'research_description': questionnaire.description,
+        'target_audience': questionnaire.target_audience,
+        'questionnaire_purpose': questionnaire.purpose,
+        'used_ai_enhancement': questionnaire.is_ai_enhanced,
+    })
     session['saved_questionnaire_id'] = questionnaire.id
     return redirect(url_for('questionnaire.preview'))
 @questionnaire_bp.route('/delete/<int:questionnaire_id>', methods=['POST'])
@@ -357,16 +420,14 @@ def delete_questionnaire(questionnaire_id):
 @questionnaire_bp.route('/export/word')
 def export_word():
     """Export questionnaire to Word document."""
-    # Check if questionnaire data exists in session
-    if 'questionnaire' not in session:
-        flash('Please design a questionnaire first.', 'error')
+    draft = _draft_content_or_redirect()
+    if draft is None:
         return redirect(url_for('questionnaire.design'))
-    # Get questionnaire data from session
-    questionnaire = session['questionnaire']
-    research_topic = session.get('research_topic', 'Questionnaire')
-    research_description = session.get('research_description', '')
-    target_audience = session.get('target_audience', '')
-    questionnaire_purpose = session.get('questionnaire_purpose', '')
+    questionnaire = draft['questionnaire']
+    research_topic = draft.get('research_topic', 'Questionnaire')
+    research_description = draft.get('research_description', '')
+    target_audience = draft.get('target_audience', '')
+    questionnaire_purpose = draft.get('questionnaire_purpose', '')
     # Generate a filename
     filename = f"{research_topic.replace(' ', '_')}_questionnaire.docx"
     # Create the Word document
@@ -392,16 +453,14 @@ def export_pdf():
         flash('PDF export is not available. Please install reportlab package.', 'error')
         return redirect(url_for('questionnaire.preview'))
     
-    # Check if questionnaire data exists in session
-    if 'questionnaire' not in session:
-        flash('Please design a questionnaire first.', 'error')
+    draft = _draft_content_or_redirect()
+    if draft is None:
         return redirect(url_for('questionnaire.design'))
-    # Get questionnaire data from session
-    questionnaire = session['questionnaire']
-    research_topic = session.get('research_topic', 'Questionnaire')
-    research_description = session.get('research_description', '')
-    target_audience = session.get('target_audience', '')
-    questionnaire_purpose = session.get('questionnaire_purpose', '')
+    questionnaire = draft['questionnaire']
+    research_topic = draft.get('research_topic', 'Questionnaire')
+    research_description = draft.get('research_description', '')
+    target_audience = draft.get('target_audience', '')
+    questionnaire_purpose = draft.get('questionnaire_purpose', '')
     # Generate a filename
     filename = f"{research_topic.replace(' ', '_')}_questionnaire.pdf"
     # Create the PDF document

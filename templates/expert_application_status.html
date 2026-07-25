@@ -77,6 +77,7 @@
                                 </p>
                                 
                                 <form action="{{ url_for('expert.upload_resume') }}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <input type="hidden" name="application_id" value="{{ application.id }}">
                                     <div class="mb-3">
                                         <label for="resume" class="form-label">Upload Resume/CV (PDF, DOC, or DOCX)</label>
@@ -107,6 +108,7 @@
                                 </div>
                                 
                                 <form action="{{ url_for('expert.submit_additional_info') }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <input type="hidden" name="application_id" value="{{ application.id }}">
                                     <div class="mb-3">
                                         <label for="additional_info" class="form-label">Your Response</label>

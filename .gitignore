@@ -61,6 +61,8 @@ backup/
 history.json
 
 # Temporary files
+.pytest_cache/
+.pytest-tmp/
 *.tmp
 *.bak
 *_backup.*
