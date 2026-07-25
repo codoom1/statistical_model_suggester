@@ -370,8 +370,11 @@ def test_chatbot_guides_model_replacement_questions(
     assert "What other model can replace" in call.args[0]
     system_prompt = call.kwargs["system_prompt"]
     assert "verified compatible alternatives" in system_prompt
-    assert "3–6 concise bullets" in system_prompt
+    assert "at most 120 words" in system_prompt
+    assert "at most 3 concise bullets" in system_prompt
+    assert "with no preamble" in system_prompt
     assert "conditional option" in system_prompt
+    assert call.kwargs["max_output_tokens"] == 1_000
 
 
 def test_model_recommendation_can_use_ai_review(
