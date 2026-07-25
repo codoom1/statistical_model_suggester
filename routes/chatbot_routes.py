@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 chatbot_bp = Blueprint("chatbot", __name__, url_prefix="/chatbot")
 MAX_QUESTION_LENGTH = 1_000
 MAX_CONTEXT_LENGTH = 4_000
+CHATBOT_MAX_OUTPUT_TOKENS = 1_000
 
 
 @chatbot_bp.route("/ask", methods=["POST"])
@@ -88,13 +89,15 @@ def ask_question():
         "Do not claim that data, diagnostics, or assumptions were tested when "
         "they were not. For questions asking what could replace a recommended "
         "model, start with the verified compatible alternatives in the page "
-        "context. Give 3–6 concise bullets, each naming the alternative, when "
-        "it is preferable, and its main assumption or tradeoff. You may add "
+        "context. Summarize the answer in at most 120 words with no preamble. "
+        "Give at most 3 concise bullets, each naming the alternative, when it "
+        "is preferable, and its main assumption or tradeoff. You may add "
         "another model only when the stated design clearly supports it; label "
         "it as a conditional option rather than an engine-verified match. End "
-        "with the most important diagnostic or design fact needed to decide. "
-        "For other questions, answer concisely and state important assumptions "
-        "and uncertainty."
+        "with one short sentence naming the most important diagnostic or "
+        "design fact needed to decide. For other questions, answer in at most "
+        "120 words and state only the most important assumptions and "
+        "uncertainty."
     )
 
     try:
@@ -105,6 +108,7 @@ def ask_question():
             prompt,
             system_prompt=system_prompt,
             safety_identifier=safety_identifier,
+            max_output_tokens=CHATBOT_MAX_OUTPUT_TOKENS,
         )
     except OpenAIServiceError as exc:
         logger.warning(
