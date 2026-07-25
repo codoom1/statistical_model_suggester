@@ -56,10 +56,16 @@ Thumbs.db
 
 # Application specific
 /public/static/uploads/
+backup/
+*_backup/
+history.json
 
 # Temporary files
 *.tmp
 *.bak
+*_backup.*
+*_old.py
+*.orig
 *.swp
 *~
 
