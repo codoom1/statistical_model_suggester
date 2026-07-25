@@ -296,6 +296,42 @@ def test_chatbot_enforces_durable_user_quota(client, test_user, monkeypatch):
     assert AIUsageEvent.query.filter_by(user_id=test_user["id"]).count() == 1
 
 
+def test_chatbot_guides_model_replacement_questions(
+    client,
+    test_user,
+    monkeypatch,
+):
+    monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    _login(client, test_user)
+    page_context = (
+        "Recommended model: Linear Regression. "
+        "Analysis goal: predict. Outcome type: continuous. "
+        "Verified compatible alternatives: Ridge Regression, Random Forest."
+    )
+
+    with patch(
+        "routes.chatbot_routes.call_openai_api",
+        return_value="- Ridge Regression: preferable with collinearity.",
+    ) as generate:
+        response = client.post(
+            "/chatbot/ask",
+            json={
+                "question": "What other model can replace the recommended one?",
+                "context": page_context,
+            },
+        )
+
+    assert response.status_code == 200
+    call = generate.call_args
+    assert page_context in call.args[0]
+    assert "What other model can replace" in call.args[0]
+    system_prompt = call.kwargs["system_prompt"]
+    assert "verified compatible alternatives" in system_prompt
+    assert "3–6 concise bullets" in system_prompt
+    assert "conditional option" in system_prompt
+
+
 def test_model_recommendation_can_use_ai_review(
     client,
     test_user,
