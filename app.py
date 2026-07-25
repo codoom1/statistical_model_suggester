@@ -1,6 +1,5 @@
 import argparse
 import datetime
-import json
 import logging
 import os
 from pathlib import Path
@@ -14,6 +13,7 @@ from flask_wtf.csrf import CSRFError, CSRFProtect
 
 from models import User, db, initialize_postgres_extensions
 from utils.email_service import init_mail
+from utils.model_catalog import load_model_catalog
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -49,16 +49,7 @@ def _secret_key() -> str:
 
 
 def _load_model_database() -> dict:
-    model_db_path = BASE_DIR / "data" / "model_database.json"
-    if not model_db_path.is_file():
-        raise RuntimeError(f"Required model database is missing: {model_db_path}")
-
-    with model_db_path.open(encoding="utf-8") as model_db_file:
-        models_data = json.load(model_db_file)
-
-    if not isinstance(models_data, dict) or not models_data:
-        raise RuntimeError("The model database must be a non-empty JSON object.")
-    return models_data
+    return load_model_catalog(BASE_DIR)
 
 
 def _register_cli_commands(app: Flask) -> None:

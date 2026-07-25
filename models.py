@@ -231,11 +231,10 @@ def initialize_postgres_extensions(app):
 
 def get_model_details(model_name):
     try:
-        import os
-        model_db_path = os.path.join(os.path.dirname(__file__), 'data', 'model_database.json')
-        with open(model_db_path, 'r') as f:
-            models = json.load(f)
-        
+        from utils.model_catalog import load_model_catalog
+
+        models = load_model_catalog(os.path.dirname(__file__))
+
         # Get the model directly from the dictionary
         if model_name in models:
             return models[model_name]

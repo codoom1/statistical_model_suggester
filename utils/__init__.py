@@ -1,6 +1,7 @@
-import json
-import os
 import logging
+from pathlib import Path
+
+from utils.model_catalog import load_model_catalog
 
 logger = logging.getLogger(__name__)
 
@@ -12,9 +13,6 @@ def get_statistics():
     try:
         # Import Flask inside the function to avoid circular imports
         from flask import current_app        
-        # Get the path to model_database.json
-        model_db_path = os.path.join(current_app.root_path, 'data', 'model_database.json')
-        
         # Initialize statistics
         stats = {
             'models_count': 0,
@@ -22,24 +20,8 @@ def get_statistics():
             'verification_rate': '100%'  # Default value
         }
         
-        # Read and count models from the database
-        if os.path.exists(model_db_path):
-            with open(model_db_path, 'r') as f:
-                model_db = json.load(f)
-                
-                # Count all models recursively
-                def count_models(data):
-                    count = 0
-                    if isinstance(data, dict):
-                        # Count items that have 'implementation' or 'description' keys
-                        if 'implementation' in data or 'description' in data:
-                            count += 1
-                        # Recursively count models in nested dictionaries
-                        for value in data.values():
-                            count += count_models(value)
-                    return count
-                
-                stats['models_count'] = count_models(model_db)
+        model_db = load_model_catalog(Path(current_app.root_path))
+        stats['models_count'] = len(model_db)
                 
         return stats
     

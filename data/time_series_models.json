@@ -1,0 +1,485 @@
+{
+  "Autoregressive (AR) Model": {
+    "description": "Models a stationary series as a linear function of its own previous values.",
+    "when_to_use": "Use when current values primarily depend on a short history of past observations and no moving-average component is needed.",
+    "assumptions": ["Weak stationarity", "Stable autoregressive roots", "Residuals are approximately white noise"],
+    "use_cases": ["short-memory forecasting", "lag-effect estimation"],
+    "analysis_goals": ["time_series", "predict"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["medium", "large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["normal", "non_normal"],
+    "relationship_type": ["linear"],
+    "implementation": {
+      "python": {
+        "code": "from statsmodels.tsa.ar_model import AutoReg\nmodel = AutoReg(y, lags=3, old_names=False).fit()",
+        "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.ar_model.AutoReg.html"
+      },
+      "r": {
+        "code": "model <- arima(y, order=c(3, 0, 0))",
+        "documentation": "https://stat.ethz.ch/R-manual/R-devel/library/stats/html/arima.html"
+      }
+    }
+  },
+  "Moving Average (MA) Model": {
+    "description": "Models a stationary series using present and past random shocks rather than lagged observations directly.",
+    "when_to_use": "Use when autocorrelation cuts off after a small number of lags and shock effects persist briefly.",
+    "assumptions": ["Weak stationarity", "Invertible moving-average process", "Innovations are uncorrelated"],
+    "use_cases": ["shock-response forecasting", "short-memory errors"],
+    "analysis_goals": ["time_series", "predict"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["medium", "large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["normal", "non_normal"],
+    "relationship_type": ["linear"],
+    "implementation": {
+      "python": {
+        "code": "from statsmodels.tsa.arima.model import ARIMA\nmodel = ARIMA(y, order=(0, 0, 2)).fit()",
+        "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.arima.model.ARIMA.html"
+      },
+      "r": {
+        "code": "model <- arima(y, order=c(0, 0, 2))",
+        "documentation": "https://stat.ethz.ch/R-manual/R-devel/library/stats/html/arima.html"
+      }
+    }
+  },
+  "Autoregressive Moving Average (ARMA) Model": {
+    "description": "Combines autoregressive lags and moving-average shocks for a stationary univariate series.",
+    "when_to_use": "Use for stationary series whose autocorrelation and partial autocorrelation both decay rather than cut off cleanly.",
+    "assumptions": ["Weak stationarity", "Causal and invertible process", "Residuals are approximately white noise"],
+    "use_cases": ["stationary forecasting", "compact lag and shock models"],
+    "analysis_goals": ["time_series", "predict"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["medium", "large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["normal", "non_normal"],
+    "relationship_type": ["linear"],
+    "implementation": {
+      "python": {
+        "code": "from statsmodels.tsa.arima.model import ARIMA\nmodel = ARIMA(y, order=(2, 0, 1)).fit()",
+        "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.arima.model.ARIMA.html"
+      },
+      "r": {
+        "code": "model <- arima(y, order=c(2, 0, 1))",
+        "documentation": "https://stat.ethz.ch/R-manual/R-devel/library/stats/html/arima.html"
+      }
+    }
+  },
+  "Seasonal ARIMA (SARIMA)": {
+    "description": "Extends ARIMA with seasonal autoregressive, differencing, and moving-average terms.",
+    "when_to_use": "Use for a univariate series with a stable repeating seasonal cycle after appropriate differencing.",
+    "assumptions": ["Regular seasonal frequency", "Stationarity after ordinary and seasonal differencing", "Residuals are approximately white noise"],
+    "use_cases": ["seasonal forecasting", "monthly and quarterly series"],
+    "analysis_goals": ["time_series", "predict"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["medium", "large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["normal", "non_normal"],
+    "relationship_type": ["linear"],
+    "implementation": {
+      "python": {
+        "code": "from statsmodels.tsa.statespace.sarimax import SARIMAX\nmodel = SARIMAX(y, order=(1,1,1), seasonal_order=(1,1,1,12)).fit()",
+        "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.sarimax.SARIMAX.html"
+      },
+      "r": {
+        "code": "library(forecast)\nmodel <- Arima(y, order=c(1,1,1), seasonal=c(1,1,1))",
+        "documentation": "https://cran.r-project.org/package=forecast"
+      }
+    }
+  },
+  "Holt-Winters Model": {
+    "description": "Uses exponentially weighted level, trend, and seasonal components with additive or multiplicative seasonality.",
+    "when_to_use": "Use for seasonal univariate data when level and trend evolve smoothly over time.",
+    "assumptions": ["Regular observation frequency", "Stable seasonal pattern", "Additive or multiplicative component form is appropriate"],
+    "use_cases": ["seasonal demand forecasting", "trend-seasonal series"],
+    "analysis_goals": ["time_series", "predict"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["small", "medium", "large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["normal", "non_normal"],
+    "relationship_type": ["non_linear"],
+    "implementation": {
+      "python": {
+        "code": "from statsmodels.tsa.holtwinters import ExponentialSmoothing\nmodel = ExponentialSmoothing(y, trend='add', seasonal='mul', seasonal_periods=12).fit()",
+        "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.holtwinters.ExponentialSmoothing.html"
+      },
+      "r": {
+        "code": "model <- HoltWinters(y, seasonal='multiplicative')",
+        "documentation": "https://stat.ethz.ch/R-manual/R-devel/library/stats/html/HoltWinters.html"
+      }
+    }
+  },
+  "Vector Autoregression (VAR)": {
+    "description": "Models several stationary time series jointly, with each variable depending on lags of every variable.",
+    "when_to_use": "Use when multiple endogenous series influence one another and joint forecasts or impulse responses are required.",
+    "assumptions": ["Joint stationarity", "Stable lag system", "Sufficient observations for the parameter count", "Residuals have limited serial correlation"],
+    "use_cases": ["multivariate forecasting", "impulse response analysis"],
+    "analysis_goals": ["time_series", "predict", "explore relationships"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["normal", "non_normal"],
+    "relationship_type": ["linear"],
+    "implementation": {
+      "python": {
+        "code": "from statsmodels.tsa.api import VAR\nmodel = VAR(data).fit(maxlags=4, ic='aic')",
+        "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.vector_ar.var_model.VAR.html"
+      },
+      "r": {
+        "code": "library(vars)\nmodel <- VAR(data, lag.max=4, ic='AIC')",
+        "documentation": "https://cran.r-project.org/package=vars"
+      }
+    }
+  },
+  "Vector Error Correction Model (VECM)": {
+    "description": "Models short-run changes among nonstationary series while preserving one or more long-run cointegrating relationships.",
+    "when_to_use": "Use for multiple integrated series that are empirically cointegrated.",
+    "assumptions": ["Series share the same integration order", "Cointegration rank is correctly selected", "Lag structure is adequate", "Parameters are stable"],
+    "use_cases": ["cointegrated systems", "long-run equilibrium analysis"],
+    "analysis_goals": ["time_series", "predict", "explore relationships"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["normal", "non_normal"],
+    "relationship_type": ["linear"],
+    "implementation": {
+      "python": {
+        "code": "from statsmodels.tsa.vector_ar.vecm import VECM\nmodel = VECM(data, k_ar_diff=2, coint_rank=1).fit()",
+        "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.vector_ar.vecm.VECM.html"
+      },
+      "r": {
+        "code": "library(urca)\nmodel <- ca.jo(data, type='trace', K=3, ecdet='const')",
+        "documentation": "https://cran.r-project.org/package=urca"
+      }
+    }
+  },
+  "State Space Model": {
+    "description": "Represents an observed series through evolving unobserved states and separate transition and observation equations.",
+    "when_to_use": "Use when latent level, trend, cycles, measurement error, missing observations, or time-varying components must be modeled explicitly.",
+    "assumptions": ["State transition and observation equations are appropriate", "Noise structure is specified correctly", "The system is identifiable"],
+    "use_cases": ["latent-state forecasting", "structural time series", "missing observations"],
+    "analysis_goals": ["time_series", "predict", "explore"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["medium", "large"],
+    "missing_data": ["none", "random", "handled_automatically"],
+    "data_distribution": ["normal", "non_normal"],
+    "relationship_type": ["linear", "non_linear"],
+    "implementation": {
+      "python": {
+        "code": "from statsmodels.tsa.statespace.structural import UnobservedComponents\nmodel = UnobservedComponents(y, level='local linear trend', seasonal=12).fit()",
+        "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.structural.UnobservedComponents.html"
+      },
+      "r": {
+        "code": "library(KFAS)\nmodel <- SSModel(y ~ SSMtrend(2) + SSMseasonal(12), H=NA)",
+        "documentation": "https://cran.r-project.org/package=KFAS"
+      }
+    }
+  },
+  "Bayesian Structural Time Series (BSTS)": {
+    "description": "A Bayesian state-space model combining structural components, regression effects, and posterior predictive uncertainty.",
+    "when_to_use": "Use when trend, seasonality, interventions, variable selection, and full probabilistic uncertainty should be estimated together.",
+    "assumptions": ["Structural components are well specified", "Priors are defensible", "Posterior sampling converges", "Predictors are available over the forecast horizon"],
+    "use_cases": ["probabilistic forecasting", "intervention analysis", "Bayesian variable selection"],
+    "analysis_goals": ["time_series", "predict", "robust_prediction"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous", "categorical", "binary"],
+    "sample_size": ["medium", "large"],
+    "missing_data": ["none", "random"],
+    "data_distribution": ["normal", "non_normal"],
+    "relationship_type": ["linear"],
+    "implementation": {
+      "python": {
+        "code": "import pymc as pm\nwith pm.Model() as model:\n    trend = pm.GaussianRandomWalk('trend', sigma=1, shape=len(y))\n    observed = pm.Normal('observed', trend, sigma=1, observed=y)",
+        "documentation": "https://www.pymc.io/"
+      },
+      "r": {
+        "code": "library(bsts)\nmodel <- bsts(y ~ x1 + x2, state.specification=AddLocalLinearTrend(list(), y), niter=2000)",
+        "documentation": "https://cran.r-project.org/package=bsts"
+      }
+    }
+  },
+  "Dynamic Linear Model (DLM)": {
+    "description": "A linear Gaussian state-space model whose regression coefficients or latent states can evolve over time.",
+    "when_to_use": "Use when relationships change gradually and sequential updating or time-varying coefficients are important.",
+    "assumptions": ["Linear state and observation equations", "Gaussian disturbances unless extended", "Evolution variances are identifiable"],
+    "use_cases": ["time-varying regression", "online forecasting", "dynamic coefficients"],
+    "analysis_goals": ["time_series", "predict"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous", "categorical", "binary"],
+    "sample_size": ["medium", "large"],
+    "missing_data": ["none", "random", "handled_automatically"],
+    "data_distribution": ["normal"],
+    "relationship_type": ["linear"],
+    "implementation": {
+      "python": {
+        "code": "from pydlm import dlm, trend, dynamic\nmodel = dlm(y) + trend(1, 0.1) + dynamic(features=X, discount=0.99)\nmodel.fit()",
+        "documentation": "https://pydlm.github.io/"
+      },
+      "r": {
+        "code": "library(dlm)\nmodel <- dlmModPoly(order=2, dV=1, dW=c(0.1, 0.1))",
+        "documentation": "https://cran.r-project.org/package=dlm"
+      }
+    }
+  },
+  "Stochastic Volatility Model": {
+    "description": "Treats latent log-volatility as its own stochastic time series rather than a deterministic function of past squared errors.",
+    "when_to_use": "Use for financial or economic series with persistent, uncertain volatility and a need for posterior volatility intervals.",
+    "assumptions": ["Return mean is adequately modeled", "Latent volatility dynamics are appropriate", "Posterior sampling converges"],
+    "use_cases": ["latent volatility estimation", "financial risk forecasting"],
+    "analysis_goals": ["time_series", "estimate financial risk", "measure tail risk"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["non_normal", "heavy_tailed"],
+    "relationship_type": ["non_linear"],
+    "implementation": {
+      "python": {
+        "code": "import pymc as pm\nwith pm.Model() as model:\n    step = pm.GaussianRandomWalk('log_volatility', sigma=0.2, shape=len(returns))\n    observed = pm.Normal('returns', 0, sigma=pm.math.exp(step / 2), observed=returns)",
+        "documentation": "https://www.pymc.io/"
+      },
+      "r": {
+        "code": "library(stochvol)\nmodel <- svsample(returns, draws=5000, burnin=1000)",
+        "documentation": "https://cran.r-project.org/package=stochvol"
+      }
+    }
+  },
+  "Threshold Autoregressive (TAR) Model": {
+    "description": "Uses different autoregressive equations when a threshold variable crosses estimated or specified regimes.",
+    "when_to_use": "Use when series dynamics change abruptly above and below meaningful thresholds.",
+    "assumptions": ["Regime-specific dynamics are stable", "Threshold variable and delay are appropriate", "Each regime has sufficient observations"],
+    "use_cases": ["asymmetric cycles", "threshold effects", "nonlinear autoregression"],
+    "analysis_goals": ["time_series", "predict"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["normal", "non_normal"],
+    "relationship_type": ["non_linear"],
+    "implementation": {
+      "python": {
+        "code": "from statsmodels.tsa.tsatools import lagmat\n# Fit separate autoregressions above and below a validated threshold.",
+        "documentation": "https://www.statsmodels.org/stable/tsa.html"
+      },
+      "r": {
+        "code": "library(tsDyn)\nmodel <- setar(y, m=3, thDelay=1)",
+        "documentation": "https://cran.r-project.org/package=tsDyn"
+      }
+    }
+  },
+  "Markov Switching Model": {
+    "description": "Allows regression or autoregressive parameters to switch between latent regimes governed by a Markov process.",
+    "when_to_use": "Use when data appear to alternate between persistent unobserved states such as expansion and recession.",
+    "assumptions": ["A small number of latent regimes is adequate", "Transition probabilities are stable", "Regimes are identifiable"],
+    "use_cases": ["business-cycle regimes", "structural breaks", "switching volatility"],
+    "analysis_goals": ["time_series", "predict", "explore"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["normal", "non_normal"],
+    "relationship_type": ["non_linear"],
+    "implementation": {
+      "python": {
+        "code": "from statsmodels.tsa.regime_switching.markov_autoregression import MarkovAutoregression\nmodel = MarkovAutoregression(y, k_regimes=2, order=2, switching_variance=True).fit()",
+        "documentation": "https://www.statsmodels.org/stable/generated/statsmodels.tsa.regime_switching.markov_autoregression.MarkovAutoregression.html"
+      },
+      "r": {
+        "code": "library(MSwM)\nmodel <- msmFit(lm(y ~ lag1), k=2, p=0)",
+        "documentation": "https://cran.r-project.org/package=MSwM"
+      }
+    }
+  },
+  "Recurrent Neural Network for Time Series": {
+    "description": "A neural sequence model with recurrent hidden state for learning nonlinear temporal dependencies.",
+    "when_to_use": "Use for large datasets with nonlinear sequential patterns when simpler statistical models have been benchmarked.",
+    "assumptions": ["Training and deployment distributions are comparable", "Sequence windows prevent leakage", "Regularization and held-out validation are used"],
+    "use_cases": ["nonlinear sequence forecasting", "multistep prediction"],
+    "analysis_goals": ["time_series", "predict", "flexible_prediction"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous", "categorical", "binary"],
+    "sample_size": ["large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["any"],
+    "relationship_type": ["non_linear"],
+    "implementation": {
+      "python": {
+        "code": "from tensorflow.keras import Sequential\nfrom tensorflow.keras.layers import SimpleRNN, Dense\nmodel = Sequential([SimpleRNN(32, input_shape=(lookback, n_features)), Dense(1)])",
+        "documentation": "https://keras.io/api/layers/recurrent_layers/simple_rnn/"
+      },
+      "r": {
+        "code": "library(keras)\nmodel <- keras_model_sequential() |> layer_simple_rnn(32, input_shape=c(lookback, n_features)) |> layer_dense(1)",
+        "documentation": "https://keras.posit.co/"
+      }
+    }
+  },
+  "Long Short-Term Memory (LSTM)": {
+    "description": "A gated recurrent neural network designed to retain information over longer temporal spans.",
+    "when_to_use": "Use with substantial training data when long-range nonlinear dependencies outperform simpler baselines.",
+    "assumptions": ["Large representative training sample", "Leakage-safe temporal validation", "Architecture and regularization are tuned on validation data"],
+    "use_cases": ["long-dependency forecasting", "multivariate sequences"],
+    "analysis_goals": ["time_series", "predict", "flexible_prediction"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous", "categorical", "binary"],
+    "sample_size": ["large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["any"],
+    "relationship_type": ["non_linear"],
+    "implementation": {
+      "python": {
+        "code": "from tensorflow.keras import Sequential\nfrom tensorflow.keras.layers import LSTM, Dense\nmodel = Sequential([LSTM(64, input_shape=(lookback, n_features)), Dense(1)])",
+        "documentation": "https://keras.io/api/layers/recurrent_layers/lstm/"
+      },
+      "r": {
+        "code": "library(keras)\nmodel <- keras_model_sequential() |> layer_lstm(64, input_shape=c(lookback, n_features)) |> layer_dense(1)",
+        "documentation": "https://keras.posit.co/"
+      }
+    }
+  },
+  "Gated Recurrent Unit (GRU)": {
+    "description": "A gated recurrent neural network similar to LSTM but with fewer parameters and a simpler state update.",
+    "when_to_use": "Use as a computationally lighter recurrent alternative for large nonlinear sequence datasets.",
+    "assumptions": ["Representative training data", "Leakage-safe temporal validation", "Sequence length and regularization are validated"],
+    "use_cases": ["efficient sequence forecasting", "nonlinear temporal prediction"],
+    "analysis_goals": ["time_series", "predict", "flexible_prediction"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous", "categorical", "binary"],
+    "sample_size": ["large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["any"],
+    "relationship_type": ["non_linear"],
+    "implementation": {
+      "python": {
+        "code": "from tensorflow.keras import Sequential\nfrom tensorflow.keras.layers import GRU, Dense\nmodel = Sequential([GRU(64, input_shape=(lookback, n_features)), Dense(1)])",
+        "documentation": "https://keras.io/api/layers/recurrent_layers/gru/"
+      },
+      "r": {
+        "code": "library(keras)\nmodel <- keras_model_sequential() |> layer_gru(64, input_shape=c(lookback, n_features)) |> layer_dense(1)",
+        "documentation": "https://keras.posit.co/"
+      }
+    }
+  },
+  "Temporal Convolutional Network (TCN)": {
+    "description": "Uses causal dilated one-dimensional convolutions to model long sequence histories without recurrent connections.",
+    "when_to_use": "Use for large sequence datasets when parallel training and a long receptive field are useful.",
+    "assumptions": ["Causal padding prevents future leakage", "Receptive field covers relevant history", "Temporal validation is used"],
+    "use_cases": ["long-horizon sequences", "multichannel forecasting"],
+    "analysis_goals": ["time_series", "predict", "flexible_prediction"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous", "categorical", "binary"],
+    "sample_size": ["large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["any"],
+    "relationship_type": ["non_linear"],
+    "implementation": {
+      "python": {
+        "code": "from tcn import TCN\nfrom tensorflow.keras import Sequential\nfrom tensorflow.keras.layers import Dense\nmodel = Sequential([TCN(input_shape=(lookback, n_features)), Dense(1)])",
+        "documentation": "https://github.com/philipperemy/keras-tcn"
+      },
+      "r": {
+        "code": "library(keras)\n# Stack causal Conv1D layers with increasing dilation rates, then add a dense output.",
+        "documentation": "https://keras.posit.co/reference/layer_conv_1d.html"
+      }
+    }
+  },
+  "Gradient Boosting for Time Series": {
+    "description": "Applies boosted decision trees to lagged, rolling, calendar, and external features derived without future leakage.",
+    "when_to_use": "Use for nonlinear forecasting with rich covariates and carefully engineered temporal features.",
+    "assumptions": ["Features are available at prediction time", "Lag construction prevents leakage", "Evaluation uses rolling or blocked temporal splits"],
+    "use_cases": ["feature-rich forecasting", "nonlinear demand prediction"],
+    "analysis_goals": ["time_series", "predict", "flexible_prediction"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous", "categorical", "binary"],
+    "sample_size": ["large"],
+    "missing_data": ["none", "imputed", "handled_automatically"],
+    "data_distribution": ["any"],
+    "relationship_type": ["non_linear"],
+    "implementation": {
+      "python": {
+        "code": "from xgboost import XGBRegressor\nmodel = XGBRegressor(n_estimators=500, max_depth=4).fit(X_lagged, y)",
+        "documentation": "https://xgboost.readthedocs.io/"
+      },
+      "r": {
+        "code": "library(xgboost)\nmodel <- xgboost(data=as.matrix(X_lagged), label=y, nrounds=500, max_depth=4)",
+        "documentation": "https://xgboost.readthedocs.io/"
+      }
+    }
+  },
+  "Random Forest for Time Series": {
+    "description": "Uses an ensemble of randomized regression trees on lagged and calendar features to capture nonlinear temporal relationships.",
+    "when_to_use": "Use for nonlinear forecasting with sufficient observations, useful lag features, and limited extrapolation needs.",
+    "assumptions": ["Features are available at forecast time", "Temporal feature construction avoids leakage", "Blocked or rolling validation is used"],
+    "use_cases": ["nonlinear lag forecasting", "feature-rich time series"],
+    "analysis_goals": ["time_series", "predict", "flexible_prediction"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous", "categorical", "binary"],
+    "sample_size": ["large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["any"],
+    "relationship_type": ["non_linear"],
+    "implementation": {
+      "python": {
+        "code": "from sklearn.ensemble import RandomForestRegressor\nmodel = RandomForestRegressor(n_estimators=500, random_state=42).fit(X_lagged, y)",
+        "documentation": "https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html"
+      },
+      "r": {
+        "code": "library(ranger)\nmodel <- ranger(y ~ ., data=lagged_data, num.trees=500)",
+        "documentation": "https://cran.r-project.org/package=ranger"
+      }
+    }
+  },
+  "Wavelet Transform Model": {
+    "description": "Decomposes a series into localized time-frequency components that can be denoised, analyzed, or forecast separately.",
+    "when_to_use": "Use for nonstationary signals with behavior occurring at several time scales or transient frequency patterns.",
+    "assumptions": ["Wavelet family and decomposition level are appropriate", "Boundary effects are handled", "Forecast reconstruction is validated"],
+    "use_cases": ["multiscale forecasting", "signal denoising", "time-frequency analysis"],
+    "analysis_goals": ["time_series", "predict", "explore"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["medium", "large"],
+    "missing_data": ["none", "imputed"],
+    "data_distribution": ["any"],
+    "relationship_type": ["non_linear"],
+    "implementation": {
+      "python": {
+        "code": "import pywt\ncoefficients = pywt.wavedec(y, 'db4', level=4)\nreconstructed = pywt.waverec(coefficients, 'db4')",
+        "documentation": "https://pywavelets.readthedocs.io/"
+      },
+      "r": {
+        "code": "library(wavelets)\ncomponents <- dwt(y, filter='d4', n.levels=4)",
+        "documentation": "https://cran.r-project.org/package=wavelets"
+      }
+    }
+  },
+  "Kalman Filter": {
+    "description": "Recursively estimates the hidden state of a linear Gaussian dynamic system as new observations arrive.",
+    "when_to_use": "Use for online state estimation, smoothing, sensor fusion, missing observations, or forecasting in a specified state-space system.",
+    "assumptions": ["Linear transition and observation equations", "Gaussian process and measurement noise", "Known or estimable covariance matrices"],
+    "use_cases": ["online filtering", "state estimation", "sensor fusion"],
+    "analysis_goals": ["time_series", "predict"],
+    "dependent_variable": ["continuous"],
+    "independent_variables": ["continuous"],
+    "sample_size": ["small", "medium", "large"],
+    "missing_data": ["none", "random", "handled_automatically"],
+    "data_distribution": ["normal"],
+    "relationship_type": ["linear"],
+    "implementation": {
+      "python": {
+        "code": "from filterpy.kalman import KalmanFilter\nfilter_model = KalmanFilter(dim_x=2, dim_z=1)\n# Set F, H, Q, R, P and then call predict() and update(z) sequentially.",
+        "documentation": "https://filterpy.readthedocs.io/"
+      },
+      "r": {
+        "code": "library(KFAS)\nmodel <- SSModel(y ~ SSMtrend(2), H=NA)\nfiltered <- KFS(fitSSM(model, inits=c(0,0))$model)",
+        "documentation": "https://cran.r-project.org/package=KFAS"
+      }
+    }
+  }
+}

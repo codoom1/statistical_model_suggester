@@ -49,6 +49,149 @@ class TestMainRoutes:
         }
         assert grouped_models <= known_models
 
+    def test_expanded_model_families_are_available(self, app, client):
+        with app.app_context():
+            known_models = app.config['MODEL_DATABASE']
+
+        assert len(known_models) == 81
+        assert 'Value at Risk (VaR)' in known_models
+        assert 'Likelihood Ratio Evidence Model' in known_models
+
+        risk_response = client.get('/models/Risk%20Models')
+        forensic_response = client.get('/models/Forensic%20Models')
+
+        assert risk_response.status_code == 200
+        assert b'Conditional Value at Risk' in risk_response.data
+        assert forensic_response.status_code == 200
+        assert b'Benford Law Analysis' in forensic_response.data
+
+    def test_time_series_group_contains_complete_project_inventory(
+        self,
+        app,
+        client,
+    ):
+        expected_models = {
+            'Autoregressive (AR) Model',
+            'Moving Average (MA) Model',
+            'Autoregressive Moving Average (ARMA) Model',
+            'ARIMA',
+            'Seasonal ARIMA (SARIMA)',
+            'Exponential Smoothing',
+            'Holt-Winters Model',
+            'Vector Autoregression (VAR)',
+            'Vector Error Correction Model (VECM)',
+            'State Space Model',
+            'Bayesian Structural Time Series (BSTS)',
+            'Dynamic Linear Model (DLM)',
+            'GARCH',
+            'Stochastic Volatility Model',
+            'Threshold Autoregressive (TAR) Model',
+            'Markov Switching Model',
+            'Recurrent Neural Network for Time Series',
+            'Long Short-Term Memory (LSTM)',
+            'Gated Recurrent Unit (GRU)',
+            'Temporal Convolutional Network (TCN)',
+            'Gradient Boosting for Time Series',
+            'Random Forest for Time Series',
+            'Prophet',
+            'Wavelet Transform Model',
+            'Kalman Filter',
+        }
+
+        with app.app_context():
+            known_models = set(app.config['MODEL_DATABASE'])
+
+        assert expected_models <= known_models
+        assert expected_models <= set(MODEL_GROUPS['Time Series Models'])
+
+        response = client.get('/models/Time%20Series%20Models')
+        assert response.status_code == 200
+        for model_name in expected_models:
+            assert model_name.encode() in response.data
+
+    def test_time_series_models_do_not_leak_into_cross_sectional_prediction(
+        self,
+        app,
+    ):
+        from routes.main_routes import get_model_recommendation
+
+        with app.app_context():
+            recommended, _explanation, alternatives = get_model_recommendation(
+                analysis_goal='predict',
+                dependent_variable='continuous',
+                independent_variables=['continuous'],
+                sample_size=500,
+                missing_data='none',
+                data_distribution='non_normal',
+                relationship_type='non_linear',
+                variables_correlated='unknown',
+            )
+
+        time_series_models = set(MODEL_GROUPS['Time Series Models'])
+        assert recommended not in time_series_models
+        assert time_series_models.isdisjoint(alternatives)
+
+    def test_generic_time_series_request_keeps_arima_as_baseline(self, app):
+        from routes.main_routes import get_model_recommendation
+
+        with app.app_context():
+            recommended, _explanation, alternatives = get_model_recommendation(
+                analysis_goal='time_series',
+                dependent_variable='time_series',
+                independent_variables=['continuous'],
+                sample_size=200,
+                missing_data='none',
+                data_distribution='non_normal',
+                relationship_type='linear',
+                variables_correlated='unknown',
+            )
+
+        assert recommended == 'ARIMA'
+        assert alternatives
+        assert set(alternatives) <= set(MODEL_GROUPS['Time Series Models'])
+
+    def test_expanded_analysis_goals_produce_family_recommendations(self, client):
+        common_data = {
+            'sample_size': '500',
+            'missing_data': 'none',
+            'data_distribution': 'non_normal',
+            'relationship_type': 'non_linear',
+            'variables_correlated': 'unknown',
+            'independent_variables': 'continuous',
+        }
+
+        risk_response = client.post('/results', data={
+            **common_data,
+            'research_question': 'How much downside risk does this portfolio have?',
+            'analysis_goal': 'risk_assessment',
+            'dependent_variable_type': 'continuous',
+        })
+        forensic_response = client.post('/results', data={
+            **common_data,
+            'research_question': 'Which records should investigators review?',
+            'analysis_goal': 'forensic_analysis',
+            'dependent_variable_type': 'binary',
+        })
+
+        assert risk_response.status_code == 200
+        assert any(
+            model in risk_response.data
+            for model in (
+                b'Value at Risk',
+                b'Conditional Value at Risk',
+                b'Monte Carlo Risk Simulation',
+                b'GARCH',
+            )
+        )
+        assert forensic_response.status_code == 200
+        assert any(
+            model in forensic_response.data
+            for model in (
+                b'Likelihood Ratio Evidence Model',
+                b'Forensic Anomaly Detection',
+            )
+        )
+
     def test_generic_model_links_open_full_catalog(
         self,
         client,

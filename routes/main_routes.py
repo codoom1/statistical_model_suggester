@@ -55,6 +55,16 @@ GOAL_COMPATIBILITY = {
     },
     'non_parametric': {'test', 'compare', 'rank'},
     'time_series': {'time_series'},
+    'risk_assessment': {
+        'estimate financial risk',
+        'measure tail risk',
+        'simulate risk',
+    },
+    'forensic_analysis': {
+        'evaluate forensic evidence',
+        'detect forensic anomalies',
+        'screen financial records',
+    },
 }
 
 OUTCOME_COMPATIBILITY = {
@@ -170,10 +180,40 @@ MODEL_GROUPS = OrderedDict([
         'Lasso Regression',
         'Elastic Net Regression',
         'Kernel Regression',
+        'Negative Binomial Regression',
+        'Zero-Inflated Poisson',
+        'Quantile Regression',
+        'Partial Least Squares',
+        'Generalized Additive Model',
         'Bayesian Quantile Regression',
     ]),
     ('Time Series Models', [
+        'Autoregressive (AR) Model',
+        'Moving Average (MA) Model',
+        'Autoregressive Moving Average (ARMA) Model',
         'ARIMA',
+        'Seasonal ARIMA (SARIMA)',
+        'ARIMAX',
+        'Exponential Smoothing',
+        'Holt-Winters Model',
+        'Vector Autoregression (VAR)',
+        'Vector Error Correction Model (VECM)',
+        'State Space Model',
+        'Bayesian Structural Time Series (BSTS)',
+        'Dynamic Linear Model (DLM)',
+        'Prophet',
+        'GARCH',
+        'Stochastic Volatility Model',
+        'Threshold Autoregressive (TAR) Model',
+        'Markov Switching Model',
+        'Recurrent Neural Network for Time Series',
+        'Long Short-Term Memory (LSTM)',
+        'Gated Recurrent Unit (GRU)',
+        'Temporal Convolutional Network (TCN)',
+        'Gradient Boosting for Time Series',
+        'Random Forest for Time Series',
+        'Wavelet Transform Model',
+        'Kalman Filter',
     ]),
     ('Multivariate Analysis', [
         'Principal Component Analysis (PCA)',
@@ -182,6 +222,7 @@ MODEL_GROUPS = OrderedDict([
         'Discriminant Analysis',
         'Canonical Correlation',
         'Multidimensional Scaling',
+        'Partial Least Squares',
         'Multivariate Analysis of Covariance (MANCOVA)',
         'Multivariate Analysis of Variance (MANOVA)',
     ]),
@@ -210,10 +251,22 @@ MODEL_GROUPS = OrderedDict([
         'Kaplan-Meier Curve'
     ]),
     ('Bayesian Models', [
+        'Bayesian Linear Regression',
         'Bayesian Hierarchical Regression',
         'Bayesian Model Averaging',
         'Bayesian Quantile Regression',
         'Bayesian Additive Regression Trees (BART)'
+    ]),
+    ('Risk Models', [
+        'Value at Risk (VaR)',
+        'Conditional Value at Risk (CVaR)',
+        'Monte Carlo Risk Simulation',
+        'GARCH',
+    ]),
+    ('Forensic Models', [
+        'Likelihood Ratio Evidence Model',
+        'Benford Law Analysis',
+        'Forensic Anomaly Detection',
     ]),
 ])
 # Make model groups available to all templates
@@ -246,13 +299,45 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
                      'Lasso Regression', 'Elastic Net Regression'],
         'tree_based': ['Decision Trees', 'Random Forest', 'Gradient Boosting', 'XGBoost', 'LightGBM', 'CatBoost'],
         'bayesian': ['Bayesian Hierarchical Regression', 'Bayesian Model Averaging',
-                    'Bayesian Quantile Regression', 'Bayesian Additive Regression Trees (BART)'],
+                    'Bayesian Quantile Regression', 'Bayesian Linear Regression',
+                    'Bayesian Additive Regression Trees (BART)'],
         'hierarchical': ['Mixed Effects Model', 'Bayesian Hierarchical Regression'],
         'neural_network': ['Neural Networks'],
         'nonparametric': ['Support Vector Machines (SVM)', 'K-Nearest Neighbors (KNN)', 'Kernel Regression'],
         'dimensionality_reduction': ['Principal Component Analysis (PCA)', 'Factor Analysis', 'Multidimensional Scaling'],
         'clustering': ['K-Means clustering'],
-        'time_series': ['ARIMA'],
+        'time_series_classical': [
+            'Autoregressive (AR) Model', 'Moving Average (MA) Model',
+            'Autoregressive Moving Average (ARMA) Model', 'ARIMA',
+            'Seasonal ARIMA (SARIMA)', 'ARIMAX', 'Exponential Smoothing',
+            'Holt-Winters Model', 'Prophet',
+        ],
+        'time_series_multivariate': [
+            'Vector Autoregression (VAR)',
+            'Vector Error Correction Model (VECM)',
+        ],
+        'time_series_state_space': [
+            'State Space Model', 'Bayesian Structural Time Series (BSTS)',
+            'Dynamic Linear Model (DLM)', 'Kalman Filter',
+        ],
+        'time_series_volatility': ['GARCH', 'Stochastic Volatility Model'],
+        'time_series_regime': [
+            'Threshold Autoregressive (TAR) Model',
+            'Markov Switching Model',
+        ],
+        'time_series_deep': [
+            'Recurrent Neural Network for Time Series',
+            'Long Short-Term Memory (LSTM)', 'Gated Recurrent Unit (GRU)',
+            'Temporal Convolutional Network (TCN)',
+        ],
+        'time_series_ensemble': [
+            'Gradient Boosting for Time Series', 'Random Forest for Time Series',
+        ],
+        'time_series_signal': ['Wavelet Transform Model'],
+        'risk': ['Value at Risk (VaR)', 'Conditional Value at Risk (CVaR)',
+                 'Monte Carlo Risk Simulation'],
+        'forensic': ['Likelihood Ratio Evidence Model', 'Benford Law Analysis',
+                     'Forensic Anomaly Detection'],
         'hypothesis_testing': ['T test', 'Chi-Square Test', 'Mann-Whitney U Test', 'Kruskal-Wallis Test',
                               'Analysis of Variance (ANOVA)', 'Analysis of Covariance (ANCOVA)']
     }
@@ -261,6 +346,12 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
     for family, models in model_families.items():
         for model in models:
             model_to_family[model] = family
+    time_series_models = {
+        model
+        for family, models in model_families.items()
+        if family.startswith('time_series_')
+        for model in models
+    }
     # Define clustering models (these don't require a dependent variable)
     clustering_models = ['K-Means clustering']
     # For clustering analysis, ensure we have a default dependent variable if not provided
@@ -271,6 +362,15 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
     for model_name, model in MODEL_DATABASE.items():
         score = 0
         current_app.logger.debug(f"SCORING {model_name}: Starting score = {score}")
+        if (
+            model_name in time_series_models
+            and analysis_goal != 'time_series'
+            and not (
+                model_name in {'GARCH', 'Stochastic Volatility Model'}
+                and analysis_goal == 'risk_assessment'
+            )
+        ):
+            continue
         # Check analysis goal compatibility - heavily weighted
         if _supports_goal(analysis_goal, model.get('analysis_goals', [])):
             score += 3
@@ -340,7 +440,7 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
             score += 1.5
             current_app.logger.debug(f"  + Correlated variable compatibility: +1.5 → {score}")
         # Models that assume independent variables - slight penalty for correlated data
-        if variables_correlated == 'yes' and model_name in ['Linear Regression', 'Stepwise Regression']:
+        if variables_correlated == 'yes' and model_name == 'Linear Regression':
             score -= 0.5
             current_app.logger.debug(f"  - Correlated variable penalty: -0.5 → {score}")
         # Boost for Linear Regression in standard prediction scenarios with normal data and linear relationships
@@ -354,6 +454,11 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
             score += 5.0
             current_app.logger.debug(
                 f"CLUSTER BONUS: {model_name} +5.0 for {analysis_goal} analysis"
+            )
+        if model_name == 'ARIMA' and analysis_goal == 'time_series':
+            score += 3.0
+            current_app.logger.debug(
+                f"TIME SERIES BASELINE BONUS: {model_name} +3.0"
             )
         # Penalty for non-clustering models in exploratory or clustering scenarios
         if (analysis_goal == 'explore' or analysis_goal == 'cluster') and model_name not in ['K-Means clustering', 'Factor Analysis', 'Principal Component Analysis (PCA)',
@@ -388,8 +493,8 @@ def get_model_recommendation(analysis_goal, dependent_variable, independent_vari
         # Add a bonus for advanced/specialized models
         # This helps counter the bias towards simpler models like linear regression
         if model_name in ['Random Forest', 'XGBoost', 'Gradient Boosting', 'Neural Networks',
-                          'Bayesian Linear Regression', 'Generalized Additive Model',
-                          'Hierarchical Linear Model', 'Quantile Regression']:
+                           'Bayesian Linear Regression', 'Generalized Additive Model',
+                           'Quantile Regression']:
             score += 0.5
             current_app.logger.debug(f"  + Advanced model bonus: +0.5 → {score}")
         # Add extra bonus for Bayesian models - they're often underrepresented
@@ -500,7 +605,18 @@ def get_default_alternatives(analysis_goal, dependent_variable):
     elif analysis_goal == 'non_parametric':
         alternatives = ['Kruskal-Wallis Test', 'Mann-Whitney U Test']
     elif analysis_goal == 'time_series':
-        alternatives = ['Exponential Smoothing', 'Prophet', 'ARIMA', 'ARIMAX', 'GARCH']
+        alternatives = [
+            'ARIMA',
+            'Seasonal ARIMA (SARIMA)',
+            'Exponential Smoothing',
+            'State Space Model',
+        ]
+    elif analysis_goal == 'risk_assessment':
+        alternatives = ['Value at Risk (VaR)', 'Conditional Value at Risk (CVaR)',
+                        'Monte Carlo Risk Simulation', 'GARCH']
+    elif analysis_goal == 'forensic_analysis':
+        alternatives = ['Likelihood Ratio Evidence Model', 'Benford Law Analysis',
+                        'Forensic Anomaly Detection']
     # Remove alternatives that might not exist in the database
     MODEL_DATABASE = current_app.config.get('MODEL_DATABASE', {})
     return [alt for alt in alternatives if alt in MODEL_DATABASE][:4]  # Increased from 3 to 4 alternatives
@@ -591,6 +707,12 @@ def get_default_model(analysis_goal, dependent_variable):
         target_models = ['Mann-Whitney U Test', 'Kruskal-Wallis Test']
     elif analysis_goal == 'time_series':
         target_models = ['ARIMA', 'Exponential Smoothing']
+    elif analysis_goal == 'risk_assessment':
+        target_models = ['Value at Risk (VaR)', 'Conditional Value at Risk (CVaR)',
+                         'Monte Carlo Risk Simulation']
+    elif analysis_goal == 'forensic_analysis':
+        target_models = ['Likelihood Ratio Evidence Model', 'Forensic Anomaly Detection',
+                         'Benford Law Analysis']
     else:
         target_models = ['Linear Regression', 'Logistic Regression']
     # Find the first matching model that exists in the database
