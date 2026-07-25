@@ -18,6 +18,8 @@ class TestMainRoutes:
         response = client.get('/analysis-form')
         assert response.status_code == 200
         assert b'form' in response.data.lower() or b'analysis' in response.data.lower()
+        assert b'data-progress-mode="model"' in response.data
+        assert b'generation_progress.js?v=20260725.1' in response.data
     def test_double_encoded_model_group_url(self, client):
         """Previously generated encoded group links remain usable."""
         response = client.get('/models/Regression%2520Models')

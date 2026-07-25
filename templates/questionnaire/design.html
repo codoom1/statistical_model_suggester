@@ -3,6 +3,7 @@
 {% block title %}Design Your Questionnaire - Statistical Model Suggester{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/generation_progress.css', v='20260725.1') }}">
 <style>
     .design-form {
         background-color: #fff;
@@ -51,30 +52,6 @@
         padding-left: 1.25rem;
     }
     
-    /* Progress Overlay Styles */
-    #progress-overlay {
-        display: none; /* Hidden by default */
-        position: fixed; /* Cover the whole page */
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
-        z-index: 1050; /* High z-index */
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        text-align: center;
-    }
-
-    #progress-overlay.active {
-        display: flex; /* Show the overlay */
-    }
-
-    #progress-overlay .progress {
-        width: 60%; /* Width of the progress bar */
-        margin-bottom: 1rem;
-    }
 </style>
 {% endblock %}
 
@@ -101,7 +78,11 @@
             </div>
             
             <div class="design-form">
-                <form action="{{ url_for('questionnaire.design') }}" method="POST">
+                <form action="{{ url_for('questionnaire.design') }}" method="POST"
+                      data-generation-progress
+                      data-progress-target="questionnaire-progress"
+                      data-progress-mode="questionnaire"
+                      data-progress-ai-field="use_ai_enhancement">
                     <div class="form-section">
                         <h4 class="mb-3">Basic Information</h4>
                         
@@ -156,19 +137,19 @@
                             <div class="form-text">
                                 When enabled, our AI will:
                                 <ul class="mt-2">
-                                    <li>Enhance existing template questions to be more specific to your research</li>
-                                    <li>Generate entirely new questions based on your research description</li>
-                                    <li>Create a mix of open-ended, multiple choice, and rating scale questions</li>
-                                    <li>Add an "Additional Insights" section with unique AI-crafted questions</li>
+                                    <li>Add focused questions based on your research description</li>
+                                    <li>Avoid duplicating the questionnaire's template questions</li>
+                                    <li>Use suitable open-ended, multiple-choice, and rating questions</li>
+                                    <li>Keep generation to one secure AI request</li>
                                 </ul>
                             </div>
                         </div>
                         
                         <!-- AI Options - Hidden by default -->
                         <div id="ai-options-section" class="mb-4">
-                            <label for="num_ai_questions" class="form-label">Number of AI Questions per Section/Type (1-5): <span id="num-ai-questions-value">3</span></label>
+                            <label for="num_ai_questions" class="form-label">Number of AI Questions (1-5): <span id="num-ai-questions-value">3</span></label>
                             <input type="range" class="form-range" id="num_ai_questions" name="num_ai_questions" min="1" max="5" step="1" value="3">
-                            <div class="form-text">Controls how many questions the AI attempts to generate for each relevant category and type (Open-Ended, MC, Rating).</div>
+                            <div class="form-text">Controls the total number of focused AI questions added across the questionnaire. Uses one AI request.</div>
                         </div>
                         
                         <!-- Note about editing after generation -->
@@ -199,15 +180,20 @@
     </div>
 </div>
 
-<!-- Progress Bar Overlay -->
-<div id="progress-overlay">
-    <div class="spinner-border text-primary mb-3" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-    <h4>Generating Questionnaire...</h4>
-    <p>This may take a few moments, especially with AI enhancements.</p>
-    <div class="progress">
-        <div class="progress-bar progress-bar-striped progress-bar-animated bg-purple" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+<div id="questionnaire-progress" class="generation-progress-overlay"
+     role="status" aria-live="polite" aria-hidden="true">
+    <div class="generation-progress-card">
+        <div class="generation-progress-icon" aria-hidden="true">
+            <i class="bi bi-ui-checks"></i>
+        </div>
+        <h2>Generating your questionnaire</h2>
+        <p class="generation-progress-status">Analyzing your research goals…</p>
+        <div class="progress" aria-label="Questionnaire generation progress">
+            <div class="progress-bar" role="progressbar" aria-valuenow="8"
+                 aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <span class="generation-progress-percent">8%</span>
+        <small class="text-muted d-block mt-3">Keep this page open while generation completes.</small>
     </div>
 </div>
 
@@ -267,18 +253,7 @@
     // Initial call to set visibility based on default checkbox state
     toggleAiOptions();
 
-    // --- Progress Bar Logic ---
-    const questionnaireForm = document.querySelector('form[action*="questionnaire.design"]');
-    const progressOverlay = document.getElementById('progress-overlay');
-
-    if (questionnaireForm && progressOverlay) {
-        questionnaireForm.addEventListener('submit', function() {
-            // Show the progress overlay when the form is submitted
-            progressOverlay.classList.add('active');
-            // Optionally disable the submit button to prevent double submission
-            this.querySelector('button[type="submit"]').disabled = true;
-        });
-    }
 </script>
+<script src="{{ url_for('static', filename='js/generation_progress.js', v='20260725.1') }}"></script>
 {% endblock %}
-{% endblock %} 
+{% endblock %}

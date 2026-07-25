@@ -13,7 +13,13 @@ import requests
 import json
 
 # Import the new AI service and error class
-from utils.ai_service import call_openai_api, is_ai_enabled, OpenAIServiceError, get_openai_config
+from utils.ai_service import (
+    OpenAIServiceError,
+    call_openai_api,
+    get_openai_config,
+    is_ai_enabled,
+)
+from utils.questionnaire_ai import generate_ai_question_batch, merge_ai_questions
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -1157,7 +1163,15 @@ Return ONLY the questions with no explanations or additional text, one question 
     
     return ai_questions
 
-def generate_questionnaire(research_description, research_topic=None, target_audience=None, questionnaire_purpose=None, use_ai_enhancement=False, num_ai_questions=3):
+def generate_questionnaire(
+    research_description,
+    research_topic=None,
+    target_audience=None,
+    questionnaire_purpose=None,
+    use_ai_enhancement=False,
+    num_ai_questions=3,
+    safety_identifier=None,
+):
     """
     Generate a questionnaire structure based on a research description.
     
@@ -1175,39 +1189,31 @@ def generate_questionnaire(research_description, research_topic=None, target_aud
     if not research_topic:
         research_topic = "this topic"
     
-    # Analyze the intent, domain, and target audience
-    intent_analysis = analyze_intent(research_description)
-    
-    # Generate sections and questions based on the research description
-    sections = analyze_research_description(research_description, research_topic, use_ai=use_ai_enhancement, num_ai_questions=num_ai_questions)
-    
-    # If AI enhancement is requested but API fails, use our dummy enhancement for demo purposes
-    if use_ai_enhancement:
-        for section in sections:
-            try:
-                # First try the actual AI enhancement
-                section['questions'] = enhance_questions_with_ai(
-                    section['questions'], 
-                    research_topic, 
-                    research_description, 
-                    intent_analysis.get('domain'), 
-                    intent_analysis.get('intent'), 
-                    use_ai=True
-                )
-                
-                # If no questions got AI-enhanced, fall back to dummy enhancement
-                if not any(q.get('ai_enhanced', False) for q in section['questions']):
-                    section['questions'] = get_dummy_enhanced_questions(
-                        section['questions'], 
-                        research_topic, 
-                        research_description
-                    )
-            except Exception as e:
-                logger.error(f"Error in AI enhancement, using dummy enhancement: {e}")
-                section['questions'] = get_dummy_enhanced_questions(
-                    section['questions'], 
-                    research_topic, 
-                    research_description
-                )
-    
+    # Build the complete rules-based questionnaire first. AI then contributes a
+    # small batch in one request, keeping the route within serverless limits.
+    sections = analyze_research_description(
+        research_description,
+        research_topic,
+        use_ai=False,
+        num_ai_questions=num_ai_questions,
+    )
+
+    if use_ai_enhancement and is_ai_enabled():
+        try:
+            ai_questions = generate_ai_question_batch(
+                research_topic=research_topic,
+                research_description=research_description,
+                target_audience=target_audience or "Not specified",
+                questionnaire_purpose=questionnaire_purpose or "Not specified",
+                sections=sections,
+                num_questions=num_ai_questions,
+                safety_identifier=safety_identifier,
+            )
+            sections = merge_ai_questions(sections, ai_questions)
+        except (OpenAIServiceError, ValueError, json.JSONDecodeError) as error:
+            logger.warning(
+                "AI questionnaire enhancement failed; using rules-based output: %s",
+                error,
+            )
+
     return sections
