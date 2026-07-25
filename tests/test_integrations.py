@@ -13,6 +13,7 @@ from utils.ai_service import (
     call_openai_api,
 )
 from utils.email_service import RESEND_API_URL, send_email
+from utils.recommendation_ai import review_recommendation
 
 
 def test_openai_uses_responses_api(monkeypatch):
@@ -42,6 +43,114 @@ def test_openai_uses_responses_api(monkeypatch):
     assert kwargs["max_output_tokens"] == 400
     assert kwargs["safety_identifier"] == "user-7"
     assert kwargs["store"] is False
+
+
+def test_openai_supports_strict_structured_outputs(monkeypatch):
+    monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    response = Mock(output_text='{"answer":"ok"}')
+    client = Mock()
+    client.responses.create.return_value = response
+    schema = {
+        "type": "object",
+        "properties": {"answer": {"type": "string"}},
+        "required": ["answer"],
+        "additionalProperties": False,
+    }
+
+    with patch("utils.ai_service.OpenAI", return_value=client):
+        result = call_openai_api(
+            "Return a structured answer.",
+            response_schema=schema,
+            schema_name="test_answer",
+        )
+
+    assert result == '{"answer":"ok"}'
+    assert client.responses.create.call_args.kwargs["text"] == {
+        "format": {
+            "type": "json_schema",
+            "name": "test_answer",
+            "schema": schema,
+            "strict": True,
+        }
+    }
+
+
+def test_recommendation_ai_is_limited_to_verified_candidates():
+    model_database = {
+        "Linear Regression": {
+            "description": "Models a continuous outcome with linear effects.",
+            "assumptions": ["Linear relationship"],
+        },
+        "Random Forest": {
+            "description": "Models nonlinear relationships using trees.",
+            "assumptions": [],
+        },
+    }
+    provider_response = {
+        "recommended_model": "Linear Regression",
+        "summary": "The stated design favors a linear model.",
+        "why_it_fits": ["The outcome is continuous."],
+        "assumptions_to_check": ["Inspect residual patterns."],
+        "alternative_tradeoffs": [
+            {
+                "model": "Random Forest",
+                "when_to_prefer": "Prefer it if nonlinear effects dominate.",
+            },
+            {
+                "model": "Invented Model",
+                "when_to_prefer": "Never.",
+            },
+        ],
+    }
+
+    with patch(
+        "utils.recommendation_ai.call_openai_api",
+        return_value=__import__("json").dumps(provider_response),
+    ) as generate:
+        review = review_recommendation(
+            research_question="What predicts blood pressure?",
+            analysis_inputs={"analysis_goal": "predict"},
+            candidate_models=[
+                "Linear Regression",
+                "Random Forest",
+                "Invented Model",
+            ],
+            model_database=model_database,
+            safety_identifier="user-hash",
+        )
+
+    assert review["recommended_model"] == "Linear Regression"
+    assert review["alternative_tradeoffs"] == [
+        {
+            "model": "Random Forest",
+            "when_to_prefer": "Prefer it if nonlinear effects dominate.",
+        }
+    ]
+    schema = generate.call_args.kwargs["response_schema"]
+    assert schema["properties"]["recommended_model"]["enum"] == [
+        "Linear Regression",
+        "Random Forest",
+    ]
+
+
+def test_recommendation_ai_rejects_an_unverified_selection():
+    with patch(
+        "utils.recommendation_ai.call_openai_api",
+        return_value=(
+            '{"recommended_model":"Invented Model","summary":"No.",'
+            '"why_it_fits":[],"assumptions_to_check":[],'
+            '"alternative_tradeoffs":[]}'
+        ),
+    ):
+        with pytest.raises(ValueError, match="unverified model"):
+            review_recommendation(
+                research_question="What predicts the outcome?",
+                analysis_inputs={"analysis_goal": "predict"},
+                candidate_models=["Linear Regression"],
+                model_database={"Linear Regression": {"description": "Linear."}},
+                safety_identifier="user-hash",
+            )
 
 
 def test_openai_requires_key_when_enabled(monkeypatch):
@@ -185,6 +294,61 @@ def test_chatbot_enforces_durable_user_quota(client, test_user, monkeypatch):
     assert second.status_code == 429
     assert generate.call_count == 1
     assert AIUsageEvent.query.filter_by(user_id=test_user["id"]).count() == 1
+
+
+def test_model_recommendation_can_use_ai_review(
+    client,
+    test_user,
+    sample_analysis_data,
+    monkeypatch,
+):
+    monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    _login(client, test_user)
+    data = {**sample_analysis_data, "use_ai_review": "on"}
+
+    def build_review(**kwargs):
+        selected_model = kwargs["candidate_models"][0]
+        return {
+            "recommended_model": selected_model,
+            "summary": "The verified leader remains the best fit.",
+            "why_it_fits": ["It matches the stated outcome and goal."],
+            "assumptions_to_check": ["Use held-out validation."],
+            "alternative_tradeoffs": [],
+        }
+
+    with patch(
+        "routes.main_routes.review_recommendation",
+        side_effect=build_review,
+    ) as review:
+        response = client.post("/results", data=data)
+
+    assert response.status_code == 200
+    assert b"AI-assisted review" in response.data
+    assert b"The verified leader remains the best fit." in response.data
+    assert review.call_count == 1
+    assert AIUsageEvent.query.filter_by(user_id=test_user["id"]).count() == 1
+
+
+def test_model_recommendation_falls_back_when_ai_review_fails(
+    client,
+    test_user,
+    sample_analysis_data,
+    monkeypatch,
+):
+    monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    _login(client, test_user)
+    data = {**sample_analysis_data, "use_ai_review": "on"}
+
+    with patch(
+        "routes.main_routes.review_recommendation",
+        side_effect=OpenAIServiceError("Provider unavailable.", 503),
+    ):
+        response = client.post("/results", data=data)
+
+    assert response.status_code == 200
+    assert b"rules-based recommendation is still complete" in response.data
 
 
 def test_admin_ai_page_never_renders_api_key(client, admin_user, monkeypatch):
