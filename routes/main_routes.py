@@ -2,9 +2,19 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from models import db, User, Analysis, get_model_details
 from datetime import datetime
+import hashlib
 import json
+import logging
 from collections import OrderedDict
 from urllib.parse import unquote
+from sqlalchemy.exc import SQLAlchemyError
+
+from utils.ai_service import OpenAIServiceError, is_ai_enabled
+from utils.ai_usage import consume_user_ai_quota
+from utils.recommendation_ai import review_recommendation
+
+
+logger = logging.getLogger(__name__)
 main = Blueprint('main', __name__)
 
 
@@ -542,6 +552,7 @@ def results():
     data_distribution = request.form.get('data_distribution', '')
     relationship_type = request.form.get('relationship_type', '')
     variables_correlated = request.form.get('variables_correlated', 'unknown')
+    use_ai_review = request.form.get('use_ai_review') == 'on'
     # Get model database from app config
     MODEL_DATABASE = current_app.config.get('MODEL_DATABASE', {})
     # For clustering analysis, dependent variable can be empty
@@ -567,17 +578,6 @@ def results():
         # Find a replacement model if the recommended one doesn't exist
         recommended_model = get_default_model(analysis_goal, dependent_variable_type)
         explanation = f"Based on your analysis goal ({analysis_goal}) and dependent variable type ({dependent_variable_type}), we recommend using {recommended_model}."
-    # Save analysis if user is logged in
-    if current_user.is_authenticated:
-        try:
-            save_user_analysis(
-                current_user.id, research_question, recommended_model, analysis_goal, dependent_variable_type,
-                independent_variables, sample_size, missing_data, data_distribution, relationship_type,
-                variables_correlated
-            )
-            flash('Your analysis has been saved to your profile.', 'info')
-        except Exception as e:
-            flash(f'Could not save analysis to your profile: {str(e)}', 'danger')
     # Filter for alternative models (don't include the primary recommendation)
     if recommended_model in MODEL_DATABASE:
         # Find similar models based on the same analysis goal and dependent variable type
@@ -596,6 +596,99 @@ def results():
         alternative_models = [model for model in alternative_models if model in MODEL_DATABASE]
     else:
         alternative_models = []
+
+    ai_review = None
+    ai_review_status = 'not_requested'
+    if use_ai_review:
+        if not current_user.is_authenticated:
+            ai_review_status = 'authentication_required'
+        elif not is_ai_enabled():
+            ai_review_status = 'unavailable'
+        else:
+            try:
+                allowed, _ = consume_user_ai_quota(current_user.id)
+                if not allowed:
+                    ai_review_status = 'quota_reached'
+                else:
+                    candidate_models = [
+                        recommended_model,
+                        *alternative_models,
+                    ]
+                    safety_identifier = hashlib.sha256(
+                        (
+                            f"{current_app.config['SECRET_KEY']}:"
+                            f"{current_user.id}"
+                        ).encode()
+                    ).hexdigest()
+                    ai_review = review_recommendation(
+                        research_question=research_question,
+                        analysis_inputs={
+                            'analysis_goal': analysis_goal,
+                            'dependent_variable_type': dependent_variable_type,
+                            'independent_variable_types': independent_variables,
+                            'sample_size': sample_size,
+                            'missing_data': missing_data,
+                            'data_distribution': data_distribution,
+                            'relationship_type': relationship_type,
+                            'variables_correlated': variables_correlated,
+                        },
+                        candidate_models=candidate_models,
+                        model_database=MODEL_DATABASE,
+                        safety_identifier=safety_identifier,
+                    )
+                    if ai_review.get('recommended_model') not in candidate_models:
+                        raise ValueError(
+                            "AI review selected a model outside the shortlist."
+                        )
+                    rules_engine_model = recommended_model
+                    recommended_model = ai_review['recommended_model']
+                    if recommended_model != rules_engine_model:
+                        alternative_models = [
+                            rules_engine_model,
+                            *[
+                                model for model in alternative_models
+                                if model != recommended_model
+                            ],
+                        ][:4]
+                        explanation = generate_explanation(
+                            recommended_model,
+                            analysis_goal,
+                            dependent_variable_type,
+                            independent_variables,
+                            sample_size,
+                            missing_data,
+                            data_distribution,
+                            relationship_type,
+                            variables_correlated,
+                        )
+                    ai_review_status = 'completed'
+            except SQLAlchemyError:
+                db.session.rollback()
+                logger.exception(
+                    "Could not record recommendation AI usage for user %s.",
+                    current_user.id,
+                )
+                ai_review_status = 'unavailable'
+            except (OpenAIServiceError, ValueError):
+                logger.warning(
+                    "AI recommendation review failed for user %s.",
+                    current_user.id,
+                    exc_info=True,
+                )
+                ai_review_status = 'unavailable'
+
+    # Save the final, validated recommendation if the user is logged in.
+    if current_user.is_authenticated:
+        try:
+            save_user_analysis(
+                current_user.id, research_question, recommended_model, analysis_goal, dependent_variable_type,
+                independent_variables, sample_size, missing_data, data_distribution, relationship_type,
+                variables_correlated
+            )
+            flash('Your analysis has been saved to your profile.', 'info')
+        except Exception as e:
+            flash(f'Could not save analysis to your profile: {str(e)}', 'danger')
+
     return render_template(
         'results.html',
         research_question=research_question,
@@ -610,7 +703,9 @@ def results():
         recommended_model=recommended_model,
         explanation=explanation,
         MODEL_DATABASE=MODEL_DATABASE,
-        alternative_models=alternative_models
+        alternative_models=alternative_models,
+        ai_review=ai_review,
+        ai_review_status=ai_review_status,
     )
 @main.route('/user_analysis/<int:analysis_id>')
 @login_required

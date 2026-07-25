@@ -17,6 +17,14 @@
 .result-panel h2 { margin-bottom: 1rem; font-size: 1.25rem; }
 .rationale { color: #29485b; }
 .rationale ul { padding-left: 1.2rem; }
+.ai-review { margin-top: 1.25rem; padding: 1.25rem; background: #f2fbfa; border: 1px solid #a7ded7; border-radius: .9rem; }
+.ai-review-heading { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; }
+.ai-badge { display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .55rem; color: #0f514b; background: #d5f3ef; border-radius: 999px; font-size: .74rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.ai-review h3 { margin: 0; color: #153f49; font-size: 1.05rem; }
+.ai-review h4 { margin: 1rem 0 .4rem; color: #29485b; font-size: .9rem; }
+.ai-review ul { margin-bottom: 0; padding-left: 1.2rem; color: #29485b; }
+.ai-review li + li { margin-top: .35rem; }
+.ai-review-status { margin-top: 1rem; padding: .75rem .9rem; color: #6d5724; background: #fff9e8; border: 1px solid #f2dfa5; border-radius: .75rem; font-size: .85rem; }
 .next-actions { display: grid; gap: .65rem; }
 .next-actions .btn { display: flex; justify-content: space-between; align-items: center; padding: .75rem .9rem; text-align: left; }
 .caution-note { margin-top: 1rem; padding: .9rem; color: #6d5724; background: #fff9e8; border: 1px solid #f2dfa5; border-radius: .75rem; font-size: .85rem; }
@@ -45,6 +53,48 @@
             <div class="page-eyebrow">Why it fits</div>
             <h2>Recommendation rationale</h2>
             <div class="rationale">{{ explanation | safe }}</div>
+
+            {% if ai_review_status == 'completed' and ai_review %}
+            <div class="ai-review">
+                <div class="ai-review-heading">
+                    <span class="ai-badge"><i class="bi bi-stars"></i> AI-assisted review</span>
+                    <h3>Shortlist reviewed</h3>
+                </div>
+                {% if ai_review.summary %}
+                <p class="mt-3 mb-0">{{ ai_review.summary }}</p>
+                {% endif %}
+                {% if ai_review.why_it_fits %}
+                <h4>Why this candidate leads</h4>
+                <ul>
+                    {% for reason in ai_review.why_it_fits %}
+                    <li>{{ reason }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if ai_review.assumptions_to_check %}
+                <h4>Verify before fitting</h4>
+                <ul>
+                    {% for assumption in ai_review.assumptions_to_check %}
+                    <li>{{ assumption }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if ai_review.alternative_tradeoffs %}
+                <h4>When an alternative may be better</h4>
+                <ul>
+                    {% for tradeoff in ai_review.alternative_tradeoffs %}
+                    <li><strong>{{ tradeoff.model }}:</strong> {{ tradeoff.when_to_prefer }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% elif ai_review_status == 'quota_reached' %}
+            <div class="ai-review-status">Your hourly AI limit has been reached. The rules-based recommendation is shown above.</div>
+            {% elif ai_review_status == 'unavailable' %}
+            <div class="ai-review-status">The AI review is temporarily unavailable. The rules-based recommendation is still complete and usable.</div>
+            {% elif ai_review_status == 'authentication_required' %}
+            <div class="ai-review-status">Sign in to use AI review. The rules-based recommendation is shown above.</div>
+            {% endif %}
         </section>
 
         <aside class="result-panel">

@@ -2,7 +2,7 @@
 
 import logging
 import os
-from typing import Optional
+from typing import Any, Optional
 
 from openai import (
     APIConnectionError,
@@ -73,6 +73,8 @@ def call_openai_api(
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
     safety_identifier: Optional[str] = None,
+    response_schema: Optional[dict[str, Any]] = None,
+    schema_name: str = "structured_response",
 ) -> str:
     """Generate text through OpenAI's Responses API."""
     if not is_ai_enabled():
@@ -104,6 +106,15 @@ def call_openai_api(
     }
     if safety_identifier:
         request_options["safety_identifier"] = safety_identifier
+    if response_schema:
+        request_options["text"] = {
+            "format": {
+                "type": "json_schema",
+                "name": schema_name,
+                "schema": response_schema,
+                "strict": True,
+            }
+        }
 
     client = OpenAI(
         api_key=api_key,
