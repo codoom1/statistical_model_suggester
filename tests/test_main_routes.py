@@ -11,8 +11,8 @@ class TestMainRoutes:
         response = client.get('/')
         assert response.status_code == 200
         assert b'statistical' in response.data.lower() or b'model' in response.data.lower()
-        assert b'chatbot.js?v=20260725.1' in response.data
-        assert b'chatbot.css?v=20260725.1' in response.data
+        assert b'chatbot.js?v=20260725.2' in response.data
+        assert b'chatbot.css?v=20260725.2' in response.data
     def test_analysis_form_page(self, client):
         """Test that the analysis form page loads."""
         response = client.get('/analysis-form')
