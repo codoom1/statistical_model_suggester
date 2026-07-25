@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Your model recommendation — Statistical Model Suggester{% endblock %}
-{% block page_context %}Recommendation result: {{ recommended_model }} for the research question {{ research_question }}. Review the rationale, alternatives, assumptions, and model documentation.{% endblock %}
+{% block page_context %}Recommendation page. Research question: {{ research_question }}. Recommended model: {{ recommended_model }}. Analysis goal: {{ analysis_goal }}. Outcome type: {{ dependent_variable_type }}. Predictor types: {{ independent_variables | join(', ') if independent_variables else 'not specified' }}. Sample size: {{ sample_size or 'not specified' }}. Missing data: {{ missing_data or 'not specified' }}. Distribution: {{ data_distribution or 'unknown' }}. Expected relationship: {{ relationship_type or 'unknown' }}. Correlated predictors: {{ variables_correlated or 'unknown' }}. Verified compatible alternatives: {{ alternative_models | join(', ') if alternative_models else 'none identified' }}.{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -107,6 +107,15 @@
                 <a href="{{ url_for('main.model_interpretation', model_name=recommended_model) }}" class="btn btn-outline-primary">
                     Interpretation guide <i class="bi bi-book"></i>
                 </a>
+                {% if current_user.is_authenticated %}
+                <button
+                    type="button"
+                    class="btn btn-outline-primary"
+                    data-chat-question="What other model can replace {{ recommended_model }}, and when would each alternative be preferable?"
+                >
+                    Compare alternatives with AI <i class="bi bi-stars"></i>
+                </button>
+                {% endif %}
                 {% if recommended_model in MODEL_DATABASE and MODEL_DATABASE[recommended_model] is defined and MODEL_DATABASE[recommended_model].synthetic_data is defined %}
                 <a href="{{ url_for('main.model_details', model_name=recommended_model) }}#synthetic-data" class="btn btn-outline-secondary">
                     Worked example <i class="bi bi-code-square"></i>

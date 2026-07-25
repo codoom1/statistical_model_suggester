@@ -47,6 +47,25 @@ class TestMainRoutes:
         assert home_response.data.count(b'href="/models"') >= 3
         assert b'href="/models"' in results_response.data
 
+    def test_results_expose_design_context_to_ai_assistant(
+        self,
+        authenticated_client,
+        sample_analysis_data,
+    ):
+        """The assistant can explain alternatives using the current design."""
+        response = authenticated_client.post(
+            '/results',
+            data=sample_analysis_data,
+        )
+
+        assert response.status_code == 200
+        assert b'Recommended model:' in response.data
+        assert b'Analysis goal: predict' in response.data
+        assert b'Outcome type: continuous' in response.data
+        assert b'Verified compatible alternatives:' in response.data
+        assert b'Compare alternatives with AI' in response.data
+        assert b'data-chat-question=' in response.data
+
     def test_double_encoded_model_detail_urls(self, client):
         """Encoded model links work across detail and interpretation routes."""
         detail_response = client.get('/model/Linear%2520Regression')

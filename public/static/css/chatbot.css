@@ -118,6 +118,7 @@
     border-radius: 18px;
     font-size: 14px;
     line-height: 1.4;
+    white-space: pre-wrap;
     word-wrap: break-word;
 }
 

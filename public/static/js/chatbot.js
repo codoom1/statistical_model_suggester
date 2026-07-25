@@ -20,6 +20,12 @@ class ChatBot {
         // Toggle chat window
         this.chatIcon.addEventListener('click', () => this.toggleChatWindow());
         this.closeButton.addEventListener('click', () => this.toggleChatWindow(false));
+
+        document.querySelectorAll('[data-chat-question]').forEach((button) => {
+            button.addEventListener('click', () => {
+                this.askSuggestedQuestion(button.dataset.chatQuestion || '');
+            });
+        });
         
         // Send message on button click
         this.sendButton.addEventListener('click', () => this.sendMessage());
@@ -31,6 +37,17 @@ class ChatBot {
                 this.sendMessage();
             }
         });
+    }
+
+    askSuggestedQuestion(question) {
+        const cleanedQuestion = question.trim();
+        if (!cleanedQuestion) {
+            return;
+        }
+
+        this.toggleChatWindow(true);
+        this.userInput.value = cleanedQuestion;
+        this.sendMessage();
     }
     
     toggleChatWindow(show) {
