@@ -138,6 +138,7 @@ def review_recommendation(
         safety_identifier=safety_identifier,
         response_schema=_review_schema(verified_candidates),
         schema_name="model_recommendation_review",
+        max_output_tokens=1_500,
     )
 
     try:

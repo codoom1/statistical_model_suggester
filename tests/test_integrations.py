@@ -76,6 +76,47 @@ def test_openai_supports_strict_structured_outputs(monkeypatch):
     }
 
 
+def test_openai_allows_a_larger_feature_specific_output_budget(monkeypatch):
+    monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    monkeypatch.setenv("AI_MAX_OUTPUT_TOKENS", "400")
+    response = Mock(output_text='{"answer":"complete"}', status="completed")
+    client = Mock()
+    client.responses.create.return_value = response
+
+    with patch("utils.ai_service.OpenAI", return_value=client):
+        result = call_openai_api(
+            "Return the complete review.",
+            max_output_tokens=1_500,
+        )
+
+    assert result == '{"answer":"complete"}'
+    assert (
+        client.responses.create.call_args.kwargs["max_output_tokens"]
+        == 1_500
+    )
+
+
+def test_openai_rejects_an_incomplete_provider_response(monkeypatch):
+    monkeypatch.setenv("AI_ENHANCEMENT_ENABLED", "true")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    response = Mock(
+        output_text='{"answer":"cut off',
+        status="incomplete",
+    )
+    client = Mock()
+    client.responses.create.return_value = response
+
+    with patch("utils.ai_service.OpenAI", return_value=client):
+        with pytest.raises(
+            OpenAIServiceError,
+            match="exceeded its output limit",
+        ) as error:
+            call_openai_api("Return the complete review.")
+
+    assert error.value.status_code == 502
+
+
 def test_recommendation_ai_is_limited_to_verified_candidates():
     model_database = {
         "Linear Regression": {
@@ -128,6 +169,7 @@ def test_recommendation_ai_is_limited_to_verified_candidates():
         }
     ]
     schema = generate.call_args.kwargs["response_schema"]
+    assert generate.call_args.kwargs["max_output_tokens"] == 1_500
     assert schema["properties"]["recommended_model"]["enum"] == [
         "Linear Regression",
         "Random Forest",

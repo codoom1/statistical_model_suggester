@@ -55,11 +55,15 @@ def _timeout_seconds() -> float:
         return 45.0
 
 
-def _max_output_tokens() -> int:
-    raw_limit = os.environ.get("AI_MAX_OUTPUT_TOKENS", "400")
+def _max_output_tokens(override: Optional[int] = None) -> int:
+    raw_limit = (
+        override
+        if override is not None
+        else os.environ.get("AI_MAX_OUTPUT_TOKENS", "400")
+    )
     try:
         return min(max(int(raw_limit), 100), 1_500)
-    except ValueError:
+    except (TypeError, ValueError):
         return 400
 
 
@@ -75,6 +79,7 @@ def call_openai_api(
     safety_identifier: Optional[str] = None,
     response_schema: Optional[dict[str, Any]] = None,
     schema_name: str = "structured_response",
+    max_output_tokens: Optional[int] = None,
 ) -> str:
     """Generate text through OpenAI's Responses API."""
     if not is_ai_enabled():
@@ -100,7 +105,7 @@ def call_openai_api(
         "model": target_model,
         "instructions": system_prompt or DEFAULT_SYSTEM_PROMPT,
         "input": cleaned_prompt,
-        "max_output_tokens": _max_output_tokens(),
+        "max_output_tokens": _max_output_tokens(max_output_tokens),
         "reasoning": {"effort": _reasoning_effort()},
         "store": False,
     }
@@ -169,6 +174,11 @@ def call_openai_api(
 
     if response is None:
         raise OpenAIServiceError("The AI provider returned no response.", 502)
+    if getattr(response, "status", None) == "incomplete":
+        raise OpenAIServiceError(
+            "The AI provider response exceeded its output limit.",
+            502,
+        )
     content = response.output_text
     if not isinstance(content, str) or not content.strip():
         raise OpenAIServiceError("The AI provider returned an empty response.", 502)
